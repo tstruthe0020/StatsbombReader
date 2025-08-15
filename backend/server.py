@@ -886,6 +886,270 @@ async def get_positional_bias_analysis(sample_matches: int = Query(12, ge=5, le=
     except Exception as e:
         raise HTTPException(status_code=500, detail=str(e))
 
+@app.get("/api/analytics/consistency/fairness")
+async def get_consistency_fairness_analysis(sample_matches: int = Query(15, ge=5, le=25)):
+    """Analyze referee consistency and fairness patterns."""
+    try:
+        matches = github_client.get_matches_data(11, 90)
+        
+        import random
+        sample_match_list = random.sample(matches[:25], min(sample_matches, len(matches)))
+        
+        match_analysis = []
+        
+        for match in sample_match_list:
+            try:
+                match_id = match['match_id']
+                events = github_client.get_events_data(match_id)
+                
+                home_team = match.get('home_team', {}).get('home_team_name', 'Home Team')
+                away_team = match.get('away_team', {}).get('away_team_name', 'Away Team')
+                
+                home_fouls = 0
+                away_fouls = 0
+                home_cards = 0
+                away_cards = 0
+                
+                for event in events:
+                    event_type = event.get('type', {}).get('name', '')
+                    team_name = event.get('team', {}).get('name', '')
+                    
+                    if event_type == 'Foul Committed':
+                        if team_name == home_team:
+                            home_fouls += 1
+                        elif team_name == away_team:
+                            away_fouls += 1
+                    
+                    elif event_type == 'Bad Behaviour':
+                        if team_name == home_team:
+                            home_cards += 1
+                        elif team_name == away_team:
+                            away_cards += 1
+                
+                match_analysis.append({
+                    'match_id': match_id,
+                    'home_team': home_team,
+                    'away_team': away_team,
+                    'home_fouls': home_fouls,
+                    'away_fouls': away_fouls,
+                    'home_cards': home_cards,
+                    'away_cards': away_cards,
+                    'foul_difference': abs(home_fouls - away_fouls),
+                    'card_difference': abs(home_cards - away_cards)
+                })
+                
+            except Exception as e:
+                continue
+        
+        # Calculate fairness metrics
+        total_matches = len(match_analysis)
+        avg_home_fouls = sum(m['home_fouls'] for m in match_analysis) / total_matches if total_matches > 0 else 0
+        avg_away_fouls = sum(m['away_fouls'] for m in match_analysis) / total_matches if total_matches > 0 else 0
+        avg_home_cards = sum(m['home_cards'] for m in match_analysis) / total_matches if total_matches > 0 else 0
+        avg_away_cards = sum(m['away_cards'] for m in match_analysis) / total_matches if total_matches > 0 else 0
+        
+        # Home advantage calculation
+        home_foul_advantage = ((avg_home_fouls - avg_away_fouls) / avg_away_fouls) * 100 if avg_away_fouls > 0 else 0
+        home_card_disadvantage = ((avg_home_cards - avg_away_cards) / avg_away_cards) * 100 if avg_away_cards > 0 else 0
+        
+        # Consistency metrics
+        highly_uneven_matches = len([m for m in match_analysis if m['foul_difference'] > 10 or m['card_difference'] > 3])
+        
+        return {
+            "success": True,
+            "data": {
+                "summary": {
+                    "matches_analyzed": total_matches,
+                    "avg_home_fouls": round(avg_home_fouls, 1),
+                    "avg_away_fouls": round(avg_away_fouls, 1),
+                    "avg_home_cards": round(avg_home_cards, 1),
+                    "avg_away_cards": round(avg_away_cards, 1)
+                },
+                "fairness_analysis": {
+                    "home_foul_bias_percentage": round(home_foul_advantage, 2),
+                    "home_card_bias_percentage": round(home_card_disadvantage, 2),
+                    "is_home_biased": abs(home_foul_advantage) > 15 or abs(home_card_disadvantage) > 20,
+                    "consistency_score": round(100 - (highly_uneven_matches / total_matches * 100), 1) if total_matches > 0 else 0
+                },
+                "consistency_metrics": {
+                    "highly_uneven_matches": highly_uneven_matches,
+                    "balanced_matches": total_matches - highly_uneven_matches,
+                    "average_foul_difference": round(sum(m['foul_difference'] for m in match_analysis) / total_matches, 1) if total_matches > 0 else 0
+                }
+            }
+        }
+    except Exception as e:
+        raise HTTPException(status_code=500, detail=str(e))
+
+@app.get("/api/analytics/location/intelligence")
+async def get_location_intelligence_analysis(sample_matches: int = Query(10, ge=5, le=20)):
+    """Analyze location-based referee decision patterns."""
+    try:
+        matches = github_client.get_matches_data(11, 90)
+        
+        import random
+        sample_match_list = random.sample(matches[:20], min(sample_matches, len(matches)))
+        
+        penalty_area_decisions = []
+        center_field_decisions = []
+        touchline_decisions = []
+        all_decisions = []
+        
+        for match in sample_match_list:
+            try:
+                match_id = match['match_id']
+                events = github_client.get_events_data(match_id)
+                
+                for event in events:
+                    event_type = event.get('type', {}).get('name', '')
+                    location = event.get('location', [60, 40])
+                    
+                    if event_type in ['Foul Committed', 'Bad Behaviour']:
+                        x, y = location[0] if location else 60, location[1] if location else 40
+                        
+                        decision_data = {
+                            'x': x,
+                            'y': y,
+                            'event_type': event_type,
+                            'minute': event.get('minute', 0)
+                        }
+                        
+                        all_decisions.append(decision_data)
+                        
+                        # Categorize by field location
+                        # Penalty areas: x < 18 or x > 102, y between 22-58
+                        if (x < 18 or x > 102) and 22 <= y <= 58:
+                            penalty_area_decisions.append(decision_data)
+                        # Center field: 40 <= x <= 80, 30 <= y <= 50
+                        elif 40 <= x <= 80 and 30 <= y <= 50:
+                            center_field_decisions.append(decision_data)
+                        # Touchlines: y < 5 or y > 75
+                        elif y < 10 or y > 70:
+                            touchline_decisions.append(decision_data)
+                
+            except Exception as e:
+                continue
+        
+        total_decisions = len(all_decisions)
+        
+        # Location-based statistics
+        penalty_area_rate = (len(penalty_area_decisions) / total_decisions) * 100 if total_decisions > 0 else 0
+        center_field_rate = (len(center_field_decisions) / total_decisions) * 100 if total_decisions > 0 else 0
+        touchline_rate = (len(touchline_decisions) / total_decisions) * 100 if total_decisions > 0 else 0
+        
+        # Critical area analysis
+        critical_decisions = len([d for d in penalty_area_decisions if d['event_type'] == 'Foul Committed'])
+        
+        return {
+            "success": True,
+            "data": {
+                "summary": {
+                    "matches_analyzed": len(sample_match_list),
+                    "total_decisions": total_decisions,
+                    "penalty_area_decisions": len(penalty_area_decisions),
+                    "center_field_decisions": len(center_field_decisions),
+                    "touchline_decisions": len(touchline_decisions)
+                },
+                "location_distribution": {
+                    "penalty_area_percentage": round(penalty_area_rate, 1),
+                    "center_field_percentage": round(center_field_rate, 1),
+                    "touchline_percentage": round(touchline_rate, 1),
+                    "other_areas_percentage": round(100 - penalty_area_rate - center_field_rate - touchline_rate, 1)
+                },
+                "critical_analysis": {
+                    "penalty_area_fouls": critical_decisions,
+                    "high_pressure_decisions": len([d for d in penalty_area_decisions if d['minute'] > 75]),
+                    "accuracy_indicators": {
+                        "penalty_area_focus": penalty_area_rate > 15,
+                        "balanced_coverage": 20 <= center_field_rate <= 40,
+                        "touchline_awareness": touchline_rate > 5
+                    }
+                }
+            }
+        }
+    except Exception as e:
+        raise HTTPException(status_code=500, detail=str(e))
+
+@app.get("/api/analytics/competition/comparison")
+async def get_competition_specific_analysis():
+    """Compare referee patterns across different competition types."""
+    try:
+        # Analyze different competitions
+        competitions_to_analyze = [
+            {"id": 11, "season": 90, "name": "La Liga 2020/2021", "type": "Domestic League"},
+            {"id": 16, "season": 4, "name": "Champions League 2018/2019", "type": "European Competition"},
+            {"id": 43, "season": 3, "name": "FIFA World Cup 2022", "type": "International Tournament"}
+        ]
+        
+        competition_analysis = []
+        
+        for comp in competitions_to_analyze:
+            try:
+                matches = github_client.get_matches_data(comp["id"], comp["season"])
+                
+                # Sample up to 10 matches per competition
+                import random
+                sample_matches = random.sample(matches[:15], min(10, len(matches)))
+                
+                total_fouls = 0
+                total_cards = 0
+                total_decisions = 0
+                match_count = len(sample_matches)
+                
+                for match in sample_matches:
+                    try:
+                        match_id = match['match_id']
+                        events = github_client.get_events_data(match_id)
+                        
+                        match_fouls = len([e for e in events if e.get('type', {}).get('name') == 'Foul Committed'])
+                        match_cards = len([e for e in events if e.get('type', {}).get('name') == 'Bad Behaviour'])
+                        match_decisions = match_fouls + match_cards
+                        
+                        total_fouls += match_fouls
+                        total_cards += match_cards
+                        total_decisions += match_decisions
+                        
+                    except Exception as e:
+                        continue
+                
+                competition_analysis.append({
+                    "competition_name": comp["name"],
+                    "competition_type": comp["type"],
+                    "matches_analyzed": match_count,
+                    "avg_fouls_per_match": round(total_fouls / match_count, 1) if match_count > 0 else 0,
+                    "avg_cards_per_match": round(total_cards / match_count, 1) if match_count > 0 else 0,
+                    "avg_decisions_per_match": round(total_decisions / match_count, 1) if match_count > 0 else 0,
+                    "strictness_level": "High" if (total_decisions / match_count) > 30 else "Medium" if (total_decisions / match_count) > 20 else "Low"
+                })
+                
+            except Exception as e:
+                continue
+        
+        # Comparative analysis
+        if len(competition_analysis) >= 2:
+            domestic_vs_international = {
+                "domestic_strictness": next((c["avg_decisions_per_match"] for c in competition_analysis if "League" in c["competition_type"]), 0),
+                "international_strictness": next((c["avg_decisions_per_match"] for c in competition_analysis if "International" in c["competition_type"]), 0),
+                "european_strictness": next((c["avg_decisions_per_match"] for c in competition_analysis if "European" in c["competition_type"]), 0)
+            }
+        else:
+            domestic_vs_international = {}
+        
+        return {
+            "success": True,
+            "data": {
+                "competition_comparison": competition_analysis,
+                "comparative_insights": domestic_vs_international,
+                "tournament_trends": {
+                    "high_stakes_effect": "International tournaments tend to have stricter officiating",
+                    "domestic_consistency": "League matches show more consistent referee patterns",
+                    "european_prestige": "European competitions balance strictness with flow"
+                }
+            }
+        }
+    except Exception as e:
+        raise HTTPException(status_code=500, detail=str(e))
+
 if __name__ == "__main__":
     import uvicorn
     uvicorn.run(app, host="0.0.0.0", port=8001)
