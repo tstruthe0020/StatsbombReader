@@ -517,30 +517,27 @@ function App() {
 
             <Card>
               <CardHeader>
-                <CardTitle>Coming Soon</CardTitle>
-                <CardDescription>Advanced analytics features in development</CardDescription>
+                <CardTitle>Additional Analytics</CardTitle>
+                <CardDescription>More advanced analytics features</CardDescription>
               </CardHeader>
               <CardContent>
                 <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
-                  <div className="p-4 bg-gray-50 rounded-lg">
-                    <h4 className="font-semibold mb-2">Foul Heat Maps</h4>
-                    <p className="text-sm text-gray-600">Visual representation of foul locations on the pitch</p>
-                  </div>
-                  <div className="p-4 bg-gray-50 rounded-lg">
-                    <h4 className="font-semibold mb-2">Referee Analysis</h4>
-                    <p className="text-sm text-gray-600">Compare referee strictness and decision patterns</p>
-                  </div>
-                  <div className="p-4 bg-gray-50 rounded-lg">
+                  <div className="p-4 bg-blue-50 rounded-lg">
                     <h4 className="font-semibold mb-2">Time-based Patterns</h4>
-                    <p className="text-sm text-gray-600">Analyze foul frequency by match time</p>
+                    <p className="text-sm text-gray-600">Analyze foul frequency by match time periods</p>
                   </div>
-                  <div className="p-4 bg-gray-50 rounded-lg">
+                  <div className="p-4 bg-green-50 rounded-lg">
                     <h4 className="font-semibold mb-2">Player Profiles</h4>
                     <p className="text-sm text-gray-600">Individual player foul and card statistics</p>
                   </div>
                 </div>
               </CardContent>
             </Card>
+          </TabsContent>
+
+          {/* NEW: Referee Heatmaps Tab */}
+          <TabsContent value="heatmaps" className="space-y-6">
+            <RefereeHeatmap />
           </TabsContent>
         </Tabs>
 
