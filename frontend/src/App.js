@@ -40,12 +40,25 @@ function App() {
     try {
       setLoading(true);
       setError(null); // Clear any previous errors
-      const response = await axios.get(`${API_BASE_URL}/api/competitions`);
+      
+      console.log('🔍 Attempting to fetch competitions from:', `${API_BASE_URL}/api/competitions`);
+      
+      const response = await axios.get(`${API_BASE_URL}/api/competitions`, {
+        timeout: 10000, // 10 second timeout
+        headers: {
+          'Content-Type': 'application/json',
+        }
+      });
+      
+      console.log('✅ API Response received:', response.status, response.data);
+      
       if (response.data.success) {
         setCompetitions(response.data.data);
         setError(null); // Clear error on success
+        console.log('✅ Competitions loaded successfully:', response.data.data.length);
       }
     } catch (err) {
+      console.error('❌ API Request failed:', err);
       setError('Failed to fetch competitions');
       console.error(err);
     } finally {
