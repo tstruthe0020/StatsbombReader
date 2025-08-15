@@ -521,8 +521,8 @@ function App() {
 
             <Card>
               <CardHeader>
-                <CardTitle>Additional Analytics</CardTitle>
-                <CardDescription>More advanced analytics features</CardDescription>
+                <CardTitle>Basic Analytics Overview</CardTitle>
+                <CardDescription>Essential referee statistics and trends</CardDescription>
               </CardHeader>
               <CardContent>
                 <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
@@ -539,9 +539,14 @@ function App() {
             </Card>
           </TabsContent>
 
-          {/* NEW: Referee Heatmaps Tab */}
+          {/* Referee Heatmaps Tab */}
           <TabsContent value="heatmaps" className="space-y-6">
             <RefereeHeatmap />
+          </TabsContent>
+
+          {/* NEW: Advanced Analytics Tab */}
+          <TabsContent value="advanced" className="space-y-6">
+            <AdvancedAnalytics />
           </TabsContent>
         </Tabs>
 
