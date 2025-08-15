@@ -85,7 +85,15 @@ class GitHubAPIClient:
             self._ensure_rate_limit()
             file_path = f"data/events/{match_id}.json"
             content_file = self.repo.get_contents(file_path)
-            content = content_file.decoded_content.decode('utf-8')
+            
+            # Handle encoding issues more robustly
+            if hasattr(content_file, 'decoded_content') and content_file.decoded_content:
+                content = content_file.decoded_content.decode('utf-8')
+            else:
+                # Fallback to raw content if decoded_content is not available
+                import base64
+                content = base64.b64decode(content_file.content).decode('utf-8')
+            
             return json.loads(content)
         except Exception as e:
             logger.error(f"Failed to get events: {e}")
