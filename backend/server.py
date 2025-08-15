@@ -87,16 +87,30 @@ class GitHubAPIClient:
             content_file = self.repo.get_contents(file_path)
             
             # Handle encoding issues more robustly
-            if hasattr(content_file, 'decoded_content') and content_file.decoded_content:
-                content = content_file.decoded_content.decode('utf-8')
-            else:
-                # Fallback to raw content if decoded_content is not available
+            try:
+                # Try decoded_content first
+                if hasattr(content_file, 'decoded_content') and content_file.decoded_content is not None:
+                    content = content_file.decoded_content.decode('utf-8')
+                else:
+                    # Fallback to raw content if decoded_content is not available
+                    import base64
+                    content = base64.b64decode(content_file.content).decode('utf-8')
+            except (AttributeError, UnicodeDecodeError) as decode_error:
+                # Last resort: try different encodings
                 import base64
-                content = base64.b64decode(content_file.content).decode('utf-8')
+                raw_content = base64.b64decode(content_file.content)
+                for encoding in ['utf-8', 'latin-1', 'ascii']:
+                    try:
+                        content = raw_content.decode(encoding)
+                        break
+                    except UnicodeDecodeError:
+                        continue
+                else:
+                    raise Exception(f"Could not decode content with any encoding: {decode_error}")
             
             return json.loads(content)
         except Exception as e:
-            logger.error(f"Failed to get events: {e}")
+            logger.error(f"Failed to get events for match {match_id}: {e}")
             raise HTTPException(status_code=500, detail=str(e))
 
 # Pydantic models
