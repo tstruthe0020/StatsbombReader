@@ -535,60 +535,352 @@ async def get_referee_foul_heatmap(referee_id: str):
     except Exception as e:
         raise HTTPException(status_code=500, detail=str(e))
 
-@app.get("/api/analytics/database-stats")
-async def get_database_statistics():
-    """Get comprehensive statistics about the StatsBomb database."""
+@app.get("/api/analytics/cards/patterns")
+async def get_card_patterns(
+    competition_id: Optional[int] = Query(None),
+    season_id: Optional[int] = Query(None),
+    sample_matches: int = Query(20, ge=5, le=50)
+):
+    """Analyze card patterns across matches."""
     try:
-        # Get all competitions
-        competitions = github_client.get_competitions_data()
+        # Get sample matches for analysis
+        if competition_id and season_id:
+            matches = github_client.get_matches_data(competition_id, season_id)
+        else:
+            # Use La Liga 2020/2021 as default sample
+            matches = github_client.get_matches_data(11, 90)
         
-        total_matches = 0
-        competition_stats = []
-        errors = []
+        # Sample matches to avoid overwhelming the API
+        import random
+        sample_match_list = random.sample(matches[:30], min(sample_matches, len(matches)))
         
-        for comp in competitions:
+        card_events = []
+        match_count = 0
+        
+        for match in sample_match_list:
             try:
-                matches = github_client.get_matches_data(comp['competition_id'], comp['season_id'])
-                match_count = len(matches)
-                total_matches += match_count
+                match_id = match['match_id']
+                events = github_client.get_events_data(match_id)
                 
-                competition_stats.append({
-                    'competition_name': comp['competition_name'],
-                    'season_name': comp['season_name'],
-                    'country_name': comp['country_name'],
-                    'competition_id': comp['competition_id'],
-                    'season_id': comp['season_id'],
-                    'match_count': match_count
-                })
+                home_team = match.get('home_team', {}).get('home_team_name', 'Home')
+                away_team = match.get('away_team', {}).get('away_team_name', 'Away')
                 
+                for event in events:
+                    if event.get('type', {}).get('name') == 'Bad Behaviour':
+                        card_info = event.get('bad_behaviour', {}).get('card', {})
+                        if card_info:
+                            is_home_team = event.get('team', {}).get('name') == home_team
+                            
+                            card_events.append({
+                                'match_id': match_id,
+                                'card_type': card_info.get('name', 'Unknown'),
+                                'minute': event.get('minute', 0),
+                                'player_name': event.get('player', {}).get('name', 'Unknown'),
+                                'position': event.get('position', {}).get('name', 'Unknown'),
+                                'team_name': event.get('team', {}).get('name', 'Unknown'),
+                                'is_home_team': is_home_team,
+                                'location': event.get('location', [60, 40])
+                            })
+                
+                match_count += 1
+                if match_count >= sample_matches:
+                    break
+                    
             except Exception as e:
-                errors.append({
-                    'competition': f"{comp['competition_name']} - {comp['season_name']}",
-                    'error': str(e)
-                })
                 continue
         
-        # Sort by match count (highest first)
-        competition_stats.sort(key=lambda x: x['match_count'], reverse=True)
+        # Analyze patterns
+        total_cards = len(card_events)
+        yellow_cards = len([c for c in card_events if c['card_type'] == 'Yellow Card'])
+        red_cards = len([c for c in card_events if c['card_type'] == 'Red Card'])
         
-        # Calculate additional statistics
-        countries = set(comp['country_name'] for comp in competition_stats)
-        competitions_unique = set(comp['competition_name'] for comp in competition_stats)
+        # Time distribution analysis
+        time_periods = {
+            '0-15 min': len([c for c in card_events if 0 <= c['minute'] <= 15]),
+            '16-30 min': len([c for c in card_events if 16 <= c['minute'] <= 30]),
+            '31-45 min': len([c for c in card_events if 31 <= c['minute'] <= 45]),
+            '46-60 min': len([c for c in card_events if 46 <= c['minute'] <= 60]),
+            '61-75 min': len([c for c in card_events if 61 <= c['minute'] <= 75]),
+            '76-90+ min': len([c for c in card_events if c['minute'] >= 76])
+        }
+        
+        # Position analysis
+        position_stats = {}
+        for card in card_events:
+            pos = card['position']
+            if pos not in position_stats:
+                position_stats[pos] = {'yellow': 0, 'red': 0, 'total': 0}
+            
+            if card['card_type'] == 'Yellow Card':
+                position_stats[pos]['yellow'] += 1
+            elif card['card_type'] == 'Red Card':
+                position_stats[pos]['red'] += 1
+            position_stats[pos]['total'] += 1
+        
+        # Home vs Away analysis
+        home_cards = len([c for c in card_events if c['is_home_team']])
+        away_cards = len([c for c in card_events if not c['is_home_team']])
         
         return {
             "success": True,
             "data": {
                 "summary": {
-                    "total_competitions": len(competitions),
-                    "total_matches": total_matches,
-                    "unique_countries": len(countries),
-                    "unique_competition_types": len(competitions_unique),
-                    "errors_encountered": len(errors)
+                    "matches_analyzed": match_count,
+                    "total_cards": total_cards,
+                    "yellow_cards": yellow_cards,
+                    "red_cards": red_cards,
+                    "cards_per_match": round(total_cards / match_count, 2) if match_count > 0 else 0
                 },
-                "competition_breakdown": competition_stats[:20],  # Top 20 competitions by match count
-                "countries": sorted(list(countries)),
-                "competition_types": sorted(list(competitions_unique)),
-                "errors": errors[:10] if errors else []
+                "time_distribution": time_periods,
+                "position_analysis": dict(sorted(position_stats.items(), key=lambda x: x[1]['total'], reverse=True)[:10]),
+                "home_away_bias": {
+                    "home_cards": home_cards,
+                    "away_cards": away_cards,
+                    "home_percentage": round((home_cards / total_cards) * 100, 1) if total_cards > 0 else 0,
+                    "away_percentage": round((away_cards / total_cards) * 100, 1) if total_cards > 0 else 0
+                },
+                "raw_events": card_events[:20]  # Sample for detailed analysis
+            }
+        }
+    except Exception as e:
+        raise HTTPException(status_code=500, detail=str(e))
+
+@app.get("/api/analytics/advantage/patterns")
+async def get_advantage_patterns(sample_matches: int = Query(15, ge=5, le=30)):
+    """Analyze referee advantage play patterns."""
+    try:
+        # Get La Liga matches for analysis
+        matches = github_client.get_matches_data(11, 90)
+        
+        import random
+        sample_match_list = random.sample(matches[:25], min(sample_matches, len(matches)))
+        
+        advantage_events = []
+        foul_events = []
+        match_count = 0
+        
+        for match in sample_match_list:
+            try:
+                match_id = match['match_id']
+                events = github_client.get_events_data(match_id)
+                
+                for event in events:
+                    if event.get('type', {}).get('name') == 'Foul Committed':
+                        foul_committed = event.get('foul_committed', {})
+                        advantage_played = foul_committed.get('advantage', False)
+                        
+                        foul_data = {
+                            'match_id': match_id,
+                            'minute': event.get('minute', 0),
+                            'location': event.get('location', [60, 40]),
+                            'advantage_played': advantage_played,
+                            'team_name': event.get('team', {}).get('name', 'Unknown'),
+                            'player_name': event.get('player', {}).get('name', 'Unknown')
+                        }
+                        
+                        foul_events.append(foul_data)
+                        
+                        if advantage_played:
+                            advantage_events.append(foul_data)
+                
+                match_count += 1
+                if match_count >= sample_matches:
+                    break
+                    
+            except Exception as e:
+                continue
+        
+        total_fouls = len(foul_events)
+        total_advantages = len(advantage_events)
+        advantage_rate = (total_advantages / total_fouls) * 100 if total_fouls > 0 else 0
+        
+        # Location-based advantage analysis
+        location_zones = {
+            'Defensive Third': 0,
+            'Middle Third': 0,
+            'Attacking Third': 0
+        }
+        
+        for adv in advantage_events:
+            x_coord = adv['location'][0] if adv['location'] else 60
+            if x_coord < 40:
+                location_zones['Defensive Third'] += 1
+            elif x_coord < 80:
+                location_zones['Middle Third'] += 1
+            else:
+                location_zones['Attacking Third'] += 1
+        
+        # Time-based advantage patterns
+        time_patterns = {
+            'First Half (0-45)': len([a for a in advantage_events if a['minute'] <= 45]),
+            'Second Half (46-90+)': len([a for a in advantage_events if a['minute'] > 45])
+        }
+        
+        return {
+            "success": True,
+            "data": {
+                "summary": {
+                    "matches_analyzed": match_count,
+                    "total_fouls": total_fouls,
+                    "advantages_played": total_advantages,
+                    "advantage_rate_percentage": round(advantage_rate, 1)
+                },
+                "location_analysis": location_zones,
+                "time_patterns": time_patterns,
+                "referee_philosophy": {
+                    "lenient": advantage_rate > 25,
+                    "strict": advantage_rate < 15,
+                    "balanced": 15 <= advantage_rate <= 25,
+                    "philosophy_score": round(advantage_rate, 1)
+                }
+            }
+        }
+    except Exception as e:
+        raise HTTPException(status_code=500, detail=str(e))
+
+@app.get("/api/analytics/match-flow/timing")
+async def get_match_flow_analysis(sample_matches: int = Query(10, ge=5, le=20)):
+    """Analyze match flow and referee decision timing patterns."""
+    try:
+        matches = github_client.get_matches_data(11, 90)
+        
+        import random
+        sample_match_list = random.sample(matches[:20], min(sample_matches, len(matches)))
+        
+        decision_timeline = []
+        match_count = 0
+        
+        for match in sample_match_list:
+            try:
+                match_id = match['match_id']
+                events = github_client.get_events_data(match_id)
+                
+                # Track referee decisions by minute
+                referee_decisions = []
+                
+                for event in events:
+                    event_type = event.get('type', {}).get('name', '')
+                    if event_type in ['Foul Committed', 'Bad Behaviour', 'Referee Ball-Drop']:
+                        referee_decisions.append({
+                            'minute': event.get('minute', 0),
+                            'decision_type': event_type,
+                            'location': event.get('location', [60, 40])
+                        })
+                
+                decision_timeline.extend(referee_decisions)
+                match_count += 1
+                if match_count >= sample_matches:
+                    break
+                    
+            except Exception as e:
+                continue
+        
+        # Create decision density by 5-minute intervals
+        decision_density = {}
+        for i in range(0, 96, 5):  # 0-95 minutes in 5-minute intervals
+            interval_key = f"{i}-{i+4}"
+            decision_density[interval_key] = len([d for d in decision_timeline 
+                                                if i <= d['minute'] < i+5])
+        
+        # Peak decision periods
+        peak_periods = sorted(decision_density.items(), key=lambda x: x[1], reverse=True)[:5]
+        
+        # Critical moments (last 10 minutes of each half)
+        critical_decisions = {
+            'first_half_critical': len([d for d in decision_timeline if 36 <= d['minute'] <= 45]),
+            'second_half_critical': len([d for d in decision_timeline if 81 <= d['minute'] <= 95]),
+            'regular_time': len([d for d in decision_timeline if not (36 <= d['minute'] <= 45 or 81 <= d['minute'] <= 95)])
+        }
+        
+        return {
+            "success": True,
+            "data": {
+                "summary": {
+                    "matches_analyzed": match_count,
+                    "total_decisions": len(decision_timeline),
+                    "decisions_per_match": round(len(decision_timeline) / match_count, 1) if match_count > 0 else 0
+                },
+                "decision_density": decision_density,
+                "peak_periods": [{"period": p[0], "decisions": p[1]} for p in peak_periods],
+                "critical_moments": critical_decisions,
+                "rhythm_analysis": {
+                    "high_activity_periods": len([v for v in decision_density.values() if v > 5]),
+                    "low_activity_periods": len([v for v in decision_density.values() if v <= 2]),
+                    "average_decisions_per_interval": round(sum(decision_density.values()) / len(decision_density), 1)
+                }
+            }
+        }
+    except Exception as e:
+        raise HTTPException(status_code=500, detail=str(e))
+
+@app.get("/api/analytics/positional/bias")
+async def get_positional_bias_analysis(sample_matches: int = Query(12, ge=5, le=20)):
+    """Analyze positional and tactical bias in referee decisions."""
+    try:
+        matches = github_client.get_matches_data(11, 90)
+        
+        import random
+        sample_match_list = random.sample(matches[:20], min(sample_matches, len(matches)))
+        
+        foul_events = []
+        match_count = 0
+        
+        for match in sample_match_list:
+            try:
+                match_id = match['match_id']
+                events = github_client.get_events_data(match_id)
+                
+                for event in events:
+                    if event.get('type', {}).get('name') == 'Foul Committed':
+                        foul_events.append({
+                            'position': event.get('position', {}).get('name', 'Unknown'),
+                            'location': event.get('location', [60, 40]),
+                            'minute': event.get('minute', 0),
+                            'player_name': event.get('player', {}).get('name', 'Unknown')
+                        })
+                
+                match_count += 1
+                if match_count >= sample_matches:
+                    break
+                    
+            except Exception as e:
+                continue
+        
+        # Position-based foul analysis
+        position_fouls = {}
+        for foul in foul_events:
+            pos = foul['position']
+            position_fouls[pos] = position_fouls.get(pos, 0) + 1
+        
+        # Field zone analysis (attacking vs defensive vs middle third)
+        zone_analysis = {'Attacking Third': 0, 'Middle Third': 0, 'Defensive Third': 0}
+        for foul in foul_events:
+            x_coord = foul['location'][0] if foul['location'] else 60
+            if x_coord > 80:
+                zone_analysis['Attacking Third'] += 1
+            elif x_coord < 40:
+                zone_analysis['Defensive Third'] += 1
+            else:
+                zone_analysis['Middle Third'] += 1
+        
+        # Most penalized positions
+        top_positions = sorted(position_fouls.items(), key=lambda x: x[1], reverse=True)[:8]
+        
+        return {
+            "success": True,
+            "data": {
+                "summary": {
+                    "matches_analyzed": match_count,
+                    "total_fouls": len(foul_events),
+                    "unique_positions": len(position_fouls)
+                },
+                "position_analysis": dict(top_positions),
+                "field_zone_distribution": zone_analysis,
+                "tactical_insights": {
+                    "most_penalized_position": top_positions[0] if top_positions else ("Unknown", 0),
+                    "attacking_third_bias": round((zone_analysis['Attacking Third'] / len(foul_events)) * 100, 1) if foul_events else 0,
+                    "defensive_actions_called": zone_analysis['Defensive Third']
+                }
             }
         }
     except Exception as e:
