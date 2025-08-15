@@ -11,7 +11,7 @@ import { Separator } from './components/ui/separator';
 import { Activity, TrendingUp, Users, AlertTriangle, BarChart3, Target, Clock, MapPin } from 'lucide-react';
 import './App.css';
 
-const API_BASE_URL = process.env.REACT_APP_BACKEND_URL || 'http://localhost:8001';
+const API_BASE_URL = process.env.REACT_APP_BACKEND_URL || '';
 
 function App() {
   const [competitions, setCompetitions] = useState([]);
