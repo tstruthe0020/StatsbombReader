@@ -84,33 +84,47 @@ class GitHubAPIClient:
         try:
             self._ensure_rate_limit()
             file_path = f"data/events/{match_id}.json"
-            content_file = self.repo.get_contents(file_path)
             
-            # Handle encoding issues more robustly
+            # Use direct HTTP request instead of PyGithub for better encoding handling
+            import requests
+            import base64
+            
+            # Construct raw GitHub URL
+            raw_url = f"https://raw.githubusercontent.com/statsbomb/open-data/master/{file_path}"
+            
+            # First try direct download
             try:
-                # Try decoded_content first
+                response = requests.get(raw_url, timeout=30)
+                if response.status_code == 200:
+                    content = response.text
+                    return json.loads(content)
+            except Exception as direct_error:
+                logger.warning(f"Direct download failed for {match_id}: {direct_error}")
+            
+            # Fallback to GitHub API
+            try:
+                content_file = self.repo.get_contents(file_path)
+                
+                # Handle different content types
                 if hasattr(content_file, 'decoded_content') and content_file.decoded_content is not None:
                     content = content_file.decoded_content.decode('utf-8')
+                elif hasattr(content_file, 'content'):
+                    # Handle base64 encoded content
+                    raw_content = base64.b64decode(content_file.content)
+                    content = raw_content.decode('utf-8')
                 else:
-                    # Fallback to raw content if decoded_content is not available
-                    import base64
-                    content = base64.b64decode(content_file.content).decode('utf-8')
-            except (AttributeError, UnicodeDecodeError) as decode_error:
-                # Last resort: try different encodings
-                import base64
-                raw_content = base64.b64decode(content_file.content)
-                for encoding in ['utf-8', 'latin-1', 'ascii']:
-                    try:
-                        content = raw_content.decode(encoding)
-                        break
-                    except UnicodeDecodeError:
-                        continue
-                else:
-                    raise Exception(f"Could not decode content with any encoding: {decode_error}")
-            
-            return json.loads(content)
+                    raise Exception("No content available")
+                
+                return json.loads(content)
+                
+            except Exception as api_error:
+                logger.error(f"GitHub API failed for match {match_id}: {api_error}")
+                raise HTTPException(status_code=500, detail=f"Could not fetch match data: {api_error}")
+                
+        except HTTPException:
+            raise
         except Exception as e:
-            logger.error(f"Failed to get events for match {match_id}: {e}")
+            logger.error(f"Unexpected error getting events for match {match_id}: {e}")
             raise HTTPException(status_code=500, detail=str(e))
 
 # Pydantic models
