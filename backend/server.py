@@ -535,38 +535,60 @@ async def get_referee_foul_heatmap(referee_id: str):
     except Exception as e:
         raise HTTPException(status_code=500, detail=str(e))
 
-@app.get("/api/debug/raw-events/{match_id}")
-async def get_raw_events_sample(match_id: int, limit: int = Query(10)):
-    """Get raw event data sample to analyze available fields."""
+@app.get("/api/analytics/database-stats")
+async def get_database_statistics():
+    """Get comprehensive statistics about the StatsBomb database."""
     try:
-        events = github_client.get_events_data(match_id)
+        # Get all competitions
+        competitions = github_client.get_competitions_data()
         
-        # Get different event types for analysis
-        sample_events = []
-        event_types_seen = set()
+        total_matches = 0
+        competition_stats = []
+        errors = []
         
-        for event in events:
-            event_type = event.get('type', {}).get('name', 'Unknown')
-            if len(sample_events) < limit and event_type not in event_types_seen:
-                sample_events.append({
-                    'event_type': event_type,
-                    'full_event': event
+        for comp in competitions:
+            try:
+                matches = github_client.get_matches_data(comp['competition_id'], comp['season_id'])
+                match_count = len(matches)
+                total_matches += match_count
+                
+                competition_stats.append({
+                    'competition_name': comp['competition_name'],
+                    'season_name': comp['season_name'],
+                    'country_name': comp['country_name'],
+                    'competition_id': comp['competition_id'],
+                    'season_id': comp['season_id'],
+                    'match_count': match_count
                 })
-                event_types_seen.add(event_type)
+                
+            except Exception as e:
+                errors.append({
+                    'competition': f"{comp['competition_name']} - {comp['season_name']}",
+                    'error': str(e)
+                })
+                continue
         
-        # Get all unique event types in the match
-        all_event_types = {}
-        for event in events:
-            event_type = event.get('type', {}).get('name', 'Unknown')
-            all_event_types[event_type] = all_event_types.get(event_type, 0) + 1
+        # Sort by match count (highest first)
+        competition_stats.sort(key=lambda x: x['match_count'], reverse=True)
+        
+        # Calculate additional statistics
+        countries = set(comp['country_name'] for comp in competition_stats)
+        competitions_unique = set(comp['competition_name'] for comp in competition_stats)
         
         return {
             "success": True,
             "data": {
-                "match_id": match_id,
-                "total_events": len(events),
-                "event_type_counts": all_event_types,
-                "sample_events": sample_events
+                "summary": {
+                    "total_competitions": len(competitions),
+                    "total_matches": total_matches,
+                    "unique_countries": len(countries),
+                    "unique_competition_types": len(competitions_unique),
+                    "errors_encountered": len(errors)
+                },
+                "competition_breakdown": competition_stats[:20],  # Top 20 competitions by match count
+                "countries": sorted(list(countries)),
+                "competition_types": sorted(list(competitions_unique)),
+                "errors": errors[:10] if errors else []
             }
         }
     except Exception as e:
