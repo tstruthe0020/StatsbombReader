@@ -36,9 +36,11 @@ function App() {
   const fetchCompetitions = async () => {
     try {
       setLoading(true);
+      setError(null); // Clear any previous errors
       const response = await axios.get(`${API_BASE_URL}/api/competitions`);
       if (response.data.success) {
         setCompetitions(response.data.data);
+        setError(null); // Clear error on success
       }
     } catch (err) {
       setError('Failed to fetch competitions');
