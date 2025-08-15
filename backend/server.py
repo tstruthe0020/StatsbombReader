@@ -421,6 +421,153 @@ async def get_card_statistics(
     except Exception as e:
         raise HTTPException(status_code=500, detail=str(e))
 
+@app.get("/api/analytics/referees")
+async def get_referees_list():
+    """Get list of referees available for heatmap analysis."""
+    try:
+        # Sample referee data - in production this would come from actual match data
+        referees = [
+            {"id": "ref_001", "name": "Antonio Mateu Lahoz", "matches": 45, "total_fouls": 892},
+            {"id": "ref_002", "name": "Björn Kuipers", "matches": 38, "total_fouls": 743},
+            {"id": "ref_003", "name": "Daniele Orsato", "matches": 42, "total_fouls": 815},
+            {"id": "ref_004", "name": "Clément Turpin", "matches": 39, "total_fouls": 761},
+            {"id": "ref_005", "name": "Michael Oliver", "matches": 33, "total_fouls": 642},
+            {"id": "ref_006", "name": "Szymon Marciniak", "matches": 29, "total_fouls": 567},
+            {"id": "ref_007", "name": "Istvan Kovacs", "matches": 26, "total_fouls": 491},
+            {"id": "ref_008", "name": "Jesús Gil Manzano", "matches": 31, "total_fouls": 598}
+        ]
+        
+        return {
+            "success": True,
+            "data": referees
+        }
+    except Exception as e:
+        raise HTTPException(status_code=500, detail=str(e))
+
+@app.get("/api/analytics/referees/{referee_id}/heatmap")
+async def get_referee_foul_heatmap(referee_id: str):
+    """Get foul heatmap data for a specific referee."""
+    try:
+        # Sample heatmap data - in production this would aggregate real foul locations
+        # Soccer field is typically 120x80 units in StatsBomb data
+        # We'll create a grid-based heatmap with foul density
+        
+        import random
+        import math
+        
+        # Generate realistic foul distribution data
+        heatmap_data = []
+        
+        # Create grid zones (10x6 grid covering the field)
+        grid_width = 12  # 120 / 10 zones
+        grid_height = 13.33  # 80 / 6 zones
+        
+        for i in range(10):  # 10 zones horizontally
+            for j in range(6):  # 6 zones vertically
+                x_center = (i * grid_width) + (grid_width / 2)
+                y_center = (j * grid_height) + (grid_height / 2)
+                
+                # Generate realistic foul density based on field position
+                # More fouls in midfield and penalty areas
+                distance_to_center = math.sqrt((x_center - 60)**2 + (y_center - 40)**2)
+                distance_to_penalty_area_1 = min(
+                    math.sqrt((x_center - 18)**2 + (y_center - 40)**2),
+                    math.sqrt((x_center - 102)**2 + (y_center - 40)**2)
+                )
+                
+                # Base density with variations
+                base_density = max(5, 30 - distance_to_center * 0.3)
+                penalty_bonus = max(0, 15 - distance_to_penalty_area_1 * 0.5)
+                
+                # Add referee-specific variations
+                referee_factor = {
+                    "ref_001": 1.2,  # Stricter referee
+                    "ref_002": 0.8,  # More lenient
+                    "ref_003": 1.0,  # Average
+                    "ref_004": 1.1,  # Slightly strict
+                    "ref_005": 0.9,  # Slightly lenient
+                    "ref_006": 1.15, # Strict
+                    "ref_007": 0.85, # Lenient
+                    "ref_008": 1.05  # Average+
+                }.get(referee_id, 1.0)
+                
+                foul_count = int((base_density + penalty_bonus) * referee_factor * random.uniform(0.7, 1.3))
+                
+                heatmap_data.append({
+                    "x": x_center,
+                    "y": y_center,
+                    "foul_count": foul_count,
+                    "zone_id": f"zone_{i}_{j}"
+                })
+        
+        # Get referee info
+        referee_names = {
+            "ref_001": "Antonio Mateu Lahoz",
+            "ref_002": "Björn Kuipers", 
+            "ref_003": "Daniele Orsato",
+            "ref_004": "Clément Turpin",
+            "ref_005": "Michael Oliver",
+            "ref_006": "Szymon Marciniak",
+            "ref_007": "Istvan Kovacs",
+            "ref_008": "Jesús Gil Manzano"
+        }
+        
+        total_fouls = sum(zone["foul_count"] for zone in heatmap_data)
+        
+        return {
+            "success": True,
+            "data": {
+                "referee_id": referee_id,
+                "referee_name": referee_names.get(referee_id, "Unknown Referee"),
+                "total_fouls": total_fouls,
+                "heatmap_zones": heatmap_data,
+                "field_dimensions": {
+                    "width": 120,
+                    "height": 80
+                },
+                "statistics": {
+                    "avg_fouls_per_zone": total_fouls / len(heatmap_data),
+                    "most_active_zones": sorted(heatmap_data, key=lambda x: x["foul_count"], reverse=True)[:5],
+                    "strictness_rating": referee_factor if 'referee_factor' in locals() else 1.0
+                }
+            }
+        }
+    except Exception as e:
+        raise HTTPException(status_code=500, detail=str(e))
+
+@app.get("/api/analytics/referees/{referee_id}/match-fouls")
+async def get_referee_match_fouls(referee_id: str, match_id: int):
+    """Get detailed foul data for a specific referee in a specific match."""
+    try:
+        # This would extract actual foul locations from match events
+        events = github_client.get_events_data(match_id)
+        referee_fouls = []
+        
+        for event in events:
+            if event.get('type', {}).get('name') == 'Foul Committed':
+                foul_data = {
+                    'id': event.get('id'),
+                    'minute': event.get('minute', 0),
+                    'second': event.get('second', 0),
+                    'location': event.get('location', [60, 40]),  # Default center field
+                    'player_name': event.get('player', {}).get('name', 'Unknown'),
+                    'team_name': event.get('team', {}).get('name', 'Unknown'),
+                    'foul_type': event.get('foul_committed', {}).get('type', {}).get('name', 'Unknown')
+                }
+                referee_fouls.append(foul_data)
+        
+        return {
+            "success": True,
+            "data": {
+                "match_id": match_id,
+                "referee_id": referee_id,
+                "total_fouls": len(referee_fouls),
+                "fouls": referee_fouls
+            }
+        }
+    except Exception as e:
+        raise HTTPException(status_code=500, detail=str(e))
+
 if __name__ == "__main__":
     import uvicorn
     uvicorn.run(app, host="0.0.0.0", port=8001)
