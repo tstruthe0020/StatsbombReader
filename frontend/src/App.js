@@ -13,9 +13,6 @@ import './App.css';
 
 const API_BASE_URL = process.env.REACT_APP_BACKEND_URL || 'http://localhost:8001';
 
-console.log('🔍 DEBUG: API_BASE_URL =', API_BASE_URL);
-console.log('🔍 DEBUG: process.env.REACT_APP_BACKEND_URL =', process.env.REACT_APP_BACKEND_URL);
-
 function App() {
   const [competitions, setCompetitions] = useState([]);
   const [selectedCompetition, setSelectedCompetition] = useState(null);
@@ -39,26 +36,13 @@ function App() {
   const fetchCompetitions = async () => {
     try {
       setLoading(true);
-      setError(null); // Clear any previous errors
-      
-      console.log('🔍 Attempting to fetch competitions from:', `${API_BASE_URL}/api/competitions`);
-      
-      const response = await axios.get(`${API_BASE_URL}/api/competitions`, {
-        timeout: 10000, // 10 second timeout
-        headers: {
-          'Content-Type': 'application/json',
-        }
-      });
-      
-      console.log('✅ API Response received:', response.status, response.data);
-      
+      setError(null);
+      const response = await axios.get(`${API_BASE_URL}/api/competitions`);
       if (response.data.success) {
         setCompetitions(response.data.data);
-        setError(null); // Clear error on success
-        console.log('✅ Competitions loaded successfully:', response.data.data.length);
+        setError(null);
       }
     } catch (err) {
-      console.error('❌ API Request failed:', err);
       setError('Failed to fetch competitions');
       console.error(err);
     } finally {
