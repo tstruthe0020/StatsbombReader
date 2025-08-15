@@ -13,6 +13,9 @@ import './App.css';
 
 const API_BASE_URL = process.env.REACT_APP_BACKEND_URL || 'http://localhost:8001';
 
+console.log('🔍 DEBUG: API_BASE_URL =', API_BASE_URL);
+console.log('🔍 DEBUG: process.env.REACT_APP_BACKEND_URL =', process.env.REACT_APP_BACKEND_URL);
+
 function App() {
   const [competitions, setCompetitions] = useState([]);
   const [selectedCompetition, setSelectedCompetition] = useState(null);
