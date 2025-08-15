@@ -535,34 +535,38 @@ async def get_referee_foul_heatmap(referee_id: str):
     except Exception as e:
         raise HTTPException(status_code=500, detail=str(e))
 
-@app.get("/api/analytics/referees/{referee_id}/match-fouls")
-async def get_referee_match_fouls(referee_id: str, match_id: int):
-    """Get detailed foul data for a specific referee in a specific match."""
+@app.get("/api/debug/raw-events/{match_id}")
+async def get_raw_events_sample(match_id: int, limit: int = Query(10)):
+    """Get raw event data sample to analyze available fields."""
     try:
-        # This would extract actual foul locations from match events
         events = github_client.get_events_data(match_id)
-        referee_fouls = []
+        
+        # Get different event types for analysis
+        sample_events = []
+        event_types_seen = set()
         
         for event in events:
-            if event.get('type', {}).get('name') == 'Foul Committed':
-                foul_data = {
-                    'id': event.get('id'),
-                    'minute': event.get('minute', 0),
-                    'second': event.get('second', 0),
-                    'location': event.get('location', [60, 40]),  # Default center field
-                    'player_name': event.get('player', {}).get('name', 'Unknown'),
-                    'team_name': event.get('team', {}).get('name', 'Unknown'),
-                    'foul_type': event.get('foul_committed', {}).get('type', {}).get('name', 'Unknown')
-                }
-                referee_fouls.append(foul_data)
+            event_type = event.get('type', {}).get('name', 'Unknown')
+            if len(sample_events) < limit and event_type not in event_types_seen:
+                sample_events.append({
+                    'event_type': event_type,
+                    'full_event': event
+                })
+                event_types_seen.add(event_type)
+        
+        # Get all unique event types in the match
+        all_event_types = {}
+        for event in events:
+            event_type = event.get('type', {}).get('name', 'Unknown')
+            all_event_types[event_type] = all_event_types.get(event_type, 0) + 1
         
         return {
             "success": True,
             "data": {
                 "match_id": match_id,
-                "referee_id": referee_id,
-                "total_fouls": len(referee_fouls),
-                "fouls": referee_fouls
+                "total_events": len(events),
+                "event_type_counts": all_event_types,
+                "sample_events": sample_events
             }
         }
     except Exception as e:
