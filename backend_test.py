@@ -466,6 +466,18 @@ class SoccerAnalyticsAPITester:
         self.test_foul_types_analytics()
         self.test_card_statistics_analytics()
         
+        # Test referee endpoints
+        print("\n🔍 Testing referee analytics...")
+        self.test_referees_list_endpoint()
+        self.test_referee_heatmap_endpoint()
+        
+        # Test LLM integration endpoints
+        print("\n🤖 Testing LLM Integration...")
+        self.test_llm_query_endpoint_valid_queries()
+        self.test_llm_query_endpoint_with_context()
+        self.test_llm_query_validation()
+        self.test_llm_error_handling()
+        
         # Test match-specific endpoints if we have competition data
         if competitions_success and competitions_data.get("data"):
             print("\n🔍 Testing with real match data...")
