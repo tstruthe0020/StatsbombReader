@@ -10,6 +10,8 @@ from github import Github, GithubException
 from dotenv import load_dotenv
 from motor.motor_asyncio import AsyncIOMotorClient
 from pydantic import BaseModel, Field
+from emergentintegrations import openai_client, anthropic_client
+import json as json_lib
 
 # Load environment variables
 load_dotenv()
