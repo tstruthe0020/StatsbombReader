@@ -234,6 +234,224 @@ class SoccerAnalyticsAPITester:
             self.log_test("Card Statistics Analytics", False, str(e))
             return False, {}
 
+    def test_llm_query_endpoint_valid_queries(self):
+        """Test LLM query endpoint with valid natural language queries"""
+        test_queries = [
+            "What are the most common foul types in soccer?",
+            "Which referee gives the most cards?",
+            "How do referee decisions vary by competition?"
+        ]
+        
+        for query in test_queries:
+            try:
+                payload = {"query": query}
+                response = requests.post(
+                    f"{self.base_url}/api/query", 
+                    json=payload, 
+                    timeout=30,
+                    headers={"Content-Type": "application/json"}
+                )
+                success = response.status_code == 200
+                
+                if success:
+                    data = response.json()
+                    has_success_key = "success" in data and data["success"]
+                    has_data = "data" in data
+                    if has_data:
+                        query_data = data["data"]
+                        required_fields = ["query", "response", "context_used", "model_used"]
+                        has_required_fields = all(key in query_data for key in required_fields)
+                        has_response_content = len(query_data.get("response", "")) > 0
+                        success = has_success_key and has_required_fields and has_response_content
+                        details = f"Status: {response.status_code}, Model: {query_data.get('model_used', 'N/A')}, Response length: {len(query_data.get('response', ''))}"
+                    else:
+                        success = False
+                        details = "Missing data field"
+                else:
+                    details = f"Status: {response.status_code}, Response: {response.text[:200]}"
+                    
+                self.log_test(f"LLM Query: '{query[:30]}...'", success, details)
+                
+            except Exception as e:
+                self.log_test(f"LLM Query: '{query[:30]}...'", False, str(e))
+
+    def test_llm_query_endpoint_with_context(self):
+        """Test LLM query endpoint with additional context"""
+        try:
+            payload = {
+                "query": "Analyze referee strictness patterns",
+                "context": "Focus on La Liga matches from 2020/2021 season"
+            }
+            response = requests.post(
+                f"{self.base_url}/api/query", 
+                json=payload, 
+                timeout=30,
+                headers={"Content-Type": "application/json"}
+            )
+            success = response.status_code == 200
+            
+            if success:
+                data = response.json()
+                has_success_key = "success" in data and data["success"]
+                has_data = "data" in data
+                if has_data:
+                    query_data = data["data"]
+                    has_context_used = "context_used" in query_data
+                    has_response = len(query_data.get("response", "")) > 0
+                    success = has_success_key and has_context_used and has_response
+                    details = f"Status: {response.status_code}, Context provided: {has_context_used}, Response length: {len(query_data.get('response', ''))}"
+                else:
+                    success = False
+                    details = "Missing data field"
+            else:
+                details = f"Status: {response.status_code}, Response: {response.text[:200]}"
+                
+            self.log_test("LLM Query with Context", success, details)
+            return success, response.json() if success else {}
+            
+        except Exception as e:
+            self.log_test("LLM Query with Context", False, str(e))
+            return False, {}
+
+    def test_llm_query_validation(self):
+        """Test LLM query endpoint input validation"""
+        # Test empty query
+        try:
+            payload = {"query": ""}
+            response = requests.post(
+                f"{self.base_url}/api/query", 
+                json=payload, 
+                timeout=10,
+                headers={"Content-Type": "application/json"}
+            )
+            # Should either accept empty query or return validation error
+            success = response.status_code in [200, 400, 422]
+            details = f"Empty query - Status: {response.status_code}"
+            self.log_test("LLM Query Validation - Empty Query", success, details)
+            
+        except Exception as e:
+            self.log_test("LLM Query Validation - Empty Query", False, str(e))
+
+        # Test missing query field
+        try:
+            payload = {"context": "some context"}
+            response = requests.post(
+                f"{self.base_url}/api/query", 
+                json=payload, 
+                timeout=10,
+                headers={"Content-Type": "application/json"}
+            )
+            # Should return validation error
+            success = response.status_code in [400, 422]
+            details = f"Missing query field - Status: {response.status_code}"
+            self.log_test("LLM Query Validation - Missing Query", success, details)
+            
+        except Exception as e:
+            self.log_test("LLM Query Validation - Missing Query", False, str(e))
+
+        # Test invalid JSON
+        try:
+            response = requests.post(
+                f"{self.base_url}/api/query", 
+                data="invalid json", 
+                timeout=10,
+                headers={"Content-Type": "application/json"}
+            )
+            # Should return validation error
+            success = response.status_code in [400, 422]
+            details = f"Invalid JSON - Status: {response.status_code}"
+            self.log_test("LLM Query Validation - Invalid JSON", success, details)
+            
+        except Exception as e:
+            self.log_test("LLM Query Validation - Invalid JSON", False, str(e))
+
+    def test_llm_error_handling(self):
+        """Test LLM endpoint error handling scenarios"""
+        # Test very long query (potential token limit)
+        try:
+            long_query = "Analyze referee patterns " * 200  # Very long query
+            payload = {"query": long_query}
+            response = requests.post(
+                f"{self.base_url}/api/query", 
+                json=payload, 
+                timeout=30,
+                headers={"Content-Type": "application/json"}
+            )
+            # Should either handle gracefully or return appropriate error
+            success = response.status_code in [200, 400, 413, 500]
+            details = f"Long query - Status: {response.status_code}"
+            self.log_test("LLM Error Handling - Long Query", success, details)
+            
+        except Exception as e:
+            self.log_test("LLM Error Handling - Long Query", False, str(e))
+
+    def test_referees_list_endpoint(self):
+        """Test referees list endpoint"""
+        try:
+            response = requests.get(f"{self.base_url}/api/analytics/referees", timeout=10)
+            success = response.status_code == 200
+            
+            if success:
+                data = response.json()
+                has_success_key = "success" in data and data["success"]
+                has_data = "data" in data and isinstance(data["data"], list)
+                if has_data:
+                    referees = data["data"]
+                    if referees:
+                        # Check first referee has required fields
+                        first_ref = referees[0]
+                        required_fields = ["id", "name", "matches", "total_fouls"]
+                        has_required_fields = all(key in first_ref for key in required_fields)
+                        success = has_success_key and has_required_fields
+                        details = f"Status: {response.status_code}, Referees count: {len(referees)}"
+                    else:
+                        success = has_success_key
+                        details = f"Status: {response.status_code}, Empty referees list"
+                else:
+                    success = False
+                    details = "Missing or invalid data field"
+            else:
+                details = f"Status: {response.status_code}, Response: {response.text[:200]}"
+                
+            self.log_test("Referees List Endpoint", success, details)
+            return success, response.json() if success else {}
+            
+        except Exception as e:
+            self.log_test("Referees List Endpoint", False, str(e))
+            return False, {}
+
+    def test_referee_heatmap_endpoint(self):
+        """Test referee heatmap endpoint"""
+        try:
+            # Test with a known referee ID
+            referee_id = "ref_001"
+            response = requests.get(f"{self.base_url}/api/analytics/referees/{referee_id}/heatmap", timeout=15)
+            success = response.status_code == 200
+            
+            if success:
+                data = response.json()
+                has_success_key = "success" in data and data["success"]
+                has_data = "data" in data
+                if has_data:
+                    heatmap_data = data["data"]
+                    required_fields = ["referee_id", "referee_name", "total_fouls", "heatmap_zones", "field_dimensions"]
+                    has_required_fields = all(key in heatmap_data for key in required_fields)
+                    has_zones = isinstance(heatmap_data.get("heatmap_zones", []), list) and len(heatmap_data.get("heatmap_zones", [])) > 0
+                    success = has_success_key and has_required_fields and has_zones
+                    details = f"Status: {response.status_code}, Referee: {heatmap_data.get('referee_name', 'N/A')}, Zones: {len(heatmap_data.get('heatmap_zones', []))}"
+                else:
+                    success = False
+                    details = "Missing data field"
+            else:
+                details = f"Status: {response.status_code}, Response: {response.text[:200]}"
+                
+            self.log_test("Referee Heatmap Endpoint", success, details)
+            return success, response.json() if success else {}
+            
+        except Exception as e:
+            self.log_test("Referee Heatmap Endpoint", False, str(e))
+            return False, {}
+
     def run_full_test_suite(self):
         """Run complete test suite"""
         print("🚀 Starting Soccer Analytics API Test Suite")
