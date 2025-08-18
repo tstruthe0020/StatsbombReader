@@ -164,6 +164,11 @@ class MatchSummary(BaseModel):
     red_cards: int
     referee_name: Optional[str] = None
 
+class QueryRequest(BaseModel):
+    """Model for natural language query request."""
+    query: str
+    context: Optional[str] = None
+
 @app.on_event("startup")
 async def startup_event():
     """Initialize services on startup."""
