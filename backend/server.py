@@ -1157,6 +1157,131 @@ async def get_competition_specific_analysis():
     except Exception as e:
         raise HTTPException(status_code=500, detail=str(e))
 
+async def get_data_context_for_llm():
+    """Get comprehensive data context for LLM analysis."""
+    try:
+        # Get sample data from various endpoints
+        data_context = {}
+        
+        # Get competitions
+        try:
+            competitions = github_client.get_competitions_data()
+            data_context['available_competitions'] = len(competitions)
+            data_context['sample_competitions'] = competitions[:3]
+        except Exception as e:
+            data_context['competitions_error'] = str(e)
+        
+        # Get sample La Liga matches
+        try:
+            matches = github_client.get_matches_data(11, 90)
+            data_context['sample_matches_available'] = len(matches)
+            data_context['sample_match'] = matches[0] if matches else None
+            
+            # Get sample match events
+            if matches:
+                sample_match_id = matches[0]['match_id']
+                events = github_client.get_events_data(sample_match_id)
+                fouls = extract_fouls_from_events(events)
+                data_context['sample_fouls_from_match'] = len(fouls)
+                data_context['sample_foul_types'] = list(set([f.get('foul_type', 'Unknown') for f in fouls[:5]]))
+        except Exception as e:
+            data_context['sample_data_error'] = str(e)
+        
+        # Get referee data
+        try:
+            referees = [
+                {"id": "ref_001", "name": "Antonio Mateu Lahoz", "matches": 45, "total_fouls": 892},
+                {"id": "ref_002", "name": "Björn Kuipers", "matches": 38, "total_fouls": 743}
+            ]
+            data_context['sample_referees'] = referees
+        except Exception as e:
+            data_context['referee_error'] = str(e)
+        
+        return data_context
+        
+    except Exception as e:
+        logger.error(f"Error getting LLM context: {e}")
+        return {"error": str(e)}
+
+@app.post("/api/query")
+async def process_natural_language_query(request: QueryRequest):
+    """Process natural language queries about soccer analytics using LLM."""
+    try:
+        # Get emergent LLM key from environment
+        llm_key = os.getenv("EMERGENT_LLM_KEY")
+        if not llm_key:
+            raise HTTPException(status_code=500, detail="LLM key not configured")
+        
+        # Get data context for better LLM responses
+        data_context = await get_data_context_for_llm()
+        
+        # Create system prompt with context
+        system_prompt = f"""You are a soccer analytics expert AI assistant. You have access to StatsBomb open data through various APIs.
+
+Available Data Context:
+- Competitions available: {data_context.get('available_competitions', 'N/A')}
+- Sample competitions: {json_lib.dumps(data_context.get('sample_competitions', []), indent=2) if data_context.get('sample_competitions') else 'N/A'}
+- Sample matches available: {data_context.get('sample_matches_available', 'N/A')}
+- Sample foul types found: {data_context.get('sample_foul_types', [])}
+- Sample referees: {json_lib.dumps(data_context.get('sample_referees', []), indent=2) if data_context.get('sample_referees') else 'N/A'}
+
+Available API Endpoints:
+1. /api/competitions - Get all competitions
+2. /api/competitions/{{competition_id}}/seasons/{{season_id}}/matches - Get matches
+3. /api/matches/{{match_id}}/fouls - Get fouls from a match
+4. /api/matches/{{match_id}}/summary - Get match summary
+5. /api/analytics/referees - Get referee list
+6. /api/analytics/referees/{{referee_id}}/heatmap - Get referee heatmap
+7. /api/analytics/cards/patterns - Card pattern analysis
+8. /api/analytics/advantage/patterns - Advantage play analysis
+9. /api/analytics/match-flow/timing - Match flow analysis
+10. /api/analytics/positional/bias - Positional bias analysis
+11. /api/analytics/consistency/fairness - Consistency analysis
+12. /api/analytics/location/intelligence - Location intelligence
+13. /api/analytics/competition/comparison - Competition comparison
+
+Answer user questions about soccer analytics, referee decisions, foul patterns, and provide insights based on the available data. Be specific and helpful. If you need specific match data, suggest which API endpoints to call."""
+
+        user_prompt = f"""User Query: {request.query}
+
+Additional Context: {request.context if request.context else 'None provided'}
+
+Please provide a comprehensive answer about soccer analytics based on the available data. If specific data analysis is needed, suggest the appropriate API endpoints to call."""
+
+        # Use OpenAI via emergentintegrations
+        client = openai_client(api_key=llm_key)
+        
+        response = client.chat.completions.create(
+            model="gpt-4",
+            messages=[
+                {"role": "system", "content": system_prompt},
+                {"role": "user", "content": user_prompt}
+            ],
+            max_tokens=1000,
+            temperature=0.7
+        )
+        
+        llm_response = response.choices[0].message.content
+        
+        return {
+            "success": True,
+            "data": {
+                "query": request.query,
+                "response": llm_response,
+                "context_used": data_context,
+                "model_used": "gpt-4",
+                "suggested_endpoints": [
+                    "/api/competitions",
+                    "/api/analytics/referees",
+                    "/api/analytics/cards/patterns"
+                ]
+            }
+        }
+        
+    except Exception as e:
+        logger.error(f"LLM query error: {e}")
+        raise HTTPException(status_code=500, detail=f"Failed to process query: {str(e)}")
+
 if __name__ == "__main__":
     import uvicorn
     uvicorn.run(app, host="0.0.0.0", port=8001)
