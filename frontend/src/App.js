@@ -256,7 +256,7 @@ function App() {
         )}
 
         <Tabs defaultValue="overview" className="space-y-6">
-          <TabsList className="grid w-full grid-cols-6 bg-white shadow-sm">
+          <TabsList className="grid w-full grid-cols-7 bg-white shadow-sm">
             <TabsTrigger value="overview" className="flex items-center gap-2">
               <BarChart3 className="w-4 h-4" />
               Overview
@@ -280,6 +280,10 @@ function App() {
             <TabsTrigger value="advanced" className="flex items-center gap-2">
               <Brain className="w-4 h-4" />
               Advanced Analytics
+            </TabsTrigger>
+            <TabsTrigger value="llm-query" className="flex items-center gap-2">
+              <MessageCircle className="w-4 h-4" />
+              AI Chat
             </TabsTrigger>
           </TabsList>
 
