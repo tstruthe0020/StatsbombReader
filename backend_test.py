@@ -528,9 +528,21 @@ class SoccerAnalyticsAPITester:
 
 def main():
     """Main test execution"""
-    # Use the same URL as frontend
-    api_url = "http://localhost:8001"
+    # Read the backend URL from frontend .env file
+    try:
+        with open('/app/frontend/.env', 'r') as f:
+            for line in f:
+                if line.startswith('REACT_APP_BACKEND_URL='):
+                    api_url = line.split('=', 1)[1].strip()
+                    break
+            else:
+                # Fallback to localhost if not found
+                api_url = "http://localhost:8001"
+    except Exception as e:
+        print(f"Warning: Could not read frontend .env file: {e}")
+        api_url = "http://localhost:8001"
     
+    print(f"🌐 Using API URL: {api_url}")
     tester = SoccerAnalyticsAPITester(api_url)
     return tester.run_full_test_suite()
 
