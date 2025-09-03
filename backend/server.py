@@ -817,7 +817,7 @@ Would you like me to suggest specific analysis approaches for your question?""")
                 "query": request.query,
                 "response": llm_response,
                 "context_used": data_context,
-                "model_used": "mock-gpt-4" if not llm_key else "gpt-4-fallback",
+                "model_used": model_used,
                 "suggested_endpoints": [
                     "/api/competitions",
                     "/api/analytics/referees",
