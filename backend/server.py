@@ -791,8 +791,10 @@ For more detailed card pattern analysis, you can use:
 To explore specific competition comparisons, use the `/api/analytics/competition/comparison` endpoint for detailed analysis across different tournament types."""
         }
         
-        # Get appropriate mock response or default
-        llm_response = mock_responses.get(request.query, f"""I understand you're asking about: "{request.query}"
+        # Get appropriate mock response or use LLM response if available
+        if llm_response is None:
+            # Use mock responses as fallback
+            llm_response = mock_responses.get(request.query, f"""I understand you're asking about: "{request.query}"
 
 Based on the available soccer analytics data, I can help you analyze various aspects of soccer referee decisions and foul patterns. The system has access to comprehensive StatsBomb data including:
 
