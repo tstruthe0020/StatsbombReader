@@ -19,6 +19,43 @@ load_dotenv()
 logging.basicConfig(level=logging.INFO)
 logger = logging.getLogger(__name__)
 
+# Environment validation
+def validate_environment():
+    """Validate required environment variables for production deployment."""
+    required_vars = ["GITHUB_TOKEN"]
+    optional_vars = {
+        "MONGO_URL": "MongoDB connection string",
+        "EMERGENT_LLM_KEY": "LLM integration (will use mock responses if not provided)",
+        "ALLOWED_ORIGINS": "CORS configuration (will allow all origins if not provided)"
+    }
+    
+    missing_required = []
+    for var in required_vars:
+        if not os.getenv(var):
+            missing_required.append(var)
+    
+    if missing_required:
+        error_msg = f"Missing required environment variables: {', '.join(missing_required)}"
+        logger.error(error_msg)
+        raise RuntimeError(error_msg)
+    
+    # Log optional variables status
+    for var, description in optional_vars.items():
+        if os.getenv(var):
+            logger.info(f"✓ {var} configured: {description}")
+        else:
+            logger.warning(f"⚠ {var} not configured: {description}")
+    
+    logger.info("Environment validation completed successfully")
+
+# Validate environment on module import
+try:
+    validate_environment()
+except RuntimeError as e:
+    logger.error(f"Environment validation failed: {e}")
+    # Don't raise in production to allow graceful degradation
+    pass
+
 # Initialize FastAPI app
 app = FastAPI(
     title="Soccer Foul & Referee Analytics",
