@@ -709,7 +709,40 @@ Additional Context: {request.context if request.context else 'None provided'}
 
 Please provide a comprehensive answer about soccer analytics based on the available data. If specific data analysis is needed, suggest the appropriate API endpoints to call."""
 
-        # Mock LLM response for testing purposes since emergentintegrations has issues
+        # Try to use real LLM if key is available, otherwise use mock responses
+        if llm_key:
+            try:
+                from emergentintegrations import openai_client
+                
+                # Use OpenAI via emergentintegrations
+                client = openai_client(api_key=llm_key)
+                
+                response = client.chat.completions.create(
+                    model="gpt-4",
+                    messages=[
+                        {"role": "system", "content": system_prompt},
+                        {"role": "user", "content": user_prompt}
+                    ],
+                    max_tokens=1000,
+                    temperature=0.7
+                )
+                
+                llm_response = response.choices[0].message.content
+                model_used = "gpt-4"
+                
+            except ImportError:
+                logger.warning("emergentintegrations not available, using mock responses")
+                llm_response = None
+                model_used = "mock-gpt-4-fallback"
+            except Exception as e:
+                logger.error(f"LLM API error: {e}")
+                llm_response = None
+                model_used = "mock-gpt-4-fallback"
+        else:
+            llm_response = None
+            model_used = "mock-gpt-4-fallback"
+        
+        # Use mock responses if LLM is not available
         mock_responses = {
             "What are the most common foul types in soccer?": """Based on the available soccer analytics data, the most common foul types in soccer are:
 
