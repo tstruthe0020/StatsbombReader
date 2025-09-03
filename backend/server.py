@@ -182,18 +182,47 @@ async def startup_event():
     
     # Initialize GitHub client
     github_token = os.getenv("GITHUB_TOKEN")
-    if github_token:
+    if not github_token:
+        logger.error("GitHub token not found in environment variables")
+        raise RuntimeError("GitHub token required - please set GITHUB_TOKEN environment variable")
+    
+    try:
         github_client = GitHubAPIClient(github_token)
         logger.info("GitHub client initialized successfully")
-    else:
-        logger.error("GitHub token not found")
-        raise RuntimeError("GitHub token required")
+    except Exception as e:
+        logger.error(f"Failed to initialize GitHub client: {e}")
+        raise RuntimeError(f"GitHub client initialization failed: {e}")
     
-    # Initialize MongoDB client
-    mongo_url = os.getenv("MONGO_URL", "mongodb://localhost:27017")
-    db_client = AsyncIOMotorClient(mongo_url)
-    db = db_client.soccer_analytics
-    logger.info("Database connected successfully")
+    # Initialize MongoDB client with proper error handling
+    mongo_url = os.getenv("MONGO_URL")
+    if not mongo_url:
+        logger.error("MongoDB URL not found in environment variables")
+        raise RuntimeError("MongoDB URL required - please set MONGO_URL environment variable")
+    
+    # Get database name from environment or extract from URL
+    database_name = os.getenv("DATABASE_NAME")
+    if not database_name:
+        # Try to extract database name from MongoDB URL
+        if "/" in mongo_url and mongo_url.split("/")[-1]:
+            database_name = mongo_url.split("/")[-1]
+        else:
+            database_name = "soccer_analytics"  # Default fallback
+    
+    try:
+        db_client = AsyncIOMotorClient(mongo_url)
+        
+        # Test the connection
+        await db_client.admin.command('ping')
+        logger.info("MongoDB connection successful")
+        
+        # Set up database
+        db = db_client[database_name]
+        logger.info(f"Database '{database_name}' initialized successfully")
+        
+    except Exception as e:
+        logger.error(f"Failed to connect to MongoDB: {e}")
+        logger.error(f"MongoDB URL (sanitized): {mongo_url.split('@')[0] if '@' in mongo_url else 'Invalid URL format'}")
+        raise RuntimeError(f"MongoDB connection failed: {e}")
 
 @app.on_event("shutdown")
 async def shutdown_event():
