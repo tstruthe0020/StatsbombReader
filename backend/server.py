@@ -314,8 +314,46 @@ async def root():
     return {
         "message": "Soccer Foul & Referee Analytics API",
         "version": "1.0.0",
-        "description": "Advanced analytics for soccer fouls and referee decisions"
+        "description": "Advanced analytics for soccer fouls and referee decisions",
+        "status": "healthy"
     }
+
+@app.get("/health")
+async def health_check():
+    """Health check endpoint for Kubernetes."""
+    global github_client, db_client
+    
+    health_status = {
+        "status": "healthy",
+        "timestamp": datetime.now().isoformat(),
+        "services": {}
+    }
+    
+    # Check GitHub client
+    if github_client:
+        health_status["services"]["github"] = "connected"
+    else:
+        health_status["services"]["github"] = "disconnected"
+        health_status["status"] = "unhealthy"
+    
+    # Check MongoDB connection
+    if db_client:
+        try:
+            # Quick ping to verify connection
+            await db_client.admin.command('ping')
+            health_status["services"]["mongodb"] = "connected"
+        except Exception as e:
+            health_status["services"]["mongodb"] = f"disconnected: {str(e)}"
+            health_status["status"] = "unhealthy"
+    else:
+        health_status["services"]["mongodb"] = "not_initialized"
+        health_status["status"] = "unhealthy"
+    
+    # Return appropriate HTTP status
+    if health_status["status"] == "unhealthy":
+        raise HTTPException(status_code=503, detail=health_status)
+    
+    return health_status
 
 @app.get("/api/competitions")
 async def get_competitions():
