@@ -673,10 +673,15 @@ async def process_natural_language_query(request: QueryRequest):
         # Get emergent LLM key from environment
         llm_key = os.getenv("EMERGENT_LLM_KEY")
         if not llm_key:
-            raise HTTPException(status_code=500, detail="LLM key not configured")
+            logger.warning("LLM key not found, falling back to mock responses")
+            # Don't fail in production, provide helpful fallback
         
         # Get data context for better LLM responses
-        data_context = await get_data_context_for_llm()
+        try:
+            data_context = await get_data_context_for_llm()
+        except Exception as e:
+            logger.error(f"Failed to get data context: {e}")
+            data_context = {"error": "Could not retrieve data context"}
         
         # Create system prompt with context
         system_prompt = f"""You are a soccer analytics expert AI assistant. You have access to StatsBomb open data through various APIs.
