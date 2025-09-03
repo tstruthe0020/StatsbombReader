@@ -663,12 +663,18 @@ async def get_data_context_for_llm():
         # Get sample data from various endpoints
         data_context = {}
         
+        # Check if GitHub client is available
+        if not github_client:
+            data_context['error'] = "GitHub client not initialized"
+            return data_context
+        
         # Get competitions
         try:
             competitions = github_client.get_competitions_data()
             data_context['available_competitions'] = len(competitions)
             data_context['sample_competitions'] = competitions[:3]
         except Exception as e:
+            logger.warning(f"Failed to get competitions data: {e}")
             data_context['competitions_error'] = str(e)
         
         # Get sample La Liga matches
@@ -685,6 +691,7 @@ async def get_data_context_for_llm():
                 data_context['sample_fouls_from_match'] = len(fouls)
                 data_context['sample_foul_types'] = list(set([f.get('foul_type', 'Unknown') for f in fouls[:5]]))
         except Exception as e:
+            logger.warning(f"Failed to get sample data: {e}")
             data_context['sample_data_error'] = str(e)
         
         # Get referee data
@@ -695,6 +702,7 @@ async def get_data_context_for_llm():
             ]
             data_context['sample_referees'] = referees
         except Exception as e:
+            logger.warning(f"Failed to get referee data: {e}")
             data_context['referee_error'] = str(e)
         
         return data_context
