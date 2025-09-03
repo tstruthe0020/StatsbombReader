@@ -227,8 +227,13 @@ async def startup_event():
 @app.on_event("shutdown")
 async def shutdown_event():
     """Cleanup on shutdown."""
-    if db_client:
-        db_client.close()
+    global db_client
+    try:
+        if db_client:
+            db_client.close()
+            logger.info("MongoDB connection closed successfully")
+    except Exception as e:
+        logger.error(f"Error during MongoDB shutdown: {e}")
 
 def extract_fouls_from_events(events: List[Dict]) -> List[Dict]:
     """Extract foul-related events from match events."""
