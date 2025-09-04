@@ -797,6 +797,112 @@ async def get_referee_foul_heatmap(referee_id: str):
     except Exception as e:
         raise HTTPException(status_code=500, detail=str(e))
 
+@app.get("/api/analytics/referees/{referee_id}/heatmap/per-game")
+async def get_referee_foul_heatmap_per_game(referee_id: str):
+    """Get foul heatmap data per game for a specific referee."""
+    try:
+        import random
+        import math
+        
+        # Referee data with match counts
+        referee_info = {
+            "ref_001": {"name": "Antonio Mateu Lahoz", "factor": 1.2, "matches": 45},
+            "ref_002": {"name": "Björn Kuipers", "factor": 0.8, "matches": 38}, 
+            "ref_003": {"name": "Daniele Orsato", "factor": 1.0, "matches": 42},
+            "ref_004": {"name": "Clément Turpin", "factor": 1.1, "matches": 39},
+            "ref_005": {"name": "Michael Oliver", "factor": 0.9, "matches": 33},
+            "ref_006": {"name": "Szymon Marciniak", "factor": 1.15, "matches": 29},
+            "ref_007": {"name": "Istvan Kovacs", "factor": 0.85, "matches": 26},
+            "ref_008": {"name": "Jesús Gil Manzano", "factor": 1.05, "matches": 31}
+        }
+        
+        if referee_id not in referee_info:
+            raise HTTPException(status_code=404, detail="Referee not found")
+        
+        current_referee = referee_info[referee_id]
+        
+        # Calculate average per-game distribution across all referees
+        zone_averages = calculate_average_referee_heatmap_per_game()
+        
+        # Generate realistic foul distribution data for the specific referee
+        heatmap_data = []
+        
+        # Create grid zones (10x6 grid covering the field)
+        grid_width = 12  # 120 / 10 zones
+        grid_height = 13.33  # 80 / 6 zones
+        
+        for i in range(10):  # 10 zones horizontally
+            for j in range(6):  # 6 zones vertically
+                zone_id = f"zone_{i}_{j}"
+                x_center = (i * grid_width) + (grid_width / 2)
+                y_center = (j * grid_height) + (grid_height / 2)
+                
+                # Generate realistic foul density based on field position
+                distance_to_center = math.sqrt((x_center - 60)**2 + (y_center - 40)**2)
+                distance_to_penalty_area_1 = min(
+                    math.sqrt((x_center - 18)**2 + (y_center - 40)**2),
+                    math.sqrt((x_center - 102)**2 + (y_center - 40)**2)
+                )
+                
+                # Base density with variations
+                base_density = max(5, 30 - distance_to_center * 0.3)
+                penalty_bonus = max(0, 15 - distance_to_penalty_area_1 * 0.5)
+                
+                # Calculate total fouls for this referee in this zone
+                total_fouls = int((base_density + penalty_bonus) * current_referee["factor"] * random.uniform(0.7, 1.3))
+                fouls_per_game = round(total_fouls / current_referee["matches"], 2)
+                
+                # Get the average per-game for this zone and determine color category
+                zone_average_per_game = zone_averages.get(zone_id, {}).get("average_fouls_per_game", fouls_per_game)
+                color_category = get_zone_color_category(fouls_per_game, zone_average_per_game)
+                
+                heatmap_data.append({
+                    "x": x_center,
+                    "y": y_center,
+                    "fouls_per_game": fouls_per_game,
+                    "total_fouls": total_fouls,
+                    "zone_id": zone_id,
+                    "average_fouls_per_game": round(zone_average_per_game, 2),
+                    "color_category": color_category,
+                    "comparison_ratio": round(fouls_per_game / zone_average_per_game, 2) if zone_average_per_game > 0 else 1.0
+                })
+        
+        # Calculate comparison statistics
+        zones_above_avg = len([z for z in heatmap_data if z["color_category"] == "above_average"])
+        zones_below_avg = len([z for z in heatmap_data if z["color_category"] == "below_average"])
+        zones_average = len([z for z in heatmap_data if z["color_category"] == "average"])
+        
+        total_fouls_all_zones = sum(zone["total_fouls"] for zone in heatmap_data)
+        
+        return {
+            "success": True,
+            "data": {
+                "referee_id": referee_id,
+                "referee_name": current_referee["name"],
+                "matches_officiated": current_referee["matches"],
+                "total_fouls": total_fouls_all_zones,
+                "fouls_per_game_overall": round(total_fouls_all_zones / current_referee["matches"], 2),
+                "heatmap_zones": heatmap_data,
+                "field_dimensions": {
+                    "width": 120,
+                    "height": 80
+                },
+                "statistics": {
+                    "avg_fouls_per_game_per_zone": round(sum(z["fouls_per_game"] for z in heatmap_data) / len(heatmap_data), 2),
+                    "most_active_zones": sorted(heatmap_data, key=lambda x: x["fouls_per_game"], reverse=True)[:5],
+                    "strictness_rating": current_referee["factor"],
+                    "comparison_summary": {
+                        "zones_above_average": zones_above_avg,
+                        "zones_below_average": zones_below_avg,
+                        "zones_at_average": zones_average,
+                        "total_zones": len(heatmap_data)
+                    }
+                }
+            }
+        }
+    except Exception as e:
+        raise HTTPException(status_code=500, detail=str(e))
+
 async def get_data_context_for_llm():
     """Get comprehensive data context for LLM analysis."""
     try:
