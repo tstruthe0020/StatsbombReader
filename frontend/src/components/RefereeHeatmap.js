@@ -62,8 +62,6 @@ const RefereeHeatmap = () => {
   };
 
   const SoccerField = ({ heatmapZones }) => {
-    const maxFouls = Math.max(...heatmapZones.map(zone => zone.foul_count));
-    
     return (
       <div className="relative bg-green-100 rounded-lg overflow-hidden" style={{ aspectRatio: '3/2' }}>
         {/* Soccer field background */}
@@ -104,41 +102,55 @@ const RefereeHeatmap = () => {
                 y={zone.y - 6.67}
                 width="12"
                 height="13.33"
-                fill={getHeatColor(zone.foul_count, maxFouls)}
-                stroke="rgba(255,255,255,0.2)"
-                strokeWidth="0.2"
+                fill={getHeatColor(zone)}
+                stroke="rgba(255,255,255,0.3)"
+                strokeWidth="0.3"
               />
               <text
                 x={zone.x}
-                y={zone.y + 1}
+                y={zone.y - 2}
                 textAnchor="middle"
-                fontSize="3"
+                fontSize="2.5"
                 fill="white"
                 fontWeight="bold"
                 style={{ textShadow: '0 0 2px rgba(0,0,0,0.8)' }}
               >
                 {zone.foul_count}
               </text>
+              <text
+                x={zone.x}
+                y={zone.y + 2}
+                textAnchor="middle"
+                fontSize="2"
+                fill="white"
+                fontWeight="normal"
+                style={{ textShadow: '0 0 2px rgba(0,0,0,0.8)' }}
+              >
+                (avg: {zone.average_fouls})
+              </text>
             </g>
           ))}
         </svg>
         
-        {/* Legend */}
-        <div className="absolute bottom-4 right-4 bg-white bg-opacity-90 p-3 rounded-lg shadow-lg">
-          <p className="text-xs font-semibold mb-2">Fouls per Zone</p>
-          <div className="flex items-center space-x-2 text-xs">
-            <div className="flex items-center space-x-1">
-              <div className="w-3 h-3 bg-green-400 opacity-60 rounded"></div>
-              <span>Low</span>
-            </div>
-            <div className="flex items-center space-x-1">
-              <div className="w-3 h-3 bg-yellow-400 opacity-60 rounded"></div>
-              <span>Med</span>
-            </div>
-            <div className="flex items-center space-x-1">
+        {/* Updated Legend */}
+        <div className="absolute bottom-4 right-4 bg-white bg-opacity-95 p-3 rounded-lg shadow-lg">
+          <p className="text-xs font-semibold mb-2">Compared to All Referees</p>
+          <div className="space-y-1 text-xs">
+            <div className="flex items-center space-x-2">
               <div className="w-3 h-3 bg-red-500 opacity-80 rounded"></div>
-              <span>High</span>
+              <span>Above Average</span>
             </div>
+            <div className="flex items-center space-x-2">
+              <div className="w-3 h-3 bg-yellow-400 opacity-80 rounded"></div>
+              <span>Average</span>
+            </div>
+            <div className="flex items-center space-x-2">
+              <div className="w-3 h-3 bg-green-500 opacity-80 rounded"></div>
+              <span>Below Average</span>
+            </div>
+          </div>
+          <div className="mt-2 pt-2 border-t border-gray-300">
+            <p className="text-xs text-gray-600">Format: count (avg: X.X)</p>
           </div>
         </div>
       </div>
