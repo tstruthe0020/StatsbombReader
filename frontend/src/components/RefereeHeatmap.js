@@ -12,6 +12,7 @@ const RefereeHeatmap = () => {
   const [selectedReferee, setSelectedReferee] = useState(null);
   const [heatmapData, setHeatmapData] = useState(null);
   const [loading, setLoading] = useState(false);
+  const [viewMode, setViewMode] = useState('total'); // 'total' or 'per-game'
 
   useEffect(() => {
     fetchReferees();
