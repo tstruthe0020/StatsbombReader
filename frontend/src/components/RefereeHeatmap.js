@@ -162,7 +162,9 @@ const RefereeHeatmap = () => {
             </div>
           </div>
           <div className="mt-2 pt-2 border-t border-gray-300">
-            <p className="text-xs text-gray-600">Format: count (avg: X.X)</p>
+            <p className="text-xs text-gray-600">
+              Format: {viewMode === 'per-game' ? 'per game (avg: X.X)' : 'count (avg: X.X)'}
+            </p>
           </div>
         </div>
       </div>
