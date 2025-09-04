@@ -171,6 +171,31 @@ const RefereeHeatmap = () => {
 
   return (
     <div className="space-y-6">
+      {/* View Mode Toggle */}
+      <div className="flex items-center justify-center mb-6">
+        <div className="flex bg-gray-100 rounded-lg p-1">
+          <button
+            onClick={() => setViewMode('total')}
+            className={`px-4 py-2 rounded-lg font-medium transition-colors ${
+              viewMode === 'total'
+                ? 'bg-white text-blue-600 shadow-sm'
+                : 'text-gray-600 hover:text-gray-800'
+            }`}
+          >
+            Total Fouls
+          </button>
+          <button
+            onClick={() => setViewMode('per-game')}
+            className={`px-4 py-2 rounded-lg font-medium transition-colors ${
+              viewMode === 'per-game'
+                ? 'bg-white text-blue-600 shadow-sm'
+                : 'text-gray-600 hover:text-gray-800'
+            }`}
+          >
+            Fouls per Game
+          </button>
+        </div>
+      </div>
       {/* Referee Selection */}
       <Card>
         <CardHeader>
