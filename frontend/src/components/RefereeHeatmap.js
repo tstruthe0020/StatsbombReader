@@ -293,29 +293,58 @@ const RefereeHeatmap = () => {
           {/* Most Active Zones */}
           <Card>
             <CardHeader>
-              <CardTitle>Most Active Zones</CardTitle>
+              <CardTitle>Zone Analysis</CardTitle>
               <CardDescription>
-                Areas where {heatmapData.referee_name} awards fouls most frequently
+                Detailed comparison of {heatmapData.referee_name}'s foul calling vs. referee average
               </CardDescription>
             </CardHeader>
             <CardContent>
               <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-4">
-                {heatmapData.statistics.most_active_zones.slice(0, 6).map((zone, index) => (
-                  <div key={zone.zone_id} className="flex items-center justify-between p-3 bg-gray-50 rounded-lg">
-                    <div className="flex items-center gap-3">
-                      <Badge variant="outline" className="text-xs">
-                        #{index + 1}
-                      </Badge>
-                      <div>
-                        <p className="font-semibold">Zone ({Math.round(zone.x)}, {Math.round(zone.y)})</p>
-                        <p className="text-sm text-gray-600">Field coordinates</p>
+                {heatmapData.statistics.most_active_zones.slice(0, 6).map((zone, index) => {
+                  const colorClass = zone.color_category === 'above_average' ? 'bg-red-50 border-red-200' :
+                                   zone.color_category === 'below_average' ? 'bg-green-50 border-green-200' :
+                                   'bg-yellow-50 border-yellow-200';
+                  
+                  const badgeClass = zone.color_category === 'above_average' ? 'bg-red-500' :
+                                   zone.color_category === 'below_average' ? 'bg-green-500' :
+                                   'bg-yellow-500';
+                  
+                  return (
+                    <div key={zone.zone_id} className={`p-4 rounded-lg border ${colorClass}`}>
+                      <div className="flex items-center justify-between mb-2">
+                        <Badge variant="outline" className="text-xs">
+                          Zone #{index + 1}
+                        </Badge>
+                        <Badge className={`${badgeClass} text-white text-xs`}>
+                          {zone.color_category.replace('_', ' ')}
+                        </Badge>
+                      </div>
+                      <div className="space-y-1">
+                        <div className="flex justify-between text-sm">
+                          <span className="font-medium">This referee:</span>
+                          <span className="font-bold">{zone.foul_count} fouls</span>
+                        </div>
+                        <div className="flex justify-between text-sm text-gray-600">
+                          <span>Average:</span>
+                          <span>{zone.average_fouls} fouls</span>
+                        </div>
+                        <div className="flex justify-between text-sm">
+                          <span>Ratio:</span>
+                          <span className={`font-medium ${
+                            zone.comparison_ratio > 1.15 ? 'text-red-600' :
+                            zone.comparison_ratio < 0.85 ? 'text-green-600' :
+                            'text-yellow-600'
+                          }`}>
+                            {zone.comparison_ratio}x
+                          </span>
+                        </div>
+                        <div className="text-xs text-gray-500 mt-1">
+                          Position: ({Math.round(zone.x)}, {Math.round(zone.y)})
+                        </div>
                       </div>
                     </div>
-                    <Badge className="bg-red-500 text-white">
-                      {zone.foul_count} fouls
-                    </Badge>
-                  </div>
-                ))}
+                  );
+                })}
               </div>
             </CardContent>
           </Card>
