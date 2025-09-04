@@ -48,13 +48,17 @@ const RefereeHeatmap = () => {
     await fetchHeatmapData(refereeId);
   };
 
-  const getHeatColor = (foulCount, maxFouls) => {
-    const intensity = foulCount / maxFouls;
-    if (intensity > 0.8) return 'rgba(220, 38, 38, 0.8)'; // Red - High activity
-    if (intensity > 0.6) return 'rgba(245, 101, 101, 0.7)'; // Light red
-    if (intensity > 0.4) return 'rgba(251, 146, 60, 0.6)'; // Orange
-    if (intensity > 0.2) return 'rgba(250, 204, 21, 0.5)'; // Yellow
-    return 'rgba(34, 197, 94, 0.3)'; // Green - Low activity
+  const getHeatColor = (zone) => {
+    // Use the color category from the backend comparison
+    switch (zone.color_category) {
+      case 'above_average':
+        return 'rgba(220, 38, 38, 0.8)'; // Red - Above average
+      case 'below_average':
+        return 'rgba(34, 197, 94, 0.8)'; // Green - Below average
+      case 'average':
+      default:
+        return 'rgba(250, 204, 21, 0.8)'; // Yellow - Average
+    }
   };
 
   const SoccerField = ({ heatmapZones }) => {
