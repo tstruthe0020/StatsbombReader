@@ -253,9 +253,9 @@ const RefereeHeatmap = () => {
           {/* Main Heatmap */}
           <Card>
             <CardHeader>
-              <CardTitle>Field Heatmap - Foul Distribution</CardTitle>
+              <CardTitle>Field Heatmap - Comparison to Average</CardTitle>
               <CardDescription>
-                Each zone shows the number of fouls awarded. Warmer colors indicate higher foul frequency.
+                Each zone shows this referee's foul count vs. the average across all referees. Red = above average, Yellow = average, Green = below average.
               </CardDescription>
             </CardHeader>
             <CardContent>
