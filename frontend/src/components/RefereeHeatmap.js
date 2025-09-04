@@ -337,9 +337,14 @@ const RefereeHeatmap = () => {
           {/* Main Heatmap */}
           <Card>
             <CardHeader>
-              <CardTitle>Field Heatmap - Comparison to Average</CardTitle>
+              <CardTitle>
+                Field Heatmap - {viewMode === 'per-game' ? 'Per Game Comparison' : 'Comparison to Average'}
+              </CardTitle>
               <CardDescription>
-                Each zone shows this referee's foul count vs. the average across all referees. Red = above average, Yellow = average, Green = below average.
+                {viewMode === 'per-game' 
+                  ? 'Each zone shows this referee\'s fouls per game vs. the average per game across all referees. Red = above average, Yellow = average, Green = below average.'
+                  : 'Each zone shows this referee\'s foul count vs. the average across all referees. Red = above average, Yellow = average, Green = below average.'
+                }
               </CardDescription>
             </CardHeader>
             <CardContent>
