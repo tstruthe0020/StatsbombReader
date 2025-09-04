@@ -357,7 +357,10 @@ const RefereeHeatmap = () => {
             <CardHeader>
               <CardTitle>Zone Analysis</CardTitle>
               <CardDescription>
-                Detailed comparison of {heatmapData.referee_name}'s foul calling vs. referee average
+                {viewMode === 'per-game' 
+                  ? `Detailed per-game comparison of ${heatmapData.referee_name}'s foul calling vs. referee average`
+                  : `Detailed comparison of ${heatmapData.referee_name}'s foul calling vs. referee average`
+                }
               </CardDescription>
             </CardHeader>
             <CardContent>
