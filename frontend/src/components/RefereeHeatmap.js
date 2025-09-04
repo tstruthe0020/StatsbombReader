@@ -219,7 +219,7 @@ const RefereeHeatmap = () => {
               </CardTitle>
             </CardHeader>
             <CardContent>
-              <div className="grid grid-cols-2 md:grid-cols-4 gap-4">
+              <div className="grid grid-cols-2 md:grid-cols-4 gap-4 mb-6">
                 <div className="text-center p-4 bg-blue-50 rounded-lg">
                   <TrendingUp className="w-6 h-6 text-blue-500 mx-auto mb-2" />
                   <p className="text-2xl font-bold text-blue-600">{heatmapData.total_fouls}</p>
@@ -247,6 +247,33 @@ const RefereeHeatmap = () => {
                   <p className="text-sm text-gray-600">Strictness</p>
                 </div>
               </div>
+
+              {/* Comparison Summary */}
+              {heatmapData.statistics.comparison_summary && (
+                <div className="grid grid-cols-3 gap-4">
+                  <div className="text-center p-3 bg-red-50 rounded-lg border border-red-200">
+                    <div className="text-xl font-bold text-red-600">
+                      {heatmapData.statistics.comparison_summary.zones_above_average}
+                    </div>
+                    <div className="text-sm text-red-600 font-medium">Above Average</div>
+                    <div className="text-xs text-gray-600">zones</div>
+                  </div>
+                  <div className="text-center p-3 bg-yellow-50 rounded-lg border border-yellow-200">
+                    <div className="text-xl font-bold text-yellow-600">
+                      {heatmapData.statistics.comparison_summary.zones_at_average}
+                    </div>
+                    <div className="text-sm text-yellow-600 font-medium">Average</div>
+                    <div className="text-xs text-gray-600">zones</div>
+                  </div>
+                  <div className="text-center p-3 bg-green-50 rounded-lg border border-green-200">
+                    <div className="text-xl font-bold text-green-600">
+                      {heatmapData.statistics.comparison_summary.zones_below_average}
+                    </div>
+                    <div className="text-sm text-green-600 font-medium">Below Average</div>
+                    <div className="text-xs text-gray-600">zones</div>
+                  </div>
+                </div>
+              )}
             </CardContent>
           </Card>
 
