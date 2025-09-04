@@ -379,11 +379,21 @@ const RefereeHeatmap = () => {
                       <div className="space-y-1">
                         <div className="flex justify-between text-sm">
                           <span className="font-medium">This referee:</span>
-                          <span className="font-bold">{zone.foul_count} fouls</span>
+                          <span className="font-bold">
+                            {viewMode === 'per-game' 
+                              ? `${zone.fouls_per_game} per game`
+                              : `${zone.foul_count} fouls`
+                            }
+                          </span>
                         </div>
                         <div className="flex justify-between text-sm text-gray-600">
                           <span>Average:</span>
-                          <span>{zone.average_fouls} fouls</span>
+                          <span>
+                            {viewMode === 'per-game' 
+                              ? `${zone.average_fouls_per_game} per game`
+                              : `${zone.average_fouls} fouls`
+                            }
+                          </span>
                         </div>
                         <div className="flex justify-between text-sm">
                           <span>Ratio:</span>
