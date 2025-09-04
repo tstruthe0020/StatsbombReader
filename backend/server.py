@@ -711,6 +711,11 @@ async def get_referee_foul_heatmap(referee_id: str):
         
         total_fouls = sum(zone["foul_count"] for zone in heatmap_data)
         
+        # Calculate comparison statistics
+        zones_above_avg = len([z for z in heatmap_data if z["color_category"] == "above_average"])
+        zones_below_avg = len([z for z in heatmap_data if z["color_category"] == "below_average"])
+        zones_average = len([z for z in heatmap_data if z["color_category"] == "average"])
+        
         return {
             "success": True,
             "data": {
@@ -725,7 +730,13 @@ async def get_referee_foul_heatmap(referee_id: str):
                 "statistics": {
                     "avg_fouls_per_zone": total_fouls / len(heatmap_data),
                     "most_active_zones": sorted(heatmap_data, key=lambda x: x["foul_count"], reverse=True)[:5],
-                    "strictness_rating": referee_factor if 'referee_factor' in locals() else 1.0
+                    "strictness_rating": referee_factor if 'referee_factor' in locals() else 1.0,
+                    "comparison_summary": {
+                        "zones_above_average": zones_above_avg,
+                        "zones_below_average": zones_below_avg,
+                        "zones_at_average": zones_average,
+                        "total_zones": len(heatmap_data)
+                    }
                 }
             }
         }
