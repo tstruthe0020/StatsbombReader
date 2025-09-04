@@ -127,7 +127,7 @@ const RefereeHeatmap = () => {
                 fontWeight="bold"
                 style={{ textShadow: '0 0 2px rgba(0,0,0,0.8)' }}
               >
-                {zone.foul_count}
+                {viewMode === 'per-game' ? zone.fouls_per_game : zone.foul_count}
               </text>
               <text
                 x={zone.x}
@@ -138,7 +138,7 @@ const RefereeHeatmap = () => {
                 fontWeight="normal"
                 style={{ textShadow: '0 0 2px rgba(0,0,0,0.8)' }}
               >
-                (avg: {zone.average_fouls})
+                (avg: {viewMode === 'per-game' ? zone.average_fouls_per_game : zone.average_fouls})
               </text>
             </g>
           ))}
