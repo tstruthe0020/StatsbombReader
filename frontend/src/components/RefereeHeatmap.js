@@ -32,7 +32,11 @@ const RefereeHeatmap = () => {
   const fetchHeatmapData = async (refereeId) => {
     try {
       setLoading(true);
-      const response = await axios.get(`${API_BASE_URL}/api/analytics/referees/${refereeId}/heatmap`);
+      const endpoint = viewMode === 'per-game' 
+        ? `/api/analytics/referees/${refereeId}/heatmap/per-game`
+        : `/api/analytics/referees/${refereeId}/heatmap`;
+      
+      const response = await axios.get(`${API_BASE_URL}${endpoint}`);
       if (response.data.success) {
         setHeatmapData(response.data.data);
       }
