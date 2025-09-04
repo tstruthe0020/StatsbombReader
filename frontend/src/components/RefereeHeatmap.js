@@ -167,7 +167,7 @@ const RefereeHeatmap = () => {
             Referee Foul Heatmap Analysis
           </CardTitle>
           <CardDescription>
-            Visualize where referees typically award fouls across the soccer field
+            Visualize where referees award fouls compared to the average across all referees. Green zones indicate below-average foul calling, yellow shows average, and red indicates above-average calling.
           </CardDescription>
         </CardHeader>
         <CardContent>
