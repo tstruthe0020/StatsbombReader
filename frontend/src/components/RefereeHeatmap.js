@@ -18,6 +18,13 @@ const RefereeHeatmap = () => {
     fetchReferees();
   }, []);
 
+  // Refresh heatmap data when view mode changes
+  useEffect(() => {
+    if (selectedReferee) {
+      fetchHeatmapData(selectedReferee.id);
+    }
+  }, [viewMode]);
+
   const fetchReferees = async () => {
     try {
       const response = await axios.get(`${API_BASE_URL}/api/analytics/referees`);
