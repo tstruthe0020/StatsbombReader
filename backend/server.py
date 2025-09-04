@@ -566,6 +566,70 @@ async def get_referees_list():
     except Exception as e:
         raise HTTPException(status_code=500, detail=str(e))
 
+def calculate_average_referee_heatmap():
+    """Calculate average foul counts per zone across all referees."""
+    # All referee IDs and their factors
+    referee_factors = {
+        "ref_001": 1.2,  # Stricter referee
+        "ref_002": 0.8,  # More lenient
+        "ref_003": 1.0,  # Average
+        "ref_004": 1.1,  # Slightly strict
+        "ref_005": 0.9,  # Slightly lenient
+        "ref_006": 1.15, # Strict
+        "ref_007": 0.85, # Lenient
+        "ref_008": 1.05  # Average+
+    }
+    
+    import random
+    import math
+    
+    # Calculate average foul count for each zone across all referees
+    zone_averages = {}
+    grid_width = 12  # 120 / 10 zones
+    grid_height = 13.33  # 80 / 6 zones
+    
+    for i in range(10):  # 10 zones horizontally
+        for j in range(6):  # 6 zones vertically
+            zone_id = f"zone_{i}_{j}"
+            x_center = (i * grid_width) + (grid_width / 2)
+            y_center = (j * grid_height) + (grid_height / 2)
+            
+            # Calculate base density for this zone
+            distance_to_center = math.sqrt((x_center - 60)**2 + (y_center - 40)**2)
+            distance_to_penalty_area_1 = min(
+                math.sqrt((x_center - 18)**2 + (y_center - 40)**2),
+                math.sqrt((x_center - 102)**2 + (y_center - 40)**2)
+            )
+            
+            base_density = max(5, 30 - distance_to_center * 0.3)
+            penalty_bonus = max(0, 15 - distance_to_penalty_area_1 * 0.5)
+            
+            # Calculate average across all referees
+            total_fouls = 0
+            for ref_factor in referee_factors.values():
+                foul_count = int((base_density + penalty_bonus) * ref_factor * random.uniform(0.7, 1.3))
+                total_fouls += foul_count
+            
+            average_fouls = total_fouls / len(referee_factors)
+            zone_averages[zone_id] = {
+                "x": x_center,
+                "y": y_center,
+                "average_fouls": average_fouls
+            }
+    
+    return zone_averages
+
+def get_zone_color_category(referee_fouls, average_fouls, tolerance=0.15):
+    """Determine color category based on comparison to average."""
+    ratio = referee_fouls / average_fouls if average_fouls > 0 else 1
+    
+    if ratio < (1 - tolerance):  # Below average by more than tolerance
+        return "below_average"
+    elif ratio > (1 + tolerance):  # Above average by more than tolerance
+        return "above_average"
+    else:  # Within tolerance of average
+        return "average"
+
 @app.get("/api/analytics/referees/{referee_id}/heatmap")
 async def get_referee_foul_heatmap(referee_id: str):
     """Get foul heatmap data for a specific referee."""
@@ -577,7 +641,10 @@ async def get_referee_foul_heatmap(referee_id: str):
         import random
         import math
         
-        # Generate realistic foul distribution data
+        # Calculate average foul distribution across all referees
+        zone_averages = calculate_average_referee_heatmap()
+        
+        # Generate realistic foul distribution data for the specific referee
         heatmap_data = []
         
         # Create grid zones (10x6 grid covering the field)
@@ -586,6 +653,7 @@ async def get_referee_foul_heatmap(referee_id: str):
         
         for i in range(10):  # 10 zones horizontally
             for j in range(6):  # 6 zones vertically
+                zone_id = f"zone_{i}_{j}"
                 x_center = (i * grid_width) + (grid_width / 2)
                 y_center = (j * grid_height) + (grid_height / 2)
                 
@@ -615,11 +683,18 @@ async def get_referee_foul_heatmap(referee_id: str):
                 
                 foul_count = int((base_density + penalty_bonus) * referee_factor * random.uniform(0.7, 1.3))
                 
+                # Get the average for this zone and determine color category
+                zone_average = zone_averages.get(zone_id, {}).get("average_fouls", foul_count)
+                color_category = get_zone_color_category(foul_count, zone_average)
+                
                 heatmap_data.append({
                     "x": x_center,
                     "y": y_center,
                     "foul_count": foul_count,
-                    "zone_id": f"zone_{i}_{j}"
+                    "zone_id": zone_id,
+                    "average_fouls": round(zone_average, 1),
+                    "color_category": color_category,
+                    "comparison_ratio": round(foul_count / zone_average, 2) if zone_average > 0 else 1.0
                 })
         
         # Get referee info
