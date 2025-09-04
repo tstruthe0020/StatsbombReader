@@ -259,29 +259,49 @@ const RefereeHeatmap = () => {
               <div className="grid grid-cols-2 md:grid-cols-4 gap-4 mb-6">
                 <div className="text-center p-4 bg-blue-50 rounded-lg">
                   <TrendingUp className="w-6 h-6 text-blue-500 mx-auto mb-2" />
-                  <p className="text-2xl font-bold text-blue-600">{heatmapData.total_fouls}</p>
-                  <p className="text-sm text-gray-600">Total Fouls</p>
+                  <p className="text-2xl font-bold text-blue-600">
+                    {viewMode === 'per-game' 
+                      ? heatmapData.fouls_per_game_overall || Math.round(heatmapData.total_fouls / (heatmapData.matches_officiated || 1))
+                      : heatmapData.total_fouls
+                    }
+                  </p>
+                  <p className="text-sm text-gray-600">
+                    {viewMode === 'per-game' ? 'Fouls per Game' : 'Total Fouls'}
+                  </p>
                 </div>
                 <div className="text-center p-4 bg-green-50 rounded-lg">
                   <MapPin className="w-6 h-6 text-green-500 mx-auto mb-2" />
                   <p className="text-2xl font-bold text-green-600">
-                    {Math.round(heatmapData.statistics.avg_fouls_per_zone)}
+                    {viewMode === 'per-game' 
+                      ? heatmapData.statistics.avg_fouls_per_game_per_zone || Math.round(heatmapData.statistics.avg_fouls_per_zone / (heatmapData.matches_officiated || 1))
+                      : Math.round(heatmapData.statistics.avg_fouls_per_zone)
+                    }
                   </p>
-                  <p className="text-sm text-gray-600">Avg per Zone</p>
+                  <p className="text-sm text-gray-600">
+                    {viewMode === 'per-game' ? 'Avg per Game/Zone' : 'Avg per Zone'}
+                  </p>
                 </div>
                 <div className="text-center p-4 bg-orange-50 rounded-lg">
                   <Activity className="w-6 h-6 text-orange-500 mx-auto mb-2" />
                   <p className="text-2xl font-bold text-orange-600">
-                    {heatmapData.statistics.most_active_zones[0]?.foul_count || 0}
+                    {viewMode === 'per-game' 
+                      ? heatmapData.statistics.most_active_zones[0]?.fouls_per_game || 0
+                      : heatmapData.statistics.most_active_zones[0]?.foul_count || 0
+                    }
                   </p>
                   <p className="text-sm text-gray-600">Hottest Zone</p>
                 </div>
                 <div className="text-center p-4 bg-purple-50 rounded-lg">
                   <User className="w-6 h-6 text-purple-500 mx-auto mb-2" />
                   <p className="text-2xl font-bold text-purple-600">
-                    {(heatmapData.statistics.strictness_rating * 100).toFixed(0)}%
+                    {viewMode === 'per-game' && heatmapData.matches_officiated 
+                      ? heatmapData.matches_officiated
+                      : (heatmapData.statistics.strictness_rating * 100).toFixed(0) + '%'
+                    }
                   </p>
-                  <p className="text-sm text-gray-600">Strictness</p>
+                  <p className="text-sm text-gray-600">
+                    {viewMode === 'per-game' ? 'Matches' : 'Strictness'}
+                  </p>
                 </div>
               </div>
 
