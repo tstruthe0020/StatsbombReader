@@ -619,6 +619,60 @@ def calculate_average_referee_heatmap():
     
     return zone_averages
 
+def calculate_average_referee_heatmap_per_game():
+    """Calculate average fouls per game per zone across all referees."""
+    # All referee IDs, their factors, and match counts
+    referee_data = {
+        "ref_001": {"factor": 1.2, "matches": 45},   # Stricter referee
+        "ref_002": {"factor": 0.8, "matches": 38},   # More lenient
+        "ref_003": {"factor": 1.0, "matches": 42},   # Average
+        "ref_004": {"factor": 1.1, "matches": 39},   # Slightly strict
+        "ref_005": {"factor": 0.9, "matches": 33},   # Slightly lenient
+        "ref_006": {"factor": 1.15, "matches": 29},  # Strict
+        "ref_007": {"factor": 0.85, "matches": 26},  # Lenient
+        "ref_008": {"factor": 1.05, "matches": 31}   # Average+
+    }
+    
+    import random
+    import math
+    
+    # Calculate average fouls per game for each zone across all referees
+    zone_averages = {}
+    grid_width = 12  # 120 / 10 zones
+    grid_height = 13.33  # 80 / 6 zones
+    
+    for i in range(10):  # 10 zones horizontally
+        for j in range(6):  # 6 zones vertically
+            zone_id = f"zone_{i}_{j}"
+            x_center = (i * grid_width) + (grid_width / 2)
+            y_center = (j * grid_height) + (grid_height / 2)
+            
+            # Calculate base density for this zone
+            distance_to_center = math.sqrt((x_center - 60)**2 + (y_center - 40)**2)
+            distance_to_penalty_area_1 = min(
+                math.sqrt((x_center - 18)**2 + (y_center - 40)**2),
+                math.sqrt((x_center - 102)**2 + (y_center - 40)**2)
+            )
+            
+            base_density = max(5, 30 - distance_to_center * 0.3)
+            penalty_bonus = max(0, 15 - distance_to_penalty_area_1 * 0.5)
+            
+            # Calculate per-game average across all referees
+            total_fouls_per_game = 0
+            for ref_id, ref_info in referee_data.items():
+                total_fouls = int((base_density + penalty_bonus) * ref_info["factor"] * random.uniform(0.7, 1.3))
+                fouls_per_game = total_fouls / ref_info["matches"]
+                total_fouls_per_game += fouls_per_game
+            
+            average_fouls_per_game = total_fouls_per_game / len(referee_data)
+            zone_averages[zone_id] = {
+                "x": x_center,
+                "y": y_center,
+                "average_fouls_per_game": average_fouls_per_game
+            }
+    
+    return zone_averages
+
 def get_zone_color_category(referee_fouls, average_fouls, tolerance=0.15):
     """Determine color category based on comparison to average."""
     ratio = referee_fouls / average_fouls if average_fouls > 0 else 1
