@@ -217,7 +217,7 @@ class QueryRequest(BaseModel):
 @app.on_event("startup")
 async def startup_event():
     """Initialize services on startup."""
-    global github_client, db_client, db
+    global github_client, db_client, db, spatial_engine
     
     # Initialize GitHub client
     github_token = os.getenv("GITHUB_TOKEN")
@@ -228,6 +228,11 @@ async def startup_event():
     try:
         github_client = GitHubAPIClient(github_token)
         logger.info("GitHub client initialized successfully")
+        
+        # Initialize spatial analysis engine
+        spatial_engine = SpatialAnalysisEngine(github_client)
+        logger.info("Spatial analysis engine initialized successfully")
+        
     except Exception as e:
         logger.error(f"Failed to initialize GitHub client: {e}")
         raise RuntimeError(f"GitHub client initialization failed: {e}")
