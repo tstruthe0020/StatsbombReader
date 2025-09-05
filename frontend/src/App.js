@@ -10,6 +10,7 @@ import { Progress } from './components/ui/progress';
 import { Separator } from './components/ui/separator';
 import { Activity, TrendingUp, Users, AlertTriangle, BarChart3, Target, Clock, MapPin, Zap, Brain, MessageCircle, Layers } from 'lucide-react';
 import RefereeHeatmap from './components/RefereeHeatmap';
+import SpatialAnalysis from './components/SpatialAnalysis';
 import './App.css';
 
 const API_BASE_URL = process.env.REACT_APP_BACKEND_URL || '';
