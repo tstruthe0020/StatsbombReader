@@ -1417,6 +1417,8 @@ async def get_pressure_situation_analysis(match_id: int):
     except Exception as e:
         logger.error(f"Error in pressure analysis: {e}")
         raise HTTPException(status_code=500, detail=str(e))
+
+@app.get("/api/analytics/360/formation-bias/{referee_id}")
 async def get_formation_bias_analysis(referee_id: str):
     """Analyze referee bias based on team formations and tactical setups."""
     try:
