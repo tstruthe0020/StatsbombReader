@@ -1123,6 +1123,152 @@ Would you like me to suggest specific analysis approaches for your question?""")
         logger.error(f"LLM query error: {e}")
         raise HTTPException(status_code=500, detail=f"Failed to process query: {str(e)}")
 
+class SpatialAnalysisEngine:
+    """Engine for analyzing spatial context using StatsBomb 360 data."""
+    
+    def __init__(self, github_client):
+        self.github_client = github_client
+        
+    def get_360_data(self, match_id):
+        """Fetch 360 freeze-frame data for a match."""
+        try:
+            repo = self.github_client.repo
+            file_path = f"data/three-sixty/{match_id}.json"
+            
+            try:
+                file_content = repo.get_contents(file_path)
+                data = json_lib.loads(file_content.decoded_content.decode('utf-8'))
+                return data
+            except Exception:
+                logger.warning(f"No 360 data available for match {match_id}")
+                return None
+                
+        except Exception as e:
+            logger.error(f"Error fetching 360 data for match {match_id}: {e}")
+            return None
+    
+    def calculate_player_density(self, freeze_frame, center_point, radius=10):
+        """Calculate player density within radius of a point."""
+        if not freeze_frame:
+            return 0
+            
+        center_x, center_y = center_point
+        players_in_radius = 0
+        
+        for player in freeze_frame:
+            if 'location' in player:
+                px, py = player['location']
+                distance = math.sqrt((px - center_x)**2 + (py - center_y)**2)
+                if distance <= radius:
+                    players_in_radius += 1
+                    
+        return players_in_radius
+    
+    def analyze_defensive_line(self, freeze_frame, attacking_direction='left'):
+        """Analyze defensive line height and compactness."""
+        if not freeze_frame:
+            return None
+            
+        defending_players = [p for p in freeze_frame if not p.get('teammate', True)]
+        
+        if not defending_players:
+            return None
+            
+        positions = [p['location'] for p in defending_players if 'location' in p]
+        if not positions:
+            return None
+            
+        # Calculate defensive line metrics
+        x_positions = [pos[0] for pos in positions]
+        y_positions = [pos[1] for pos in positions]
+        
+        return {
+            'line_height': statistics.mean(x_positions) if attacking_direction == 'right' else 120 - statistics.mean(x_positions),
+            'line_width': max(y_positions) - min(y_positions) if len(y_positions) > 1 else 0,
+            'compactness': statistics.stdev(x_positions) if len(x_positions) > 1 else 0,
+            'player_count': len(defending_players)
+        }
+    
+    def calculate_pressure_index(self, freeze_frame, event_location, radius=15):
+        """Calculate pressure index around event location."""
+        if not freeze_frame or not event_location:
+            return 0
+            
+        event_x, event_y = event_location
+        
+        # Count players within radius
+        nearby_players = 0
+        teammate_pressure = 0
+        opponent_pressure = 0
+        
+        for player in freeze_frame:
+            if 'location' in player:
+                px, py = player['location']
+                distance = math.sqrt((px - event_x)**2 + (py - event_y)**2)
+                
+                if distance <= radius:
+                    nearby_players += 1
+                    if player.get('teammate', False):
+                        teammate_pressure += 1
+                    else:
+                        opponent_pressure += 1
+        
+        return {
+            'total_players': nearby_players,
+            'teammate_pressure': teammate_pressure,
+            'opponent_pressure': opponent_pressure,
+            'pressure_ratio': opponent_pressure / max(teammate_pressure, 1)
+        }
+    
+    def detect_formation_context(self, freeze_frame):
+        """Detect basic formation context from player positions."""
+        if not freeze_frame:
+            return None
+            
+        teammates = [p for p in freeze_frame if p.get('teammate', False)]
+        opponents = [p for p in freeze_frame if not p.get('teammate', False)]
+        
+        def analyze_team_shape(players):
+            if len(players) < 4:
+                return None
+                
+            positions = [p['location'] for p in players if 'location' in p]
+            if not positions:
+                return None
+                
+            x_positions = [pos[0] for pos in positions]
+            y_positions = [pos[1] for pos in positions]
+            
+            # Simple formation detection based on x-position clustering
+            x_sorted = sorted(x_positions)
+            
+            # Detect lines (simplified)
+            lines = []
+            current_line = [x_sorted[0]]
+            
+            for x in x_sorted[1:]:
+                if x - current_line[-1] < 15:  # Same line if within 15 units
+                    current_line.append(x)
+                else:
+                    lines.append(len(current_line))
+                    current_line = [x]
+            lines.append(len(current_line))
+            
+            return {
+                'lines': lines,
+                'width': max(y_positions) - min(y_positions),
+                'depth': max(x_positions) - min(x_positions),
+                'compactness': statistics.stdev(x_positions) if len(x_positions) > 1 else 0
+            }
+        
+        return {
+            'attacking_team': analyze_team_shape(teammates),
+            'defending_team': analyze_team_shape(opponents)
+        }
+
+# Initialize spatial analysis engine
+spatial_engine = None
+
 if __name__ == "__main__":
     import uvicorn
     uvicorn.run(app, host="0.0.0.0", port=8001)
