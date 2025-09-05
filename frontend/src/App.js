@@ -779,6 +779,11 @@ function App() {
             </Card>
           </TabsContent>
 
+          {/* NEW: 360° Spatial Analysis Tab */}
+          <TabsContent value="spatial" className="space-y-6">
+            <SpatialAnalysis />
+          </TabsContent>
+
           {/* NEW: LLM Query Tab */}
           <TabsContent value="llm-query" className="space-y-6">
             <div className="text-center mb-8">
