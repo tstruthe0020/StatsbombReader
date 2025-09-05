@@ -1271,7 +1271,138 @@ class SpatialAnalysisEngine:
             'defending_team': analyze_team_shape(opponents)
         }
 
-@app.get("/api/analytics/360/referee-positioning/{referee_id}")
+@app.get("/api/analytics/360/formation-bias/{referee_id}")
+async def get_formation_bias_analysis(referee_id: str):
+    """Analyze referee bias based on team formations and tactical setups."""
+    try:
+        if not spatial_engine:
+            raise HTTPException(status_code=503, detail="Spatial analysis engine not initialized")
+        
+        referee_names = {
+            "ref_001": "Antonio Mateu Lahoz",
+            "ref_002": "Björn Kuipers", 
+            "ref_003": "Daniele Orsato",
+            "ref_004": "Clément Turpin",
+            "ref_005": "Michael Oliver",
+            "ref_006": "Szymon Marciniak",
+            "ref_007": "Istvan Kovacs",
+            "ref_008": "Jesús Gil Manzano"
+        }
+        
+        # Sample formation analysis data
+        formation_patterns = {
+            "4-3-3": {"fouls_against": 23, "fouls_for": 19, "cards": 5, "penalties": 2},
+            "4-4-2": {"fouls_against": 18, "fouls_for": 22, "cards": 3, "penalties": 1}, 
+            "3-5-2": {"fouls_against": 15, "fouls_for": 25, "cards": 4, "penalties": 3},
+            "5-4-1": {"fouls_against": 12, "fouls_for": 28, "cards": 2, "penalties": 0},
+            "4-2-3-1": {"fouls_against": 21, "fouls_for": 20, "cards": 6, "penalties": 2}
+        }
+        
+        # Calculate bias metrics
+        formation_bias_analysis = {}
+        total_decisions = sum(sum(stats.values()) for stats in formation_patterns.values())
+        
+        for formation, stats in formation_patterns.items():
+            decisions_for = stats["fouls_for"] + stats["penalties"] * 2  # Weight penalties higher
+            decisions_against = stats["fouls_against"] + stats["cards"]
+            total_formation_decisions = decisions_for + decisions_against
+            
+            # Calculate bias score (>0.5 means favorable to this formation)
+            bias_score = decisions_for / total_formation_decisions if total_formation_decisions > 0 else 0.5
+            
+            # Determine formation characteristics
+            formation_type = "Defensive" if formation in ["5-4-1", "5-3-2"] else \
+                           "Attacking" if formation in ["4-3-3", "3-5-2"] else "Balanced"
+            
+            formation_bias_analysis[formation] = {
+                "total_decisions": total_formation_decisions,
+                "decisions_for": decisions_for,
+                "decisions_against": decisions_against,
+                "bias_score": round(bias_score, 3),
+                "bias_category": (
+                    "Strongly Favorable" if bias_score > 0.65 else
+                    "Favorable" if bias_score > 0.55 else
+                    "Neutral" if bias_score > 0.45 else
+                    "Unfavorable" if bias_score > 0.35 else
+                    "Strongly Unfavorable"
+                ),
+                "formation_type": formation_type,
+                "cards_per_decision": round(stats["cards"] / total_formation_decisions, 2) if total_formation_decisions > 0 else 0,
+                "penalty_rate": round(stats["penalties"] / total_formation_decisions * 100, 1) if total_formation_decisions > 0 else 0
+            }
+        
+        # Tactical bias analysis
+        defensive_formations = ["5-4-1", "5-3-2"]
+        attacking_formations = ["4-3-3", "3-5-2"]
+        balanced_formations = ["4-4-2", "4-2-3-1"]
+        
+        def calculate_tactical_bias(formations):
+            total_bias = sum(formation_bias_analysis[f]["bias_score"] for f in formations if f in formation_bias_analysis)
+            return total_bias / len(formations) if formations else 0.5
+        
+        tactical_analysis = {
+            "defensive_bias": calculate_tactical_bias(defensive_formations),
+            "attacking_bias": calculate_tactical_bias(attacking_formations),
+            "balanced_bias": calculate_tactical_bias(balanced_formations)
+        }
+        
+        # Determine overall tactical preference
+        max_bias = max(tactical_analysis.items(), key=lambda x: x[1])
+        tactical_preference = {
+            "preferred_style": max_bias[0].replace("_bias", "").title(),
+            "preference_strength": max_bias[1],
+            "interpretation": (
+                "Strong bias toward " + max_bias[0].replace("_bias", "") + " formations" if max_bias[1] > 0.6 else
+                "Moderate bias toward " + max_bias[0].replace("_bias", "") + " formations" if max_bias[1] > 0.55 else
+                "No significant tactical bias detected"
+            )
+        }
+        
+        # Generate insights
+        insights = []
+        
+        # Find most and least favorable formations
+        most_favorable = max(formation_bias_analysis.items(), key=lambda x: x[1]["bias_score"])
+        least_favorable = min(formation_bias_analysis.items(), key=lambda x: x[1]["bias_score"])
+        
+        insights.append(f"Most favorable to {most_favorable[0]} (bias score: {most_favorable[1]['bias_score']})")
+        insights.append(f"Least favorable to {least_favorable[0]} (bias score: {least_favorable[1]['bias_score']})")
+        
+        if tactical_preference["preference_strength"] > 0.55:
+            insights.append(f"Shows preference for {tactical_preference['preferred_style'].lower()} tactical approaches")
+        
+        # Card distribution analysis
+        high_card_formations = [f for f, data in formation_bias_analysis.items() if data["cards_per_decision"] > 0.15]
+        if high_card_formations:
+            insights.append(f"More cards given to {', '.join(high_card_formations)} formations")
+        
+        return {
+            "success": True,
+            "data": {
+                "referee_id": referee_id,
+                "referee_name": referee_names.get(referee_id, "Unknown Referee"),
+                "formation_bias_analysis": formation_bias_analysis,
+                "tactical_preference": tactical_preference,
+                "tactical_bias_scores": tactical_analysis,
+                "key_insights": insights,
+                "summary_statistics": {
+                    "total_decisions_analyzed": total_decisions,
+                    "formations_analyzed": len(formation_patterns),
+                    "most_biased_against": least_favorable[0],
+                    "most_favored": most_favorable[0],
+                    "bias_range": round(most_favorable[1]["bias_score"] - least_favorable[1]["bias_score"], 3)
+                },
+                "recommendations": [
+                    f"Monitor decisions involving {least_favorable[0]} formations for consistency",
+                    "Consider formation context when making marginal foul calls",
+                    "Maintain awareness of tactical bias patterns during matches"
+                ]
+            }
+        }
+        
+    except Exception as e:
+        logger.error(f"Error in formation bias analysis: {e}")
+        raise HTTPException(status_code=500, detail=str(e))
 async def get_referee_positioning_analysis(referee_id: str):
     """Analyze referee positioning patterns and accuracy based on spatial context."""
     try:
