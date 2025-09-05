@@ -13,6 +13,7 @@ from pydantic import BaseModel, Field
 import json as json_lib
 import math
 import statistics
+import requests
 
 # Load environment variables
 load_dotenv()
