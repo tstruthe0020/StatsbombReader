@@ -1548,6 +1548,8 @@ async def get_formation_bias_analysis(referee_id: str):
     except Exception as e:
         logger.error(f"Error in formation bias analysis: {e}")
         raise HTTPException(status_code=500, detail=str(e))
+
+@app.get("/api/analytics/360/referee-positioning/{referee_id}")
 async def get_referee_positioning_analysis(referee_id: str):
     """Analyze referee positioning patterns and accuracy based on spatial context."""
     try:
