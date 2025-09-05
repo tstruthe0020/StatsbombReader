@@ -1706,6 +1706,8 @@ async def get_referee_positioning_analysis(referee_id: str):
     except Exception as e:
         logger.error(f"Error in referee positioning analysis: {e}")
         raise HTTPException(status_code=500, detail=str(e))
+
+@app.get("/api/analytics/360/foul-context/{match_id}")
 async def get_spatial_foul_analysis(match_id: int):
     """Analyze spatial context of fouls using 360 freeze-frame data."""
     try:
