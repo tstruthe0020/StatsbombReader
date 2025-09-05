@@ -1137,11 +1137,11 @@ class SpatialAnalysisEngine:
     def get_360_data(self, match_id):
         """Fetch 360 freeze-frame data for a match."""
         try:
-            self._ensure_rate_limit()
+            self.github_client._ensure_rate_limit()
             file_path = f"data/three-sixty/{match_id}.json"
             
             try:
-                file_content = self.repo.get_contents(file_path)
+                file_content = self.github_client.repo.get_contents(file_path)
                 data = json_lib.loads(file_content.decoded_content.decode('utf-8'))
                 logger.info(f"Successfully loaded 360 data for match {match_id} - {len(data)} freeze frames")
                 return data
