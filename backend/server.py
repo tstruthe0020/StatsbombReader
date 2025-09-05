@@ -1142,9 +1142,23 @@ class SpatialAnalysisEngine:
             
             try:
                 file_content = self.github_client.repo.get_contents(file_path)
-                data = json_lib.loads(file_content.decoded_content.decode('utf-8'))
+                
+                # Handle different encoding types
+                if file_content.encoding == 'base64':
+                    content = file_content.decoded_content.decode('utf-8')
+                elif file_content.encoding == 'none':
+                    # For large files, GitHub might not encode them
+                    # Use download_url to get the raw content directly
+                    import requests
+                    response = requests.get(file_content.download_url)
+                    content = response.text
+                else:
+                    content = file_content.decoded_content.decode('utf-8')
+                
+                data = json_lib.loads(content)
                 logger.info(f"Successfully loaded 360 data for match {match_id} - {len(data)} freeze frames")
                 return data
+                
             except Exception as e:
                 logger.warning(f"No 360 data available for match {match_id}: {e}")
                 return None
