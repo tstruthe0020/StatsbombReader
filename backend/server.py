@@ -11,6 +11,8 @@ from dotenv import load_dotenv
 from motor.motor_asyncio import AsyncIOMotorClient
 from pydantic import BaseModel, Field
 import json as json_lib
+import math
+import statistics
 
 # Load environment variables
 load_dotenv()
