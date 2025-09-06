@@ -214,21 +214,26 @@ const FoulMap = ({ matchId }) => {
               transform: 'translate(0, -100%)'
             }}
           >
-            <div className="font-semibold mb-1 flex items-center gap-2">
+            <div className="font-semibold mb-2 flex items-center gap-2">
               <AlertTriangle className="h-4 w-4" />
-              {hoveredFoul.type}
+              {hoveredFoul.displayType}
             </div>
             <div className="space-y-1">
               <div className="flex items-center gap-2">
                 <Clock className="h-3 w-3" />
-                <span>Minute {hoveredFoul.minute}</span>
+                <span>Minute {hoveredFoul.minute}'</span>
               </div>
               <div className="flex items-center gap-2">
                 <User className="h-3 w-3" />
                 <span>{hoveredFoul.player} ({hoveredFoul.team})</span>
               </div>
-              {hoveredFoul.description && (
-                <div className="text-xs text-gray-300 mt-2">{hoveredFoul.description}</div>
+              <div className="text-xs text-gray-300 mt-2">
+                <strong>Foul Type:</strong> {hoveredFoul.type}
+              </div>
+              {hoveredFoul.card && (
+                <div className="text-xs text-gray-300">
+                  <strong>Card:</strong> {hoveredFoul.card}
+                </div>
               )}
             </div>
           </div>
