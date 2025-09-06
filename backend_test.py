@@ -734,6 +734,15 @@ class SoccerAnalyticsAPITester:
         self.test_referees_list_endpoint()
         self.test_referee_heatmap_endpoint()
         
+        # Test new advanced analytics endpoints
+        print("\n🧠 Testing Advanced Analytics Endpoints...")
+        self.test_advanced_analytics_zone_models_status()
+        self.test_advanced_analytics_available_features()
+        self.test_advanced_analytics_predict_fouls()
+        self.test_advanced_analytics_predict_fouls_validation()
+        self.test_advanced_analytics_referee_slopes()
+        self.test_advanced_analytics_referee_slopes_invalid_feature()
+        
         # Test LLM integration endpoints
         print("\n🤖 Testing LLM Integration...")
         self.test_llm_query_endpoint_valid_queries()
