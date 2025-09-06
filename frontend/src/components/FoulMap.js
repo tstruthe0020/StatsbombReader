@@ -139,7 +139,7 @@ const FoulMap = ({ matchId, homeTeam, awayTeam }) => {
       'Lionel Messi', 'Frenkie de Jong', 'Gerard Piqué', 'Sergio Busquets', 'Ousmane Dembélé',
       'Fernando Pacheco', 'Víctor Laguardia', 'Rodrigo Battaglia', 'Luis Rioja', 'Joselu'
     ];
-    const teams = ['Barcelona', 'Deportivo Alavés'];
+    const teams = [homeTeam || 'Home Team', awayTeam || 'Away Team'];
     
     const numFouls = 8 + (seed % 8); // 8-15 fouls based on match ID
     
