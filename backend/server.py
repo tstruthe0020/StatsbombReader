@@ -2814,7 +2814,7 @@ def get_team_style(team: str, season_id: int, competition_id: int):
                 "possession_directness": row.get("cat_possess_dir"),
                 "width": row.get("cat_width"),
                 "transition": row.get("cat_transition"),
-                "overlays": row.get("cat_overlays", [])
+                "overlays": list(row.get("cat_overlays", [])) if row.get("cat_overlays") is not None else []
             },
             "key_metrics": {
                 "ppda": round(float(row.get("ppda", 0)), 2),
