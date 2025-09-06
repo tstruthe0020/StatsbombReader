@@ -895,34 +895,49 @@ export const PressureAnalysisVisualization = ({ pressureData }) => {
               <rect x="114" y="30" width="6" height="20" />
             </g>
             
-            {/* Static pressure event circles - positions NEVER change */}
-            {allEvents.map((event, idx) => (
-              <g key={`event-${idx}`}>
-                <circle
-                  cx={event.x}
-                  cy={event.y}
-                  r="3"
-                  fill={event.teamType === 'home' ? '#3b82f6' : '#ef4444'}
-                  fillOpacity={event.outcome === 'Success' ? '0.8' : '0.5'}
-                  stroke="white"
-                  strokeWidth="1"
-                  className="cursor-pointer"
-                  onMouseEnter={() => setHoveredPlayer(event)}
-                  onMouseLeave={() => setHoveredPlayer(null)}
-                />
-                <text
-                  x={event.x}
-                  y={event.y + 1}
-                  textAnchor="middle"
-                  fontSize="1.5"
-                  fill="white"
-                  fontWeight="bold"
-                  className="pointer-events-none"
-                >
-                  {event.type[0]}
-                </text>
-              </g>
-            ))}
+            {/* Static pressure event circles - positions NEVER change, but highlighting does */}
+            {allEvents.map((event, idx) => {
+              const isCurrentScenario = idx === currentScenarioIndex;
+              return (
+                <g key={`event-${idx}`}>
+                  <circle
+                    cx={event.x}
+                    cy={event.y}
+                    r={isCurrentScenario ? "4" : "3"}
+                    fill={event.teamType === 'home' ? '#3b82f6' : '#ef4444'}
+                    fillOpacity={event.outcome === 'Success' ? '0.8' : '0.5'}
+                    stroke={isCurrentScenario ? "#000000" : "white"}
+                    strokeWidth={isCurrentScenario ? "2" : "1"}
+                    className="cursor-pointer"
+                    onMouseEnter={() => setHoveredPlayer(event)}
+                    onMouseLeave={() => setHoveredPlayer(null)}
+                  />
+                  <text
+                    x={event.x}
+                    y={event.y + 1}
+                    textAnchor="middle"
+                    fontSize="1.5"
+                    fill="white"
+                    fontWeight="bold"
+                    className="pointer-events-none"
+                  >
+                    {event.type[0]}
+                  </text>
+                  {/* Current scenario indicator */}
+                  {isCurrentScenario && (
+                    <circle
+                      cx={event.x}
+                      cy={event.y}
+                      r="6"
+                      fill="none"
+                      stroke="#ffff00"
+                      strokeWidth="2"
+                      className="animate-pulse"
+                    />
+                  )}
+                </g>
+              );
+            })}
           </svg>
           
           {/* Simple static tooltip */}
