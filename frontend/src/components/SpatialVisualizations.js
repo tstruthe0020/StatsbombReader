@@ -771,6 +771,26 @@ export const PressureAnalysisVisualization = ({ pressureData }) => {
 
   const allEvents = getStaticPressureEvents(selectedMatch);
 
+  // Pressure scenario navigation
+  const goToNextScenario = () => {
+    if (allEvents.length > 0) {
+      const nextIndex = (currentScenarioIndex + 1) % allEvents.length;
+      setCurrentScenarioIndex(nextIndex);
+    }
+  };
+
+  const goToPrevScenario = () => {
+    if (allEvents.length > 0) {
+      const prevIndex = (currentScenarioIndex - 1 + allEvents.length) % allEvents.length;
+      setCurrentScenarioIndex(prevIndex);
+    }
+  };
+
+  const handleMatchChange = (match) => {
+    setSelectedMatch(match);
+    setCurrentScenarioIndex(0);
+  };
+
   return (
     <div className="space-y-4">
       {/* Reading Instructions */}
