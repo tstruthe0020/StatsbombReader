@@ -1,0 +1,6 @@
+competition_id,season_id,team,cat_pressing,cat_block,cat_possess_dir,cat_width,cat_transition,cat_overlays,style_archetype
+11,90,Barcelona,High Press,High Block,Possession-Based,Balanced Channels,Low Transition,[],High-Press Possession
+11,90,Atletico Madrid,Low Press,Low Block,Direct,Wing Overload,High Transition,['Cross-Heavy'],Low-Block Counter + Wing Overload Crossers
+9,44,Bayern Munich,High Press,High Block,Balanced,Balanced Channels,High Transition,['Cross-Heavy'],High-Press Direct
+2,44,Liverpool,High Press,High Block,Possession-Based,Wing Overload,Low Transition,['Cross-Heavy'],High-Press Possession + Wing Overload Crossers
+2,44,Chelsea,Mid Press,Mid Block,Balanced,Balanced Channels,Low Transition,[],Mid-Block Balanced
