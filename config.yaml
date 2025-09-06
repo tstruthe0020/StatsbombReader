@@ -1,0 +1,98 @@
+# Referee-Playstyle-Discipline Analytics Configuration
+
+# Default competitions and seasons for analysis
+default_analysis:
+  competitions:
+    - competition_id: 11  # La Liga
+      season_id: 90      # 2020/21
+    - competition_id: 2   # Premier League
+      season_id: 44      # 2020/21
+    - competition_id: 16  # UEFA Euro
+      season_id: 55      # 2024
+    - competition_id: 43  # FIFA World Cup
+      season_id: 3       # 2018
+
+# Feature engineering parameters
+features:
+  playstyle:
+    # Pressing & Block features
+    ppda_threshold: 10.0
+    defensive_thirds:
+      defensive: [0, 40]
+      middle: [40, 80] 
+      attacking: [80, 120]
+    
+    # Possession & Directness
+    long_pass_threshold: 30.0  # meters
+    
+    # Channels & Delivery (field width = 80m)
+    channels:
+      left: [0, 26.67]
+      center: [26.67, 53.33]
+      right: [53.33, 80]
+    
+    # Transitions
+    counter_patterns:
+      - "From Counter"
+      - "From Throw In"
+
+  discipline:
+    # Spatial zones configuration
+    zones:
+      x_bins: 5  # 5 zones across 120m field length
+      y_bins: 3  # 3 zones across 80m field width
+    
+    # Card handling
+    card_treatment: "separate"  # "separate" or "cumulative" for Second Yellow
+    
+    # Minimum event thresholds
+    min_events:
+      match_events: 100
+      team_passes: 50
+      foul_locations: 1
+
+# Modeling parameters
+modeling:
+  zone_nb:
+    # Negative Binomial GLM settings
+    exposure_offset: "log_opp_passes"  # or "log_minutes"
+    alpha: 0.05  # significance level
+    
+    # Feature standardization
+    standardize_features: true
+    
+    # Core interaction features (limit to avoid overfitting)
+    interaction_features:
+      - "directness"
+      - "ppda"
+    
+    # Minimum data requirements
+    min_referee_matches: 5
+    min_zone_events: 3
+
+# Export/storage paths
+paths:
+  data_dir: "data"
+  models_dir: "data/models_nb_zone"
+  figures_dir: "data/figs"
+  exports_dir: "data/exports"
+
+# Visualization settings
+visualization:
+  heatmap:
+    field_dimensions:
+      length: 120
+      width: 80
+    color_scheme: "RdYlBu_r"
+    significance_alpha: 0.05
+  
+  forest_plot:
+    confidence_level: 0.95
+    max_referees_display: 15
+    
+# CLI settings
+cli:
+  default_competitions: [11, 2, 16, 43]
+  batch_size: 10  # matches to process in parallel
+  cache_events: true
+  verbose: true
