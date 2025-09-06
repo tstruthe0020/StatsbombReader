@@ -27,6 +27,9 @@ const LineupViewer = ({ formations }) => {
   const getFormationPositions = (formation, players) => {
     if (!formation || !players || players.length === 0) return {};
 
+    console.log(`Formation: ${formation}, Players count: ${players.length}`);
+    console.log('Players:', players.map(p => ({ name: p.player, position: p.position })));
+
     // Position mappings for different formations
     const formationLayouts = {
       '4-3-3': {
@@ -52,13 +55,19 @@ const LineupViewer = ({ formations }) => {
         defense: [{ x: 15, y: 75 }, { x: 35, y: 75 }, { x: 65, y: 75 }, { x: 85, y: 75 }],
         midfield: [{ x: 20, y: 55 }, { x: 40, y: 55 }, { x: 60, y: 55 }, { x: 80, y: 55 }],
         attack: [{ x: 40, y: 25 }, { x: 60, y: 25 }]
+      },
+      '3-4-3': {
+        goalkeeper: [{ x: 50, y: 90 }],
+        defense: [{ x: 25, y: 75 }, { x: 50, y: 75 }, { x: 75, y: 75 }],
+        midfield: [{ x: 20, y: 55 }, { x: 40, y: 55 }, { x: 60, y: 55 }, { x: 80, y: 55 }],
+        attack: [{ x: 25, y: 25 }, { x: 50, y: 20 }, { x: 75, y: 25 }]
       }
     };
 
     const layout = formationLayouts[formation] || formationLayouts['4-3-3'];
     const positionedPlayers = {};
 
-    // Group players by position type
+    // More comprehensive position grouping
     const groupedPlayers = {
       goalkeeper: [],
       defense: [],
@@ -67,25 +76,66 @@ const LineupViewer = ({ formations }) => {
     };
 
     players.forEach(player => {
-      const position = player.position || '';
-      if (position.includes('Goalkeeper') || position === 'GK') {
+      const position = (player.position || '').toLowerCase();
+      
+      // Goalkeeper detection
+      if (position.includes('goalkeeper') || position === 'gk' || position.includes('keeper')) {
         groupedPlayers.goalkeeper.push(player);
-      } else if (position.includes('Back') || position.includes('Center Back') || position === 'CB' || position === 'RB' || position === 'LB') {
+      }
+      // Defense detection (more comprehensive)
+      else if (
+        position.includes('back') || 
+        position.includes('defender') || 
+        position.includes('defence') ||
+        position === 'cb' || position === 'rb' || position === 'lb' ||
+        position === 'rcb' || position === 'lcb' ||
+        position === 'rwb' || position === 'lwb'
+      ) {
         groupedPlayers.defense.push(player);
-      } else if (position.includes('Midfield') || position.includes('Mid') || position === 'CDM' || position === 'CM' || position === 'CAM') {
-        groupedPlayers.midfield.push(player);
-      } else if (position.includes('Forward') || position.includes('Wing') || position === 'ST' || position === 'RW' || position === 'LW') {
+      }
+      // Attack detection (more comprehensive)
+      else if (
+        position.includes('forward') || 
+        position.includes('striker') ||
+        position.includes('wing') ||
+        position === 'st' || position === 'cf' ||
+        position === 'rw' || position === 'lw' ||
+        position === 'rf' || position === 'lf'
+      ) {
         groupedPlayers.attack.push(player);
-      } else {
+      }
+      // Midfield detection (more comprehensive) 
+      else if (
+        position.includes('midfield') || 
+        position.includes('mid') ||
+        position === 'cdm' || position === 'cm' || position === 'cam' ||
+        position === 'dm' || position === 'am' ||
+        position === 'rm' || position === 'lm'
+      ) {
+        groupedPlayers.midfield.push(player);
+      }
+      // Default: assign unknown positions to midfield
+      else {
+        console.log(`Unknown position "${player.position}" for player ${player.player}, assigning to midfield`);
         groupedPlayers.midfield.push(player);
       }
     });
 
-    // Assign positions
+    console.log('Grouped players:', {
+      goalkeeper: groupedPlayers.goalkeeper.length,
+      defense: groupedPlayers.defense.length,
+      midfield: groupedPlayers.midfield.length,
+      attack: groupedPlayers.attack.length
+    });
+
+    // Smart assignment with overflow handling
+    let unassignedPlayers = [];
+
     Object.keys(layout).forEach(positionGroup => {
       const positions = layout[positionGroup];
       const playersInGroup = groupedPlayers[positionGroup] || [];
       
+      // Assign players to available positions
       positions.forEach((pos, index) => {
         if (playersInGroup[index]) {
           if (!positionedPlayers[positionGroup]) positionedPlayers[positionGroup] = [];
@@ -96,7 +146,39 @@ const LineupViewer = ({ formations }) => {
           });
         }
       });
+
+      // Collect overflow players
+      if (playersInGroup.length > positions.length) {
+        unassignedPlayers.push(...playersInGroup.slice(positions.length));
+      }
     });
+
+    // Handle unassigned players by placing them in midfield area
+    if (unassignedPlayers.length > 0) {
+      console.log(`${unassignedPlayers.length} unassigned players, placing in midfield`);
+      
+      if (!positionedPlayers.midfield) positionedPlayers.midfield = [];
+      
+      // Create additional midfield positions for overflow players
+      const extraPositions = [
+        { x: 30, y: 65 }, { x: 70, y: 65 }, // Additional defensive mid positions
+        { x: 40, y: 35 }, { x: 60, y: 35 }, // Additional attacking mid positions
+        { x: 50, y: 50 }, // Central position
+      ];
+
+      unassignedPlayers.forEach((player, index) => {
+        const pos = extraPositions[index % extraPositions.length];
+        positionedPlayers.midfield.push({
+          ...player,
+          x: pos.x,
+          y: pos.y
+        });
+      });
+    }
+
+    // Final count check
+    const totalPositioned = Object.values(positionedPlayers).reduce((sum, group) => sum + group.length, 0);
+    console.log(`Total players positioned: ${totalPositioned} out of ${players.length}`);
 
     return positionedPlayers;
   };
