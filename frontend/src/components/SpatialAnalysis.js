@@ -232,6 +232,9 @@ const SpatialAnalysis = () => {
 
     return (
       <div className="space-y-6">
+        {/* Positioning Visualization */}
+        <RefereePositioningVisualization positioningData={analysisData} />
+
         {/* Positioning Metrics */}
         <Card>
           <CardHeader>
