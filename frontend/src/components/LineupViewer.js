@@ -100,7 +100,9 @@ const LineupViewer = ({ formations }) => {
         position.includes('wing') ||
         position === 'st' || position === 'cf' ||
         position === 'rw' || position === 'lw' ||
-        position === 'rf' || position === 'lf'
+        position === 'rf' || position === 'lf' ||
+        position.includes('center forward') ||
+        position.includes('centre forward')
       ) {
         groupedPlayers.attack.push(player);
       }
