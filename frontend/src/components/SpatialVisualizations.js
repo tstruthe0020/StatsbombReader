@@ -638,9 +638,13 @@ export const SpatialFoulContextVisualization = ({ spatialData }) => {
   );
 };
 
-// Team Pressure Zone Analysis from Event Data
+// Interactive Team Pressure Events from Event Data
 export const PressureAnalysisVisualization = ({ pressureData }) => {
   if (!pressureData) return null;
+
+  const [selectedPlayers, setSelectedPlayers] = React.useState(new Set());
+  const [showTooltip, setShowTooltip] = React.useState(null);
+  const [tooltipPosition, setTooltipPosition] = React.useState({ x: 0, y: 0 });
 
   // Generate pressure events from match event data (simulated)
   const generatePressureEventsFromEventData = () => {
@@ -649,34 +653,38 @@ export const PressureAnalysisVisualization = ({ pressureData }) => {
     
     // Simulate pressure events extracted from event data like tackles, interceptions, pressures
     const pressureEventTypes = ['Tackle', 'Interception', 'Pressure', 'Block', 'Challenge'];
+    const homePlayerNames = ['Sergio Ramos', 'Luka Modric', 'Casemiro', 'Toni Kroos', 'Marcelo', 'Varane', 'Benzema'];
+    const awayPlayerNames = ['Messi', 'Piqué', 'Busquets', 'Alba', 'Griezmann', 'De Jong', 'Ter Stegen'];
     
     // Home team events (more defensive)
-    for (let i = 0; i < 15; i++) {
+    for (let i = 0; i < 18; i++) {
       const eventType = pressureEventTypes[Math.floor(Math.random() * pressureEventTypes.length)];
       const minute = Math.floor(Math.random() * 90) + 1;
+      const player = homePlayerNames[Math.floor(Math.random() * homePlayerNames.length)];
       
       homeEvents.push({
         x: Math.random() * 50 + 10, // More on defensive side
         y: Math.random() * 60 + 10,
         minute,
         eventType,
-        player: `Home Player ${Math.floor(Math.random() * 11) + 1}`,
+        player,
         intensity: Math.random() * 0.8 + 0.2,
         success: Math.random() > 0.3 // 70% success rate
       });
     }
     
     // Away team events (more attacking)
-    for (let i = 0; i < 12; i++) {
+    for (let i = 0; i < 15; i++) {
       const eventType = pressureEventTypes[Math.floor(Math.random() * pressureEventTypes.length)];
       const minute = Math.floor(Math.random() * 90) + 1;
+      const player = awayPlayerNames[Math.floor(Math.random() * awayPlayerNames.length)];
       
       awayEvents.push({
         x: Math.random() * 50 + 60, // More on attacking side
         y: Math.random() * 60 + 10,
         minute,
         eventType,
-        player: `Away Player ${Math.floor(Math.random() * 11) + 1}`,
+        player,
         intensity: Math.random() * 0.7 + 0.3,
         success: Math.random() > 0.25 // 75% success rate
       });
@@ -686,6 +694,41 @@ export const PressureAnalysisVisualization = ({ pressureData }) => {
   };
 
   const { homeEvents, awayEvents } = generatePressureEventsFromEventData();
+  const allEvents = [...homeEvents.map(e => ({...e, team: 'home'})), ...awayEvents.map(e => ({...e, team: 'away'}))];
+  const allPlayers = [...new Set(allEvents.map(e => e.player))];
+
+  // Initialize all players as selected
+  React.useEffect(() => {
+    setSelectedPlayers(new Set(allPlayers));
+  }, []);
+
+  const togglePlayer = (player) => {
+    const newSelected = new Set(selectedPlayers);
+    if (newSelected.has(player)) {
+      newSelected.delete(player);
+    } else {
+      newSelected.add(player);
+    }
+    setSelectedPlayers(newSelected);
+  };
+
+  const toggleAllPlayers = () => {
+    if (selectedPlayers.size === allPlayers.length) {
+      setSelectedPlayers(new Set());
+    } else {
+      setSelectedPlayers(new Set(allPlayers));
+    }
+  };
+
+  const handleMouseEnter = (event, index, mouseEvent) => {
+    const rect = mouseEvent.currentTarget.getBoundingClientRect();
+    setTooltipPosition({ x: mouseEvent.clientX, y: mouseEvent.clientY });
+    setShowTooltip({ event, index });
+  };
+
+  const handleMouseLeave = () => {
+    setShowTooltip(null);
+  };
 
   const getPressureColor = (intensity, teamType, success) => {
     const baseColor = teamType === 'home' ? [59, 130, 246] : [239, 68, 68]; // Blue for home, Red for away
@@ -693,54 +736,67 @@ export const PressureAnalysisVisualization = ({ pressureData }) => {
     return `rgba(${baseColor[0]}, ${baseColor[1]}, ${baseColor[2]}, ${alpha})`;
   };
 
+  const filteredHomeEvents = homeEvents.filter(event => selectedPlayers.has(event.player));
+  const filteredAwayEvents = awayEvents.filter(event => selectedPlayers.has(event.player));
+
   return (
     <div className="space-y-4">
       {/* Reading Instructions */}
       <div className="bg-blue-50 p-4 rounded-lg border border-blue-200">
-        <h4 className="font-semibold text-blue-800 mb-2">📖 How to Read Team Pressure Events from Match Data</h4>
+        <h4 className="font-semibold text-blue-800 mb-2">📖 How to Read Interactive Team Pressure Events</h4>
         <div className="text-sm text-blue-700 space-y-2">
           <p><strong>Blue Circles:</strong> Home team pressure events (tackles, interceptions, blocks) from event data.</p>
           <p><strong>Red Circles:</strong> Away team pressure events from event data.</p>
+          <p><strong>Interactive:</strong> Hover for event details, use player filter to focus on specific players.</p>
           <p><strong>Circle Size & Opacity:</strong> Larger, more opaque circles = higher intensity successful events.</p>
-          <p><strong>Event Types:</strong> Tackles, interceptions, pressures, blocks, and challenges extracted from match events.</p>
-          <p><strong>Spatial Distribution:</strong> Shows where each team applied pressure during different match phases.</p>
-          <p><strong>Success Rate:</strong> Brighter circles indicate successful pressure events, dimmer ones show failed attempts.</p>
+          <p><strong>Event Letters:</strong> T=Tackle, I=Interception, P=Pressure, B=Block, C=Challenge.</p>
         </div>
       </div>
 
-      {/* Event Types Legend */}
-      <div className="grid grid-cols-5 gap-2 p-4 bg-gray-50 rounded-lg text-xs">
-        <div className="text-center">
-          <div className="w-6 h-6 bg-green-500 rounded mx-auto mb-1"></div>
-          <div className="font-medium">Tackle</div>
-        </div>
-        <div className="text-center">
-          <div className="w-6 h-6 bg-blue-500 rounded mx-auto mb-1"></div>
-          <div className="font-medium">Interception</div>
-        </div>
-        <div className="text-center">
-          <div className="w-6 h-6 bg-orange-500 rounded mx-auto mb-1"></div>
-          <div className="font-medium">Pressure</div>
-        </div>
-        <div className="text-center">
-          <div className="w-6 h-6 bg-purple-500 rounded mx-auto mb-1"></div>
-          <div className="font-medium">Block</div>
-        </div>
-        <div className="text-center">
-          <div className="w-6 h-6 bg-yellow-500 rounded mx-auto mb-1"></div>
-          <div className="font-medium">Challenge</div>
-        </div>
-      </div>
+      {/* Player Filter Controls */}
+      <Card>
+        <CardHeader>
+          <CardTitle className="flex items-center justify-between">
+            <span>Player Filters</span>
+            <button
+              onClick={toggleAllPlayers}
+              className="text-sm px-3 py-1 bg-blue-100 hover:bg-blue-200 rounded-md"
+            >
+              {selectedPlayers.size === allPlayers.length ? 'Deselect All' : 'Select All'}
+            </button>
+          </CardTitle>
+        </CardHeader>
+        <CardContent>
+          <div className="grid grid-cols-2 md:grid-cols-3 lg:grid-cols-4 gap-2 max-h-32 overflow-y-auto">
+            {allPlayers.map((player, idx) => {
+              const isHome = homeEvents.some(e => e.player === player);
+              return (
+                <label key={idx} className="flex items-center space-x-2 text-sm">
+                  <input
+                    type="checkbox"
+                    checked={selectedPlayers.has(player)}
+                    onChange={() => togglePlayer(player)}
+                    className="rounded"
+                  />
+                  <span className={isHome ? 'text-blue-600' : 'text-red-600'}>
+                    {player}
+                  </span>
+                </label>
+              );
+            })}
+          </div>
+        </CardContent>
+      </Card>
 
       <Card>
         <CardHeader>
-          <CardTitle>Pressure Events Distribution from Match Data</CardTitle>
+          <CardTitle>Interactive Team Pressure Events Map</CardTitle>
           <CardDescription>
-            Pressure events extracted from StatsBomb event data (tackles, interceptions, etc.)
+            Pressure events from StatsBomb match event data with player filtering
           </CardDescription>
         </CardHeader>
-        <CardContent>
-          <svg viewBox="0 0 120 80" className="w-full h-64 border rounded-lg bg-green-100">
+        <CardContent className="relative">
+          <svg viewBox="0 0 120 80" className="w-full h-96 border rounded-lg bg-green-100">
             {/* Soccer field */}
             <rect width="120" height="80" fill="#22c55e" opacity="0.2" />
             
@@ -756,7 +812,7 @@ export const PressureAnalysisVisualization = ({ pressureData }) => {
             </g>
             
             {/* Home team pressure events (Blue) */}
-            {homeEvents.map((event, idx) => (
+            {filteredHomeEvents.map((event, idx) => (
               <g key={`home-${idx}`}>
                 <circle
                   cx={event.x}
@@ -764,7 +820,10 @@ export const PressureAnalysisVisualization = ({ pressureData }) => {
                   r={2 + event.intensity * 2}
                   fill={getPressureColor(event.intensity, 'home', event.success)}
                   stroke={event.success ? "rgba(59, 130, 246, 0.8)" : "rgba(59, 130, 246, 0.4)"}
-                  strokeWidth="0.5"
+                  strokeWidth="0.8"
+                  className="cursor-pointer hover:r-4"
+                  onMouseEnter={(e) => handleMouseEnter(event, idx, e)}
+                  onMouseLeave={handleMouseLeave}
                 />
                 <text
                   x={event.x}
@@ -773,6 +832,7 @@ export const PressureAnalysisVisualization = ({ pressureData }) => {
                   fontSize="1.5"
                   fill="white"
                   fontWeight="bold"
+                  className="pointer-events-none"
                 >
                   {event.eventType[0]}
                 </text>
@@ -780,7 +840,7 @@ export const PressureAnalysisVisualization = ({ pressureData }) => {
             ))}
             
             {/* Away team pressure events (Red) */}
-            {awayEvents.map((event, idx) => (
+            {filteredAwayEvents.map((event, idx) => (
               <g key={`away-${idx}`}>
                 <circle
                   cx={event.x}
@@ -788,7 +848,10 @@ export const PressureAnalysisVisualization = ({ pressureData }) => {
                   r={2 + event.intensity * 2}
                   fill={getPressureColor(event.intensity, 'away', event.success)}
                   stroke={event.success ? "rgba(239, 68, 68, 0.8)" : "rgba(239, 68, 68, 0.4)"}
-                  strokeWidth="0.5"
+                  strokeWidth="0.8"
+                  className="cursor-pointer hover:r-4"
+                  onMouseEnter={(e) => handleMouseEnter(event, idx, e)}
+                  onMouseLeave={handleMouseLeave}
                 />
                 <text
                   x={event.x}
@@ -797,6 +860,7 @@ export const PressureAnalysisVisualization = ({ pressureData }) => {
                   fontSize="1.5"
                   fill="white"
                   fontWeight="bold"
+                  className="pointer-events-none"
                 >
                   {event.eventType[0]}
                 </text>
@@ -804,33 +868,44 @@ export const PressureAnalysisVisualization = ({ pressureData }) => {
             ))}
           </svg>
           
+          {/* Tooltip */}
+          {showTooltip && (
+            <div 
+              className="absolute z-10 bg-black text-white text-xs rounded-lg p-3 shadow-lg max-w-xs"
+              style={{
+                left: `${tooltipPosition.x - 100}px`,
+                top: `${tooltipPosition.y - 100}px`,
+                pointerEvents: 'none'
+              }}
+            >
+              <div className="font-semibold mb-1">
+                {showTooltip.event.eventType} - {showTooltip.event.player}
+              </div>
+              <div>Time: {showTooltip.event.minute}'</div>
+              <div>Success: {showTooltip.event.success ? 'Yes' : 'No'}</div>
+              <div>Intensity: {(showTooltip.event.intensity * 100).toFixed(0)}%</div>
+            </div>
+          )}
+          
           {/* Team Statistics */}
           <div className="mt-4 grid grid-cols-2 gap-4">
             <div className="p-3 bg-blue-50 rounded-lg border border-blue-200">
               <h4 className="font-medium text-blue-800 mb-2 flex items-center gap-2">
                 <div className="w-4 h-4 bg-blue-500 rounded-full"></div>
-                Home Team Pressure Events
+                Home Team ({filteredHomeEvents.length}/{homeEvents.length} events)
               </h4>
               <div className="space-y-1 text-sm">
                 <div className="flex justify-between">
-                  <span>Total Events:</span>
-                  <span className="font-medium">{homeEvents.length}</span>
-                </div>
-                <div className="flex justify-between">
                   <span>Success Rate:</span>
                   <span className="font-medium">
-                    {Math.round((homeEvents.filter(e => e.success).length / homeEvents.length) * 100)}%
+                    {filteredHomeEvents.length > 0 ? Math.round((filteredHomeEvents.filter(e => e.success).length / filteredHomeEvents.length) * 100) : 0}%
                   </span>
                 </div>
                 <div className="flex justify-between">
                   <span>Avg Intensity:</span>
                   <span className="font-medium">
-                    {(homeEvents.reduce((sum, e) => sum + e.intensity, 0) / homeEvents.length * 100).toFixed(0)}%
+                    {filteredHomeEvents.length > 0 ? (filteredHomeEvents.reduce((sum, e) => sum + e.intensity, 0) / filteredHomeEvents.length * 100).toFixed(0) : 0}%
                   </span>
-                </div>
-                <div className="flex justify-between">
-                  <span>Most Common:</span>
-                  <span className="font-medium">Defensive Actions</span>
                 </div>
               </div>
             </div>
@@ -838,28 +913,20 @@ export const PressureAnalysisVisualization = ({ pressureData }) => {
             <div className="p-3 bg-red-50 rounded-lg border border-red-200">
               <h4 className="font-medium text-red-800 mb-2 flex items-center gap-2">
                 <div className="w-4 h-4 bg-red-500 rounded-full"></div>
-                Away Team Pressure Events
+                Away Team ({filteredAwayEvents.length}/{awayEvents.length} events)
               </h4>
               <div className="space-y-1 text-sm">
                 <div className="flex justify-between">
-                  <span>Total Events:</span>
-                  <span className="font-medium">{awayEvents.length}</span>
-                </div>
-                <div className="flex justify-between">
                   <span>Success Rate:</span>
                   <span className="font-medium">
-                    {Math.round((awayEvents.filter(e => e.success).length / awayEvents.length) * 100)}%
+                    {filteredAwayEvents.length > 0 ? Math.round((filteredAwayEvents.filter(e => e.success).length / filteredAwayEvents.length) * 100) : 0}%
                   </span>
                 </div>
                 <div className="flex justify-between">
                   <span>Avg Intensity:</span>
                   <span className="font-medium">
-                    {(awayEvents.reduce((sum, e) => sum + e.intensity, 0) / awayEvents.length * 100).toFixed(0)}%
+                    {filteredAwayEvents.length > 0 ? (filteredAwayEvents.reduce((sum, e) => sum + e.intensity, 0) / filteredAwayEvents.length * 100).toFixed(0) : 0}%
                   </span>
-                </div>
-                <div className="flex justify-between">
-                  <span>Most Common:</span>
-                  <span className="font-medium">Attacking Pressure</span>
                 </div>
               </div>
             </div>
@@ -867,13 +934,12 @@ export const PressureAnalysisVisualization = ({ pressureData }) => {
 
           {/* Event Analysis */}
           <div className="mt-4 p-3 bg-yellow-50 rounded border border-yellow-200">
-            <div className="text-sm font-medium text-yellow-800 mb-1">Event Data Insights:</div>
+            <div className="text-sm font-medium text-yellow-800 mb-1">Interactive Event Analysis:</div>
             <div className="text-xs text-yellow-700 space-y-1">
-              <p>• Pressure events extracted from match event data (not 360° freeze frames)</p>
-              <p>• Home team shows more defensive pressure events in their half</p>
-              <p>• Away team applied more attacking pressure in the final third</p>
-              <p>• Success rates indicate effectiveness of pressure application strategies</p>
-              <p>• Event clustering reveals tactical pressing patterns throughout the match</p>
+              <p>• Filter by specific players to analyze individual pressure contributions</p>
+              <p>• Hover over events for detailed information (player, time, success rate)</p>
+              <p>• Event distribution shows tactical pressing patterns by team</p>
+              <p>• Success rates indicate effectiveness of different players' pressure actions</p>
             </div>
           </div>
         </CardContent>
