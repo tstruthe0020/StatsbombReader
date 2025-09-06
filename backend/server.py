@@ -111,6 +111,7 @@ app.add_middleware(
 github_client = None
 db_client = None
 db = None
+statsbomb_loader = None
 
 # Analytics components (initialized on startup if available)
 zone_modeler = None
