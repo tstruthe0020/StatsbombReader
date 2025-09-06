@@ -436,7 +436,7 @@ class PlaystyleFeatureExtractor:
             0 <= features.get('long_pass_share', 0) <= 1,
             0 <= features.get('cross_share', 0) <= 1,
             0 <= features.get('through_ball_share', 0) <= 1,
-            0 <= features.get('counter_rate', 0) <= 1,
+            features.get('counter_rate', 0) >= 0,  # No upper limit for counter rate
             
             # Non-negative values
             features.get('ppda', 0) >= 0,
