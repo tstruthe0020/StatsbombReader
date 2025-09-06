@@ -291,7 +291,11 @@ const MatchViewer = () => {
             {/* Right Column */}
             <div className="space-y-6">
               {/* Foul Map */}
-              <FoulMap matchId={selectedMatch.match_id} />
+              <FoulMap 
+                matchId={selectedMatch.match_id} 
+                homeTeam={matchDetails.match_info.home_team}
+                awayTeam={matchDetails.match_info.away_team}
+              />
               
               {/* Tactical Profile */}
               <TacticalProfile 
