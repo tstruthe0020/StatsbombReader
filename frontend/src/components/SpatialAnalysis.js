@@ -39,7 +39,7 @@ const SpatialAnalysis = () => {
   const analysisTypes = [
     { 
       id: 'formation-bias', 
-      label: 'Formation Tactical Performance', 
+      label: 'Formation Performance Analysis', 
       icon: Shield,
       description: 'Per-game decisions & foul locations by formation'
     },
@@ -51,15 +51,15 @@ const SpatialAnalysis = () => {
     },
     { 
       id: 'foul-context', 
-      label: 'Foul Frequency Heatmap', 
+      label: 'Foul Frequency Grid Heatmap', 
       icon: Layers,
-      description: 'Where referees call fouls vs league average'
+      description: 'Grid-based analysis with competition filtering'
     },
     { 
       id: 'pressure-analysis', 
       label: 'Team Pressure Events', 
       icon: Target,
-      description: 'Pressure events from match event data'
+      description: 'Click-based event analysis from match data'
     }
   ];
 
