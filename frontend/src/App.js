@@ -517,6 +517,197 @@ const MainDashboard = () => {
           </Card>
         )}
 
+        {/* Team and Referee Selection */}
+        {selectedMatches.length > 0 && (
+          <div className="grid grid-cols-1 lg:grid-cols-2 gap-6">
+            {/* Team Selection */}
+            <Card>
+              <CardHeader>
+                <CardTitle className="flex items-center gap-2">
+                  <Users className="w-5 h-5" />
+                  Teams Analysis
+                </CardTitle>
+                <CardDescription>
+                  Teams from selected matches
+                </CardDescription>
+              </CardHeader>
+              <CardContent>
+                <div className="space-y-2 max-h-64 overflow-y-auto">
+                  {Array.from(new Set(selectedMatches.flatMap(match => [
+                    match.home_team?.home_team_name,
+                    match.away_team?.away_team_name
+                  ]).filter(Boolean))).map((teamName) => (
+                    <div key={teamName} className="flex items-center justify-between p-2 bg-gray-50 rounded">
+                      <span className="font-medium text-sm">{teamName}</span>
+                      <div className="flex gap-1">
+                        <Badge variant="secondary" className="text-xs">
+                          {selectedMatches.filter(m => 
+                            m.home_team?.home_team_name === teamName || 
+                            m.away_team?.away_team_name === teamName
+                          ).length} matches
+                        </Badge>
+                        <Button size="sm" variant="outline" className="text-xs h-6">
+                          Analyze
+                        </Button>
+                      </div>
+                    </div>
+                  ))}
+                </div>
+              </CardContent>
+            </Card>
+
+            {/* Referee Selection */}
+            <Card>
+              <CardHeader>
+                <CardTitle className="flex items-center gap-2">
+                  <Target className="w-5 h-5" />
+                  Referees Analysis
+                </CardTitle>
+                <CardDescription>
+                  Referees from selected matches
+                </CardDescription>
+              </CardHeader>
+              <CardContent>
+                <div className="space-y-2 max-h-64 overflow-y-auto">
+                  {Array.from(new Set(selectedMatches.map(match => 
+                    match.referee || 'Unknown Referee'
+                  ))).map((refereeName) => (
+                    <div key={refereeName} className="flex items-center justify-between p-2 bg-gray-50 rounded">
+                      <span className="font-medium text-sm">{refereeName}</span>
+                      <div className="flex gap-1">
+                        <Badge variant="secondary" className="text-xs">
+                          {selectedMatches.filter(m => (m.referee || 'Unknown Referee') === refereeName).length} matches
+                        </Badge>
+                        <Button size="sm" variant="outline" className="text-xs h-6">
+                          Analyze Bias
+                        </Button>
+                      </div>
+                    </div>
+                  ))}
+                </div>
+              </CardContent>
+            </Card>
+          </div>
+        )}
+
+        {/* Analysis Results */}
+        {selectedMatches.length > 0 && (
+          <div className="grid grid-cols-1 lg:grid-cols-2 gap-6">
+            {/* Match Features */}
+            <Card>
+              <CardHeader>
+                <CardTitle className="flex items-center gap-2">
+                  <BarChart3 className="w-5 h-5" />
+                  Match Features Analysis
+                </CardTitle>
+                <CardDescription>
+                  Playstyle and discipline features for {selectedMatches.length} selected matches
+                </CardDescription>
+              </CardHeader>
+              <CardContent>
+                <div className="space-y-4 max-h-96 overflow-y-auto">
+                  {selectedMatches.map((match) => {
+                    const features = matchFeatures[match.match_id];
+                    return (
+                      <div key={match.match_id} className="border rounded-lg p-3">
+                        <h4 className="font-semibold text-sm mb-2">
+                          {match.home_team?.home_team_name} vs {match.away_team?.away_team_name}
+                        </h4>
+                        {features ? (
+                          <div className="grid grid-cols-2 gap-2 text-xs">
+                            <div>Teams: {features.teams_analyzed || 0}</div>
+                            <div>Features: {Object.keys(features.team_features || {}).length}</div>
+                            <div className="col-span-2">
+                              <Badge className="text-xs bg-blue-500">Match {match.match_id}</Badge>
+                              {match.referee && (
+                                <Badge className="text-xs bg-green-500 ml-1">Ref: {match.referee}</Badge>
+                              )}
+                            </div>
+                          </div>
+                        ) : (
+                          <div className="text-gray-500 text-sm">
+                            <div className="flex justify-center">
+                              <Button 
+                                size="sm" 
+                                variant="outline" 
+                                onClick={() => fetchMatchFeatures(match.match_id)}
+                                className="text-xs"
+                              >
+                                Load Features
+                              </Button>
+                            </div>
+                          </div>
+                        )}
+                      </div>
+                    );
+                  })}
+                </div>
+              </CardContent>
+            </Card>
+
+            {/* Referee Analysis */}
+            <Card>
+              <CardHeader>
+                <CardTitle className="flex items-center gap-2">
+                  <Target className="w-5 h-5" />
+                  Referee Effects Analysis
+                </CardTitle>
+                <CardDescription>
+                  {selectedFeature} feature analysis across referees
+                </CardDescription>
+              </CardHeader>
+              <CardContent>
+                {refereeSlopes ? (
+                  <div className="space-y-3">
+                    <div className="grid grid-cols-2 gap-4">
+                      <div className="text-center p-3 bg-blue-50 rounded">
+                        <div className="text-lg font-bold text-blue-600">
+                          {refereeSlopes.total_slopes || 0}
+                        </div>
+                        <div className="text-sm text-gray-600">Total Slopes</div>
+                      </div>
+                      <div className="text-center p-3 bg-green-50 rounded">
+                        <div className="text-lg font-bold text-green-600">
+                          {refereeSlopes.significant_slopes || 0}
+                        </div>
+                        <div className="text-sm text-gray-600">Significant</div>
+                      </div>
+                      <div className="text-center p-3 bg-purple-50 rounded">
+                        <div className="text-lg font-bold text-purple-600">
+                          {refereeSlopes.unique_referees || 0}
+                        </div>
+                        <div className="text-sm text-gray-600">Referees</div>
+                      </div>
+                      <div className="text-center p-3 bg-orange-50 rounded">
+                        <div className="text-lg font-bold text-orange-600">
+                          {refereeSlopes.unique_zones || 0}
+                        </div>
+                        <div className="text-sm text-gray-600">Zones</div>
+                      </div>
+                    </div>
+                    <div className="text-center p-2 bg-gray-50 rounded">
+                      <div className="text-sm text-gray-600">Average Slope</div>
+                      <div className="font-semibold">
+                        {refereeSlopes.average_slope?.toFixed(3) || 'N/A'}
+                      </div>
+                    </div>
+                    <div className="text-center">
+                      <Badge className="bg-purple-500">
+                        Note: {refereeSlopes.note || refereeSlopes.status}
+                      </Badge>
+                    </div>
+                  </div>
+                ) : (
+                  <div className="text-center py-8 text-gray-500">
+                    <Target className="w-12 h-12 mx-auto mb-2 opacity-50" />
+                    <p>Select a feature and click "Analyze Referee Effects"</p>
+                  </div>
+                )}
+              </CardContent>
+            </Card>
+          </div>
+        )}
+
         <div className="text-center p-4 bg-green-50 rounded-lg">
           <p className="text-green-800 font-semibold">✅ Real Data Integration Working!</p>
           <p className="text-green-600 text-sm">Backend APIs connected and loading data successfully</p>
