@@ -2357,35 +2357,35 @@ async def get_match_tactical_analysis(match_id: int):
             },
             "formations": {
                 "home_team": {
-                    "formation": "4-3-3",
+                    "formation": ["4-3-3", "4-2-3-1", "3-5-2", "4-4-2"][match_id % 4],
                     "formation_detail": [
-                        {"position": "GK", "player": "Marc-André ter Stegen", "jersey": 1},
-                        {"position": "RB", "player": "Nélson Semedo", "jersey": 2},
-                        {"position": "CB", "player": "Gerard Piqué", "jersey": 3},
-                        {"position": "CB", "player": "Clément Lenglet", "jersey": 15},
-                        {"position": "LB", "player": "Jordi Alba", "jersey": 18},
-                        {"position": "CDM", "player": "Sergio Busquets", "jersey": 5},
-                        {"position": "CM", "player": "Ivan Rakitić", "jersey": 4},
-                        {"position": "CM", "player": "Arthur", "jersey": 8},
-                        {"position": "RW", "player": "Lionel Messi", "jersey": 10},
-                        {"position": "ST", "player": "Luis Suárez", "jersey": 9},
-                        {"position": "LW", "player": "Philippe Coutinho", "jersey": 7}
+                        {"position": "GK", "player": f"{home_team} Goalkeeper", "jersey": 1},
+                        {"position": "RB", "player": f"{home_team} RB", "jersey": 2},
+                        {"position": "CB", "player": f"{home_team} CB1", "jersey": 3},
+                        {"position": "CB", "player": f"{home_team} CB2", "jersey": 4},
+                        {"position": "LB", "player": f"{home_team} LB", "jersey": 5},
+                        {"position": "CDM", "player": f"{home_team} CDM", "jersey": 6},
+                        {"position": "CM", "player": f"{home_team} CM1", "jersey": 8},
+                        {"position": "CM", "player": f"{home_team} CM2", "jersey": 10},
+                        {"position": "RW", "player": f"{home_team} RW", "jersey": 7},
+                        {"position": "ST", "player": f"{home_team} ST", "jersey": 9},
+                        {"position": "LW", "player": f"{home_team} LW", "jersey": 11}
                     ]
                 },
                 "away_team": {
-                    "formation": "4-2-3-1",
+                    "formation": ["4-2-3-1", "4-3-3", "5-3-2", "3-4-3"][match_id % 4],
                     "formation_detail": [
-                        {"position": "GK", "player": "Keylor Navas", "jersey": 1},
-                        {"position": "RB", "player": "Daniel Carvajal", "jersey": 2},
-                        {"position": "CB", "player": "Raphaël Varane", "jersey": 5},
-                        {"position": "CB", "player": "Sergio Ramos", "jersey": 4},
-                        {"position": "LB", "player": "Marcelo", "jersey": 12},
-                        {"position": "CDM", "player": "Casemiro", "jersey": 14},
-                        {"position": "CDM", "player": "Luka Modrić", "jersey": 10},
-                        {"position": "CAM", "player": "Isco", "jersey": 22},
-                        {"position": "RW", "player": "Lucas Vázquez", "jersey": 17},
-                        {"position": "LW", "player": "Vinícius Júnior", "jersey": 25},
-                        {"position": "ST", "player": "Karim Benzema", "jersey": 9}
+                        {"position": "GK", "player": f"{away_team} Goalkeeper", "jersey": 1},
+                        {"position": "RB", "player": f"{away_team} RB", "jersey": 2},
+                        {"position": "CB", "player": f"{away_team} CB1", "jersey": 3},
+                        {"position": "CB", "player": f"{away_team} CB2", "jersey": 4},
+                        {"position": "LB", "player": f"{away_team} LB", "jersey": 5},
+                        {"position": "CDM", "player": f"{away_team} CDM", "jersey": 6},
+                        {"position": "CM", "player": f"{away_team} CM1", "jersey": 8},
+                        {"position": "CM", "player": f"{away_team} CM2", "jersey": 10},
+                        {"position": "RW", "player": f"{away_team} RW", "jersey": 7},
+                        {"position": "ST", "player": f"{away_team} ST", "jersey": 9},
+                        {"position": "LW", "player": f"{away_team} LW", "jersey": 11}
                     ]
                 }
             },
