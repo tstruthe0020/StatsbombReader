@@ -19,6 +19,13 @@ import {
   Crosshair,
   Layers
 } from 'lucide-react';
+import {
+  FormationBiasVisualization,
+  RefereePositioningVisualization,
+  SpatialFoulContextVisualization,
+  PressureAnalysisVisualization,
+  TacticalBiasRadarChart
+} from './SpatialVisualizations';
 
 const API_BASE_URL = process.env.REACT_APP_BACKEND_URL || '';
 
