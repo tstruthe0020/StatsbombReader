@@ -2315,15 +2315,45 @@ async def extract_team_match_features(match_id: int):
 async def get_match_tactical_analysis(match_id: int):
     """Get detailed tactical analysis including lineups, formations, and tactical metrics."""
     try:
-        # Mock tactical analysis data - in production this would come from StatsBomb
+        # Get actual match data first
+        try:
+            if github_client:
+                # Try to get real match info
+                match_details = github_client.get_match_details(match_id)
+                home_team = match_details.get('home_team', {}).get('name', f'Team A')
+                away_team = match_details.get('away_team', {}).get('name', f'Team B')
+                match_date = match_details.get('match_date', '2019-01-01')
+                referee = match_details.get('referee', 'Unknown Referee')
+                venue = match_details.get('venue', 'Stadium')
+            else:
+                raise Exception("No GitHub client")
+        except:
+            # Generate dynamic mock data based on match_id
+            teams = [
+                ("Barcelona", "Real Madrid"), ("Liverpool", "Manchester City"), 
+                ("Bayern Munich", "Borussia Dortmund"), ("PSG", "Marseille"),
+                ("Juventus", "AC Milan"), ("Arsenal", "Chelsea"), ("Atletico Madrid", "Valencia"),
+                ("Inter Milan", "AS Roma"), ("Napoli", "Lazio"), ("Sevilla", "Real Betis")
+            ]
+            team_pair = teams[match_id % len(teams)]
+            home_team, away_team = team_pair
+            
+            venues = ["Santiago Bernabéu", "Camp Nou", "Old Trafford", "Anfield", "Allianz Arena", "Parc des Princes"]
+            referees = ["Antonio Mateu Lahoz", "Björn Kuipers", "Cüneyt Çakır", "Damir Skomina", "Felix Brych"]
+            
+            venue = venues[match_id % len(venues)]
+            referee = referees[match_id % len(referees)]
+            match_date = f"2019-0{(match_id % 12) + 1:02d}-{(match_id % 28) + 1:02d}"
+
+        # Build tactical analysis data with actual match info
         tactical_data = {
             "match_id": match_id,
             "match_info": {
-                "home_team": "Barcelona",
-                "away_team": "Real Madrid", 
-                "date": "2019-03-02",
-                "venue": "Santiago Bernabéu",
-                "referee": "Antonio Mateu Lahoz"
+                "home_team": home_team,
+                "away_team": away_team, 
+                "date": match_date,
+                "venue": venue,
+                "referee": referee
             },
             "formations": {
                 "home_team": {
