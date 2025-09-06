@@ -39,9 +39,9 @@ const SpatialAnalysis = () => {
   const analysisTypes = [
     { 
       id: 'formation-bias', 
-      label: 'Formation Bias Analysis', 
+      label: 'Formation Decision Patterns', 
       icon: Shield,
-      description: 'Analyze referee bias based on team formations'
+      description: 'Per-game decisions & foul locations by formation'
     },
     { 
       id: 'referee-positioning', 
@@ -51,15 +51,15 @@ const SpatialAnalysis = () => {
     },
     { 
       id: 'foul-context', 
-      label: 'Spatial Foul Context', 
+      label: 'Foul Frequency Heatmap', 
       icon: Layers,
-      description: 'Spatial context of foul incidents'
+      description: 'Where referees call fouls vs league average'
     },
     { 
       id: 'pressure-analysis', 
-      label: 'Pressure Situations', 
+      label: 'Team Pressure Zones', 
       icon: Target,
-      description: 'High vs low pressure decision analysis'
+      description: 'Pressure application patterns by team'
     }
   ];
 
