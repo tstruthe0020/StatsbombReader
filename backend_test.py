@@ -926,6 +926,250 @@ class SoccerAnalyticsAPITester:
             self.log_test("Referee Heatmap Endpoint", False, str(e))
             return False, {}
 
+    def test_tactical_archetype_team_endpoint(self):
+        """Test tactical archetype team endpoint"""
+        try:
+            # Test with Barcelona in La Liga 2020/2021 as specified in review request
+            params = {
+                "team": "Barcelona",
+                "season_id": 90,
+                "competition_id": 11
+            }
+            response = requests.get(f"{self.base_url}/api/style/team", params=params, timeout=15)
+            
+            # Should return either 200 (success) or 200 with error (data not available)
+            success = response.status_code == 200
+            
+            if success:
+                data = response.json()
+                has_required_fields = all(key in data for key in ["success", "team", "season_id", "competition_id", "style_archetype"])
+                
+                if data.get("success"):
+                    # Data is available - validate structure
+                    has_axis_tags = "axis_tags" in data
+                    has_key_metrics = "key_metrics" in data
+                    
+                    if has_axis_tags:
+                        axis_tags = data["axis_tags"]
+                        expected_axis_fields = ["pressing", "block", "possession_directness", "width", "transition", "overlays"]
+                        has_axis_fields = all(field in axis_tags for field in expected_axis_fields)
+                    else:
+                        has_axis_fields = False
+                    
+                    if has_key_metrics:
+                        key_metrics = data["key_metrics"]
+                        expected_metric_fields = ["ppda", "possession_share", "directness", "wing_share", "counter_rate", "fouls_per_game"]
+                        has_metric_fields = all(field in key_metrics for field in expected_metric_fields)
+                    else:
+                        has_metric_fields = False
+                    
+                    success = has_required_fields and has_axis_tags and has_key_metrics and has_axis_fields and has_metric_fields
+                    details = f"Status: {response.status_code}, Team: {data.get('team')}, Archetype: {data.get('style_archetype')}, Data available: True"
+                else:
+                    # Data not available - this is expected per review request
+                    error_msg = data.get("error", "")
+                    expected_error = "not available" in error_msg.lower() or "no data found" in error_msg.lower()
+                    success = has_required_fields and expected_error
+                    details = f"Status: {response.status_code}, Team: {data.get('team')}, Data available: False (expected), Error: {error_msg}"
+            else:
+                details = f"Status: {response.status_code}, Response: {response.text[:200]}"
+                
+            self.log_test("Tactical Archetype Team Endpoint", success, details)
+            return success, response.json() if success else {}
+            
+        except Exception as e:
+            self.log_test("Tactical Archetype Team Endpoint", False, str(e))
+            return False, {}
+
+    def test_tactical_archetype_match_endpoint(self):
+        """Test tactical archetype match endpoint"""
+        try:
+            # Test with match ID 3773386 as specified in review request
+            match_id = 3773386
+            response = requests.get(f"{self.base_url}/api/style/match/{match_id}", timeout=15)
+            
+            # Should return either 200 (success) or 200 with error (data not available)
+            success = response.status_code == 200
+            
+            if success:
+                data = response.json()
+                has_required_fields = all(key in data for key in ["success", "match_id", "teams"])
+                
+                if data.get("success"):
+                    # Data is available - validate structure
+                    teams = data.get("teams", [])
+                    has_teams = isinstance(teams, list)
+                    has_match_info = "match_info" in data
+                    has_tactical_summary = "tactical_summary" in data
+                    
+                    if has_teams and len(teams) > 0:
+                        # Check first team structure
+                        first_team = teams[0]
+                        expected_team_fields = ["team", "style_archetype", "axis_tags", "match_metrics"]
+                        has_team_fields = all(field in first_team for field in expected_team_fields)
+                        
+                        # Check axis_tags structure
+                        axis_tags = first_team.get("axis_tags", {})
+                        expected_axis_fields = ["pressing", "block", "possession_directness", "width", "transition", "overlays"]
+                        has_axis_fields = all(field in axis_tags for field in expected_axis_fields)
+                        
+                        # Check match_metrics structure
+                        match_metrics = first_team.get("match_metrics", {})
+                        expected_metric_fields = ["ppda", "possession_share", "directness", "wing_share", "counter_rate", "fouls_committed"]
+                        has_metric_fields = all(field in match_metrics for field in expected_metric_fields)
+                    else:
+                        has_team_fields = has_axis_fields = has_metric_fields = False
+                    
+                    success = (has_required_fields and has_teams and has_match_info and 
+                              has_tactical_summary and has_team_fields and has_axis_fields and has_metric_fields)
+                    details = f"Status: {response.status_code}, Match: {match_id}, Teams: {len(teams)}, Data available: True"
+                else:
+                    # Data not available - this is expected per review request
+                    error_msg = data.get("error", "")
+                    expected_error = "not available" in error_msg.lower() or "no data found" in error_msg.lower()
+                    success = has_required_fields and expected_error
+                    details = f"Status: {response.status_code}, Match: {match_id}, Data available: False (expected), Error: {error_msg}"
+            else:
+                details = f"Status: {response.status_code}, Response: {response.text[:200]}"
+                
+            self.log_test("Tactical Archetype Match Endpoint", success, details)
+            return success, response.json() if success else {}
+            
+        except Exception as e:
+            self.log_test("Tactical Archetype Match Endpoint", False, str(e))
+            return False, {}
+
+    def test_tactical_archetype_competition_endpoint(self):
+        """Test tactical archetype competition endpoint"""
+        try:
+            # Test with La Liga 2020/2021 as specified in review request
+            competition_id = 11
+            season_id = 90
+            response = requests.get(f"{self.base_url}/api/style/competition/{competition_id}/season/{season_id}", timeout=15)
+            
+            # Should return either 200 (success) or 200 with error (data not available)
+            success = response.status_code == 200
+            
+            if success:
+                data = response.json()
+                has_required_fields = all(key in data for key in ["success", "competition_id", "season_id"])
+                
+                if data.get("success"):
+                    # Data is available - validate structure
+                    has_total_teams = "total_teams" in data
+                    has_archetype_distribution = "archetype_distribution" in data
+                    has_axis_distributions = "axis_distributions" in data
+                    has_teams = "teams" in data
+                    
+                    if has_axis_distributions:
+                        axis_distributions = data["axis_distributions"]
+                        expected_axis_categories = ["pressing", "block", "possession_directness", "width", "transition"]
+                        has_axis_categories = all(cat in axis_distributions for cat in expected_axis_categories)
+                    else:
+                        has_axis_categories = False
+                    
+                    if has_teams:
+                        teams = data["teams"]
+                        has_teams_list = isinstance(teams, list)
+                        if has_teams_list and len(teams) > 0:
+                            first_team = teams[0]
+                            expected_team_fields = ["team", "style_archetype", "matches_played"]
+                            has_team_structure = all(field in first_team for field in expected_team_fields)
+                        else:
+                            has_team_structure = True  # Empty list is acceptable
+                    else:
+                        has_teams_list = has_team_structure = False
+                    
+                    success = (has_required_fields and has_total_teams and has_archetype_distribution and 
+                              has_axis_distributions and has_teams and has_axis_categories and 
+                              has_teams_list and has_team_structure)
+                    details = f"Status: {response.status_code}, Competition: {competition_id}, Season: {season_id}, Teams: {data.get('total_teams', 0)}, Data available: True"
+                else:
+                    # Data not available - this is expected per review request
+                    error_msg = data.get("error", "")
+                    expected_error = "not available" in error_msg.lower() or "no data found" in error_msg.lower()
+                    success = has_required_fields and expected_error
+                    details = f"Status: {response.status_code}, Competition: {competition_id}, Season: {season_id}, Data available: False (expected), Error: {error_msg}"
+            else:
+                details = f"Status: {response.status_code}, Response: {response.text[:200]}"
+                
+            self.log_test("Tactical Archetype Competition Endpoint", success, details)
+            return success, response.json() if success else {}
+            
+        except Exception as e:
+            self.log_test("Tactical Archetype Competition Endpoint", False, str(e))
+            return False, {}
+
+    def test_tactical_archetype_error_handling(self):
+        """Test tactical archetype endpoints error handling"""
+        # Test team endpoint with invalid parameters
+        try:
+            params = {
+                "team": "NonExistentTeam",
+                "season_id": 99999,
+                "competition_id": 99999
+            }
+            response = requests.get(f"{self.base_url}/api/style/team", params=params, timeout=10)
+            
+            # Should return 200 with error message or appropriate error status
+            success = response.status_code in [200, 400, 404]
+            
+            if response.status_code == 200:
+                data = response.json()
+                has_error_handling = not data.get("success", True) and "error" in data
+                success = has_error_handling
+                details = f"Status: {response.status_code}, Error handled: {has_error_handling}"
+            else:
+                details = f"Status: {response.status_code} - Error status returned"
+                
+            self.log_test("Tactical Archetype Error Handling - Invalid Team", success, details)
+            
+        except Exception as e:
+            self.log_test("Tactical Archetype Error Handling - Invalid Team", False, str(e))
+
+        # Test match endpoint with invalid match ID
+        try:
+            invalid_match_id = 99999999
+            response = requests.get(f"{self.base_url}/api/style/match/{invalid_match_id}", timeout=10)
+            
+            # Should return 200 with error message or appropriate error status
+            success = response.status_code in [200, 400, 404, 500]
+            
+            if response.status_code == 200:
+                data = response.json()
+                has_error_handling = not data.get("success", True) and "error" in data
+                success = has_error_handling
+                details = f"Status: {response.status_code}, Error handled: {has_error_handling}"
+            else:
+                details = f"Status: {response.status_code} - Error status returned"
+                
+            self.log_test("Tactical Archetype Error Handling - Invalid Match", success, details)
+            
+        except Exception as e:
+            self.log_test("Tactical Archetype Error Handling - Invalid Match", False, str(e))
+
+        # Test competition endpoint with invalid parameters
+        try:
+            invalid_competition_id = 99999
+            invalid_season_id = 99999
+            response = requests.get(f"{self.base_url}/api/style/competition/{invalid_competition_id}/season/{invalid_season_id}", timeout=10)
+            
+            # Should return 200 with error message or appropriate error status
+            success = response.status_code in [200, 400, 404]
+            
+            if response.status_code == 200:
+                data = response.json()
+                has_error_handling = not data.get("success", True) and "error" in data
+                success = has_error_handling
+                details = f"Status: {response.status_code}, Error handled: {has_error_handling}"
+            else:
+                details = f"Status: {response.status_code} - Error status returned"
+                
+            self.log_test("Tactical Archetype Error Handling - Invalid Competition", success, details)
+            
+        except Exception as e:
+            self.log_test("Tactical Archetype Error Handling - Invalid Competition", False, str(e))
+
     def run_full_test_suite(self):
         """Run complete test suite"""
         print("🚀 Starting Soccer Analytics API Test Suite")
