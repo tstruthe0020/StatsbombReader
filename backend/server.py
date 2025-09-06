@@ -1986,8 +1986,11 @@ async def get_zone_models_status():
 @app.get("/api/analytics/zone-models/referee-slopes/{feature}")
 async def get_referee_slopes(feature: str):
     """Get referee-specific slopes for a playstyle feature."""
-    if not ANALYTICS_AVAILABLE or not zone_modeler or not zone_modeler.fitted_models:
-        raise HTTPException(status_code=503, detail="Zone models not available")
+    if not ANALYTICS_AVAILABLE or not zone_modeler:
+        raise HTTPException(status_code=503, detail="Analytics not available")
+    
+    # If full models aren't fitted yet, provide sample/demo data
+    if not zone_modeler.fitted_models:
     
     try:
         slopes_df = zone_modeler.extract_referee_slopes(feature)
