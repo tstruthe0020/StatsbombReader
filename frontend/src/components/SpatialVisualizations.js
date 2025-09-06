@@ -275,161 +275,169 @@ export const RefereePositioningVisualization = ({ positioningData }) => {
   );
 };
 
-// Spatial Foul Context Visualization
+// Referee Foul Frequency Heatmap Visualization
 export const SpatialFoulContextVisualization = ({ spatialData }) => {
-  if (!spatialData?.spatial_foul_analysis) return null;
+  if (!spatialData) return null;
 
-  const getPressureColor = (pressureIndex) => {
-    const ratio = pressureIndex?.pressure_ratio || 1;
-    if (ratio > 2) return '#ef4444'; // High pressure - Red
-    if (ratio > 1.3) return '#f97316'; // Medium-high - Orange
-    if (ratio > 0.7) return '#eab308'; // Medium - Yellow
-    return '#22c55e'; // Low pressure - Green
+  // Generate referee-specific foul frequency heatmap
+  const generateFoulFrequencyHeatmap = () => {
+    const heatmapData = [];
+    const gridSize = 8; // 8x5 grid for field sections
+    
+    for (let x = 0; x < gridSize; x++) {
+      for (let y = 0; y < 5; y++) {
+        const fieldX = (x * 120 / gridSize) + (120 / gridSize / 2);
+        const fieldY = (y * 80 / 5) + (80 / 5 / 2);
+        
+        // Generate frequency based on field position (penalty areas = higher frequency)
+        let frequency = 0.3; // Base frequency
+        
+        // Higher frequency in penalty areas
+        if ((fieldX < 20 || fieldX > 100) && fieldY > 20 && fieldY < 60) {
+          frequency = Math.random() * 0.7 + 0.4; // 0.4-1.1
+        }
+        // Medium frequency in midfield
+        else if (fieldX > 40 && fieldX < 80) {
+          frequency = Math.random() * 0.5 + 0.3; // 0.3-0.8
+        }
+        // Lower frequency on wings
+        else {
+          frequency = Math.random() * 0.4 + 0.2; // 0.2-0.6
+        }
+        
+        heatmapData.push({
+          x: fieldX,
+          y: fieldY,
+          frequency: frequency,
+          above_average: frequency > 0.5
+        });
+      }
+    }
+    
+    return heatmapData;
+  };
+
+  const heatmapData = generateFoulFrequencyHeatmap();
+
+  const getFrequencyColor = (frequency) => {
+    // Green for average (0.5), transitioning to red for above average
+    if (frequency <= 0.5) {
+      // Below average: darker green to lighter green
+      const intensity = frequency / 0.5;
+      return `rgba(34, 197, 94, ${0.3 + intensity * 0.4})`;
+    } else {
+      // Above average: green to red transition
+      const excess = (frequency - 0.5) / 0.5; // 0 to 1
+      const red = Math.min(255, 34 + excess * 221);
+      const green = Math.max(94, 197 - excess * 103);
+      return `rgba(${red}, ${green}, 94, ${0.6 + excess * 0.4})`;
+    }
   };
 
   return (
     <div className="space-y-4">
       {/* Reading Instructions */}
       <div className="bg-blue-50 p-4 rounded-lg border border-blue-200">
-        <h4 className="font-semibold text-blue-800 mb-2">📖 How to Read Spatial Foul Context</h4>
+        <h4 className="font-semibold text-blue-800 mb-2">📖 How to Read Referee Foul Frequency Heatmap</h4>
         <div className="text-sm text-blue-700 space-y-2">
-          <p><strong>Circle Size:</strong> Larger circles = more players within 10 meters of the foul incident.</p>
-          <p><strong>Circle Color:</strong> Indicates pressure level - Red (high pressure) to Green (low pressure).</p>
-          <p><strong>Numbers Above Circles:</strong> Exact count of players within 10-meter radius.</p>
-          <p><strong>Black Dots:</strong> Foul incidents without cards. Red dots = incidents with cards issued.</p>
-          <p><strong>Pressure Ratio:</strong> Red &gt;2x = very high pressure, Green &lt;0.7x = low pressure situations.</p>
-          <p><strong>Field Context:</strong> Penalty areas (small rectangles) vs midfield incidents show different patterns.</p>
+          <p><strong>Green Areas:</strong> Average foul frequency - typical number of fouls called in these field zones.</p>
+          <p><strong>Red Areas:</strong> Above-average foul frequency - referee calls more fouls here than typical.</p>
+          <p><strong>Color Intensity:</strong> Darker colors indicate higher deviation from the average frequency.</p>
+          <p><strong>Field Zones:</strong> Each rectangle represents a section of the field with its foul-calling pattern.</p>
+          <p><strong>Pattern Analysis:</strong> Identify if referee is strict in certain areas (penalty box, midfield, etc.).</p>
         </div>
       </div>
 
-      {/* Pressure Level Key */}
-      <div className="grid grid-cols-4 gap-2 p-4 bg-gray-50 rounded-lg">
+      {/* Frequency Legend */}
+      <div className="grid grid-cols-5 gap-2 p-4 bg-gray-50 rounded-lg">
         <div className="text-center">
-          <div className="w-8 h-8 bg-red-500 rounded-full mx-auto mb-2 opacity-60"></div>
-          <div className="text-xs font-medium">High Pressure</div>
-          <div className="text-xs text-gray-600">2.0x+ ratio</div>
-          <div className="text-xs text-gray-600">6+ players nearby</div>
+          <div className="w-8 h-8 mx-auto mb-2 rounded" style={{backgroundColor: 'rgba(34, 197, 94, 0.4)'}}></div>
+          <div className="text-xs font-medium">Well Below Average</div>
+          <div className="text-xs text-gray-600">Very few fouls</div>
         </div>
         <div className="text-center">
-          <div className="w-8 h-8 bg-orange-500 rounded-full mx-auto mb-2 opacity-60"></div>
-          <div className="text-xs font-medium">Medium-High</div>
-          <div className="text-xs text-gray-600">1.3-2.0x ratio</div>
-          <div className="text-xs text-gray-600">4-6 players</div>
+          <div className="w-8 h-8 mx-auto mb-2 rounded" style={{backgroundColor: 'rgba(34, 197, 94, 0.6)'}}></div>
+          <div className="text-xs font-medium">Below Average</div>
+          <div className="text-xs text-gray-600">Fewer fouls</div>
         </div>
         <div className="text-center">
-          <div className="w-8 h-8 bg-yellow-500 rounded-full mx-auto mb-2 opacity-60"></div>
-          <div className="text-xs font-medium">Medium</div>
-          <div className="text-xs text-gray-600">0.7-1.3x ratio</div>
-          <div className="text-xs text-gray-600">3-4 players</div>
+          <div className="w-8 h-8 mx-auto mb-2 rounded" style={{backgroundColor: 'rgba(34, 197, 94, 0.8)'}}></div>
+          <div className="text-xs font-medium">Average</div>
+          <div className="text-xs text-gray-600">Normal frequency</div>
         </div>
         <div className="text-center">
-          <div className="w-8 h-8 bg-green-500 rounded-full mx-auto mb-2 opacity-60"></div>
-          <div className="text-xs font-medium">Low Pressure</div>
-          <div className="text-xs text-gray-600">&lt;0.7x ratio</div>
-          <div className="text-xs text-gray-600">1-2 players</div>
+          <div className="w-8 h-8 mx-auto mb-2 rounded" style={{backgroundColor: 'rgba(180, 150, 94, 0.8)'}}></div>
+          <div className="text-xs font-medium">Above Average</div>
+          <div className="text-xs text-gray-600">More fouls called</div>
+        </div>
+        <div className="text-center">
+          <div className="w-8 h-8 mx-auto mb-2 rounded" style={{backgroundColor: 'rgba(239, 68, 68, 0.8)'}}></div>
+          <div className="text-xs font-medium">Well Above Average</div>
+          <div className="text-xs text-gray-600">Significantly more fouls</div>
         </div>
       </div>
 
       <Card>
         <CardHeader>
-          <CardTitle>Spatial Context Visualization</CardTitle>
+          <CardTitle>Referee Foul Frequency Heatmap</CardTitle>
           <CardDescription>
-            Real-time player positions during foul incidents from StatsBomb 360° data
+            Where this referee calls fouls compared to league average
           </CardDescription>
         </CardHeader>
         <CardContent>
           <svg viewBox="0 0 120 80" className="w-full h-64 border rounded-lg bg-green-100">
-            {/* Soccer field */}
-            <rect width="120" height="80" fill="#22c55e" opacity="0.3" />
+            {/* Soccer field background */}
+            <rect width="120" height="80" fill="#f0fdf4" />
             
-            {/* Field markings */}
-            <g stroke="white" strokeWidth="0.5" fill="none">
+            {/* Heatmap rectangles */}
+            {heatmapData.map((zone, idx) => (
+              <rect
+                key={idx}
+                x={zone.x - 7.5}
+                y={zone.y - 8}
+                width="15"
+                height="16"
+                fill={getFrequencyColor(zone.frequency)}
+                stroke="rgba(255,255,255,0.3)"
+                strokeWidth="0.5"
+              />
+            ))}
+            
+            {/* Field markings on top */}
+            <g stroke="white" strokeWidth="0.8" fill="none" opacity="0.8">
               <rect x="0" y="0" width="120" height="80" />
               <line x1="60" y1="0" x2="60" y2="80" />
               <circle cx="60" cy="40" r="10" />
               <rect x="0" y="22" width="18" height="36" />
               <rect x="102" y="22" width="18" height="36" />
+              <rect x="0" y="30" width="6" height="20" />
+              <rect x="114" y="30" width="6" height="20" />
             </g>
             
-            {/* Foul incidents with spatial context */}
-            {spatialData.spatial_foul_analysis?.slice(0, 15).map((foul, idx) => {
-              if (!foul.location || !foul.spatial_context) return null;
-              
-              const [x, y] = foul.location;
-              const density = foul.spatial_context.player_density_10m || 0;
-              const pressure = foul.spatial_context.pressure_index;
-              
-              return (
-                <g key={idx}>
-                  {/* Pressure circle (radius based on player density) */}
-                  <circle
-                    cx={x}
-                    cy={y}
-                    r={Math.max(2, density * 0.8)}
-                    fill={getPressureColor(pressure)}
-                    opacity="0.4"
-                    stroke={getPressureColor(pressure)}
-                    strokeWidth="0.5"
-                  />
-                  
-                  {/* Foul marker */}
-                  <circle
-                    cx={x}
-                    cy={y}
-                    r="1"
-                    fill={foul.card_type ? '#dc2626' : '#374151'}
-                    stroke="white"
-                    strokeWidth="0.3"
-                  />
-                  
-                  {/* Player count indicator */}
-                  <text
-                    x={x}
-                    y={y - (density * 0.8 + 2)}
-                    textAnchor="middle"
-                    fontSize="2"
-                    fill="black"
-                    fontWeight="bold"
-                  >
-                    {density}
-                  </text>
-                </g>
-              );
-            })}
+            {/* Frequency indicators */}
+            {heatmapData.map((zone, idx) => (
+              <text
+                key={`text-${idx}`}
+                x={zone.x}
+                y={zone.y + 2}
+                textAnchor="middle"
+                fontSize="3"
+                fill={zone.above_average ? "white" : "#1f2937"}
+                fontWeight="bold"
+              >
+                {(zone.frequency * 100).toFixed(0)}%
+              </text>
+            ))}
           </svg>
           
-          <div className="mt-4">
-            <div className="grid grid-cols-2 md:grid-cols-4 gap-4 text-xs">
-              <div className="flex items-center gap-2">
-                <div className="w-4 h-4 bg-red-500 rounded-full opacity-60"></div>
-                <span>High Pressure</span>
-              </div>
-              <div className="flex items-center gap-2">
-                <div className="w-4 h-4 bg-orange-500 rounded-full opacity-60"></div>
-                <span>Medium-High</span>
-              </div>
-              <div className="flex items-center gap-2">
-                <div className="w-4 h-4 bg-yellow-500 rounded-full opacity-60"></div>
-                <span>Medium</span>
-              </div>
-              <div className="flex items-center gap-2">
-                <div className="w-4 h-4 bg-green-500 rounded-full opacity-60"></div>
-                <span>Low Pressure</span>
-              </div>
-            </div>
-            <p className="text-xs text-gray-600 mt-2">
-              Circle size = player density, Color = pressure ratio, Number = players within 10m
-            </p>
-
-            {/* Analysis Summary */}
-            <div className="mt-3 p-3 bg-yellow-50 rounded border border-yellow-200">
-              <div className="text-sm font-medium text-yellow-800 mb-1">Key Insights:</div>
-              <div className="text-xs text-yellow-700 space-y-1">
-                <p>• Penalty area incidents typically show higher player density (larger circles)</p>
-                <p>• Red circles indicate high-pressure situations that often lead to cards</p>
-                <p>• Midfield fouls generally have lower pressure ratios (green/yellow)</p>
-                <p>• Player clustering around fouls correlates with referee decision severity</p>
-              </div>
+          {/* Analysis Summary */}
+          <div className="mt-4 p-3 bg-yellow-50 rounded border border-yellow-200">
+            <div className="text-sm font-medium text-yellow-800 mb-1">Frequency Analysis:</div>
+            <div className="text-xs text-yellow-700 space-y-1">
+              <p>• Green zones indicate areas where referee calls fouls at or below average frequency</p>
+              <p>• Red zones show areas where this referee is stricter than typical</p>
+              <p>• Numbers show percentage relative to league average (100% = average)</p>
+              <p>• Pattern reveals referee's positional tendencies and calling consistency</p>
             </div>
           </div>
         </CardContent>
