@@ -45,20 +45,45 @@ const FoulMap = ({ matchId }) => {
   };
 
   const generateMockFouls = () => {
-    const foulTypes = ['Foul', 'Yellow Card', 'Red Card', 'Dangerous Play', 'Unsporting Behaviour'];
-    const players = ['Player 1', 'Player 2', 'Player 3', 'Player 4', 'Player 5'];
-    const teams = ['Home Team', 'Away Team'];
+    const foulTypes = ['Foul Committed', 'Dangerous Play', 'Unsporting Behaviour', 'Obstruction', 'Pushing'];
+    const players = [
+      'Lionel Messi', 'Frenkie de Jong', 'Gerard Piqué', 'Sergio Busquets', 'Ousmane Dembélé',
+      'Fernando Pacheco', 'Víctor Laguardia', 'Rodrigo Battaglia', 'Luis Rioja', 'Joselu'
+    ];
+    const teams = ['Barcelona', 'Deportivo Alavés'];
     
-    return Array.from({ length: 15 }, (_, i) => ({
-      id: i + 1,
-      minute: Math.floor(Math.random() * 90) + 1,
-      type: foulTypes[Math.floor(Math.random() * foulTypes.length)],
-      player: players[Math.floor(Math.random() * players.length)],
-      team: teams[Math.floor(Math.random() * teams.length)],
-      x: Math.random() * 100, // Position as percentage of field width
-      y: Math.random() * 100, // Position as percentage of field height
-      description: `Foul committed in minute ${Math.floor(Math.random() * 90) + 1}`
-    }));
+    return Array.from({ length: 12 }, (_, i) => {
+      const minute = Math.floor(Math.random() * 90) + 1;
+      const foulType = foulTypes[Math.floor(Math.random() * foulTypes.length)];
+      const player = players[Math.floor(Math.random() * players.length)];
+      const team = teams[Math.floor(Math.random() * teams.length)];
+      
+      // Determine if this foul results in a card (10% red card, 25% yellow card, 65% no card)
+      const cardRandom = Math.random();
+      let cardType = null;
+      let displayType = 'Foul';
+      
+      if (cardRandom < 0.10) {
+        cardType = 'Red Card';
+        displayType = 'Red Card';
+      } else if (cardRandom < 0.35) {
+        cardType = 'Yellow Card';
+        displayType = 'Yellow Card';
+      }
+      
+      return {
+        id: i + 1,
+        minute,
+        type: foulType,
+        card: cardType,
+        displayType, // This determines the color and legend
+        player,
+        team,
+        x: Math.random() * 100,
+        y: Math.random() * 100,
+        description: `${foulType} committed by ${player} (${team})`
+      };
+    });
   };
 
   const handleMouseMove = (e) => {
