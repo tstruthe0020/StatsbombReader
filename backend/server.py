@@ -2322,6 +2322,7 @@ async def extract_team_match_features(match_id: int):
 @app.get("/api/matches/{match_id}/tactical-analysis")
 async def get_match_tactical_analysis(match_id: int):
     """Get detailed tactical analysis including lineups, formations, and tactical metrics."""
+    global statsbomb_loader
     try:
         # Try to get real StatsBomb data for this match
         if statsbomb_loader:
