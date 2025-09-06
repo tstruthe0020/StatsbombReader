@@ -362,28 +362,28 @@ const MainDashboard = () => {
                 title="Total Competitions"
                 value={competitions.length}
                 subtitle="Available datasets"
-                icon={TrendingUp}
+                Icon={TrendingUp}
                 color="green"
               />
               <StatCard
                 title="Matches Loaded"
                 value={matches.length}
                 subtitle="Ready for analysis"
-                icon={Activity}
+                Icon={Activity}
                 color="blue"
               />
               <StatCard
                 title="Fouls Analyzed"
                 value={matchFouls?.total_fouls || 0}
                 subtitle="Current match"
-                icon={AlertTriangle}
+                Icon={AlertTriangle}
                 color="red"
               />
               <StatCard
                 title="Cards Given"
                 value={matchSummary?.total_cards || 0}
                 subtitle="Current match"
-                icon={Target}
+                Icon={Target}
                 color="yellow"
               />
             </div>
