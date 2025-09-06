@@ -165,11 +165,11 @@ export const RefereePositioningVisualization = ({ positioningData }) => {
         <h4 className="font-semibold text-blue-800 mb-2">📖 How to Read Referee Positioning Analysis</h4>
         <div className="text-sm text-blue-700 space-y-2">
           <p><strong>Red Dots:</strong> Exact location where foul incidents occurred on the field.</p>
-          <p><strong>Blue Circles:</strong> Referee's estimated actual position during the incident.</p>
-          <p><strong>Green Circles:</strong> Calculated optimal position for best decision-making angle.</p>
-          <p><strong>Blue Lines:</strong> Sight lines from referee position to foul incident.</p>
+          <p><strong>White Circles:</strong> Referee's estimated actual position during the incident.</p>
+          <p><strong>Blue Circles:</strong> Calculated optimal position for best decision-making angle.</p>
+          <p><strong>Lines:</strong> Connection from referee position to foul incident showing sight lines.</p>
           <p><strong>Distance Numbers:</strong> Distance in meters between actual and optimal positioning.</p>
-          <p><strong>Interpretation:</strong> Shorter distances = better positioning. Longer sight lines may indicate obstructed views.</p>
+          <p><strong>Interpretation:</strong> Shorter distances = better positioning. Clear sight lines indicate good angles.</p>
         </div>
       </div>
 
@@ -214,17 +214,17 @@ export const RefereePositioningVisualization = ({ positioningData }) => {
                   {/* Foul location */}
                   <circle cx={foulX} cy={foulY} r="1.5" fill="#ef4444" />
                   
-                  {/* Referee position */}
-                  <circle cx={refX} cy={refY} r="2" fill="#3b82f6" stroke="white" strokeWidth="0.5" />
+                  {/* Referee position - WHITE */}
+                  <circle cx={refX} cy={refY} r="2" fill="white" stroke="#374151" strokeWidth="0.8" />
                   
-                  {/* Optimal position */}
-                  <circle cx={optimalX} cy={optimalY} r="2" fill="#22c55e" stroke="white" strokeWidth="0.5" opacity="0.8" />
+                  {/* Optimal position - BLUE */}
+                  <circle cx={optimalX} cy={optimalY} r="2" fill="#3b82f6" stroke="white" strokeWidth="0.5" opacity="0.8" />
                   
                   {/* Line from referee to incident */}
-                  <line x1={refX} y1={refY} x2={foulX} y2={foulY} stroke="#3b82f6" strokeWidth="0.5" opacity="0.6" />
+                  <line x1={refX} y1={refY} x2={foulX} y2={foulY} stroke="#6b7280" strokeWidth="0.5" opacity="0.6" />
                   
                   {/* Distance indicator */}
-                  <text x={refX} y={refY - 3} textAnchor="middle" fontSize="2" fill="white" fontWeight="bold">
+                  <text x={refX} y={refY - 3} textAnchor="middle" fontSize="2" fill="#1f2937" fontWeight="bold">
                     {incident.distance_from_optimal?.toFixed(1)}m
                   </text>
                 </g>
@@ -238,11 +238,11 @@ export const RefereePositioningVisualization = ({ positioningData }) => {
               <span>Foul Location</span>
             </div>
             <div className="flex items-center gap-2">
-              <div className="w-3 h-3 bg-blue-500 rounded-full"></div>
+              <div className="w-3 h-3 bg-white border border-gray-400 rounded-full"></div>
               <span>Actual Position</span>
             </div>
             <div className="flex items-center gap-2">
-              <div className="w-3 h-3 bg-green-500 rounded-full"></div>
+              <div className="w-3 h-3 bg-blue-500 rounded-full"></div>
               <span>Optimal Position</span>
             </div>
           </div>
