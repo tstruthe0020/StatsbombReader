@@ -21,45 +21,6 @@ function App() {
 
 
 
-  useEffect(() => {
-    fetchCompetitions();
-    fetchFoulTypesAnalysis();
-    fetchCardStatistics();
-  }, []);
-
-  const fetchCompetitions = async () => {
-    try {
-      setLoading(true);
-      setError(null);
-      const response = await axios.get(`${API_BASE_URL}/api/competitions`);
-      if (response.data.success) {
-        setCompetitions(response.data.data);
-        setError(null);
-      }
-    } catch (err) {
-      setError('Failed to fetch competitions');
-      console.error(err);
-    } finally {
-      setLoading(false);
-    }
-  };
-
-  const fetchMatches = async (competitionId, seasonId) => {
-    try {
-      setLoading(true);
-      const response = await axios.get(
-        `${API_BASE_URL}/api/competitions/${competitionId}/seasons/${seasonId}/matches`
-      );
-      if (response.data.success) {
-        setMatches(response.data.data);
-      }
-    } catch (err) {
-      setError('Failed to fetch matches');
-      console.error(err);
-    } finally {
-      setLoading(false);
-    }
-  };
 
   const fetchMatchFouls = async (matchId) => {
     try {
