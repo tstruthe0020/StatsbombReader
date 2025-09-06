@@ -18,63 +18,81 @@ import TacticalAnalysis from './components/TacticalAnalysis';
 import './App.css';
 
 function App() {
+  const [activeTab, setActiveTab] = useState('match-viewer');
+
+  const renderContent = () => {
+    switch (activeTab) {
+      case 'match-viewer':
+        return <MatchViewer />;
+      case 'tactical-analysis':
+        return <TacticalAnalysis />;
+      default:
+        return <MatchViewer />;
+    }
+  };
+
   return (
-    <div className="min-h-screen bg-gradient-to-br from-green-50 via-white to-blue-50">
-      <div className="container mx-auto py-8 px-4">
-        <header className="text-center mb-8">
-          <h1 className="text-4xl font-bold text-gray-800 mb-2 bg-gradient-to-r from-green-600 to-blue-600 bg-clip-text text-transparent">
-            ⚽ Soccer Analytics Dashboard
-          </h1>
-          <p className="text-gray-600 text-lg">
-            Advanced match analysis with StatsBomb data
-          </p>
-        </header>
-
-        <Tabs defaultValue="match-viewer" className="w-full">
-          <TabsList className="grid w-full grid-cols-1 lg:grid-cols-3 mb-8">
-            <TabsTrigger value="match-viewer" className="flex items-center gap-2">
-              <Play className="h-4 w-4" />
-              Match Viewer
-            </TabsTrigger>
-            <TabsTrigger value="analytics" className="flex items-center gap-2" disabled>
-              <BarChart3 className="h-4 w-4" />
-              Analytics (Coming Soon)
-            </TabsTrigger>
-            <TabsTrigger value="referee-analysis" className="flex items-center gap-2" disabled>
-              <Shield className="h-4 w-4" />
-              Referee Analysis (Coming Soon)
-            </TabsTrigger>
-          </TabsList>
-
-          <TabsContent value="match-viewer">
-            <MatchViewer />
-          </TabsContent>
-
-          <TabsContent value="analytics">
-            <Card>
-              <CardHeader>
-                <CardTitle>Advanced Analytics</CardTitle>
-                <CardDescription>Coming soon - comprehensive team and player analytics</CardDescription>
-              </CardHeader>
-              <CardContent>
-                <p className="text-gray-600">This section will include advanced statistical analysis and visualizations.</p>
-              </CardContent>
-            </Card>
-          </TabsContent>
-
-          <TabsContent value="referee-analysis">
-            <Card>
-              <CardHeader>
-                <CardTitle>Referee Analysis</CardTitle>
-                <CardDescription>Coming soon - referee decision patterns and bias analysis</CardDescription>
-              </CardHeader>
-              <CardContent>
-                <p className="text-gray-600">This section will include referee-specific analytics and decision patterns.</p>
-              </CardContent>
-            </Card>
-          </TabsContent>
-        </Tabs>
+    <div className="min-h-screen bg-gray-50">
+      {/* Header */}
+      <div className="bg-white shadow-sm border-b">
+        <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
+          <div className="flex justify-between items-center py-4">
+            <div className="flex items-center space-x-3">
+              <div className="flex items-center space-x-2">
+                <div className="w-8 h-8 bg-gradient-to-br from-blue-500 to-green-500 rounded-lg flex items-center justify-center">
+                  <Trophy className="h-5 w-5 text-white" />
+                </div>
+                <h1 className="text-xl font-bold text-gray-900">Soccer Analytics Platform</h1>
+              </div>
+            </div>
+            <div className="flex items-center space-x-4">
+              <div className="flex items-center space-x-2 text-sm text-gray-600">
+                <Activity className="h-4 w-4" />
+                <span>Advanced Analytics</span>
+              </div>
+            </div>
+          </div>
+        </div>
       </div>
+
+      {/* Navigation Tabs */}
+      <div className="bg-white border-b">
+        <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
+          <nav className="flex space-x-8">
+            <button
+              onClick={() => setActiveTab('match-viewer')}
+              className={`py-4 px-1 border-b-2 font-medium text-sm transition-colors duration-200 ${
+                activeTab === 'match-viewer'
+                  ? 'border-blue-500 text-blue-600'
+                  : 'border-transparent text-gray-500 hover:text-gray-700 hover:border-gray-300'
+              }`}
+            >
+              <div className="flex items-center gap-2">
+                <Play className="h-4 w-4" />
+                Match Viewer
+              </div>
+            </button>
+            <button
+              onClick={() => setActiveTab('tactical-analysis')}
+              className={`py-4 px-1 border-b-2 font-medium text-sm transition-colors duration-200 ${
+                activeTab === 'tactical-analysis'
+                  ? 'border-blue-500 text-blue-600'
+                  : 'border-transparent text-gray-500 hover:text-gray-700 hover:border-gray-300'
+              }`}
+            >
+              <div className="flex items-center gap-2">
+                <TrendingUp className="h-4 w-4" />
+                Tactical Analysis
+              </div>
+            </button>
+          </nav>
+        </div>
+      </div>
+
+      {/* Main Content */}
+      <main className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 py-8">
+        {renderContent()}
+      </main>
     </div>
   );
 }
