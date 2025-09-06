@@ -519,7 +519,7 @@ const MainDashboard = () => {
                           </div>
                           {match.referee && (
                             <p className="text-xs text-gray-400 mt-1">
-                              Ref: {match.referee}
+                              Ref: {match.referee?.name || match.referee}
                             </p>
                           )}
                         </div>
