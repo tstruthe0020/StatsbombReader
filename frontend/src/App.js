@@ -72,6 +72,11 @@ const MainDashboard = () => {
   const [cardStats, setCardStats] = useState(null);
   const [error, setError] = useState(null);
   const [loading, setLoading] = useState(false);
+  
+  // LLM Query states
+  const [queryInput, setQueryInput] = useState('');
+  const [queryHistory, setQueryHistory] = useState([]);
+  const [queryLoading, setQueryLoading] = useState(false);
 
   const API_BASE_URL = process.env.REACT_APP_BACKEND_URL || '';
 
