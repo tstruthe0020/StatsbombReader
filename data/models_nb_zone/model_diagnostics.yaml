@@ -1,0 +1,89 @@
+average_aic: !!python/object/apply:numpy._core.multiarray.scalar
+- &id001 !!python/object/apply:numpy.dtype
+  args:
+  - f8
+  - false
+  - true
+  state: !!python/tuple
+  - 3
+  - <
+  - null
+  - null
+  - null
+  - -1
+  - -1
+  - 0
+- !!binary |
+  aTLvRpbOdEA=
+average_nobs: !!python/object/apply:numpy._core.multiarray.scalar
+- *id001
+- !!binary |
+  AAAAAACAWUA=
+convergence_rate: 1.0
+feature_significance:
+  "C(referee_name)[T.Andr\xE9s Cunha]": 0.0
+  C(referee_name)[T.Antonio Miguel Mateu Lahoz]: 0.0
+  "C(referee_name)[T.Bj\xF6rn Kuipers]": 0.0
+  C(referee_name)[T.Carlos del Cerro Grande]: 0.0
+  "C(referee_name)[T.C\xE9sar Arturo Ramos Palazuelos]": 0.0
+  "C(referee_name)[T.C\xFCneyt \xC7ak\u03B9r]": 0.0
+  C(referee_name)[T.Damir Skomina]: 0.0
+  C(referee_name)[T.Gianluca Rocchi]: 0.0
+  "C(referee_name)[T.Guillermo Cuadra Fern\xE1ndez]": 0.0
+  C(referee_name)[T.Malang Diedhiou]: 0.0
+  C(referee_name)[T.Mark Geiger]: 0.0
+  "C(referee_name)[T.Milorad Ma\u017Ei\u0107]": 0.0
+  "C(referee_name)[T.N\xE9stor Fabi\xE1n Pitana]": 0.0
+  C(referee_name)[T.Sandro Ricci]: 0.0
+  Intercept: 0.6666666666666666
+  home_indicator: 0.0
+  z_block_height_x: 0.06666666666666667
+  z_directness: 0.0
+  "z_directness:C(referee_name)[T.Andr\xE9s Cunha]": 0.0
+  z_directness:C(referee_name)[T.Antonio Miguel Mateu Lahoz]: 0.06666666666666667
+  "z_directness:C(referee_name)[T.Bj\xF6rn Kuipers]": 0.0
+  z_directness:C(referee_name)[T.Carlos del Cerro Grande]: 0.0
+  "z_directness:C(referee_name)[T.C\xE9sar Arturo Ramos Palazuelos]": 0.0
+  "z_directness:C(referee_name)[T.C\xFCneyt \xC7ak\u03B9r]": 0.0
+  z_directness:C(referee_name)[T.Damir Skomina]: 0.0
+  z_directness:C(referee_name)[T.Gianluca Rocchi]: 0.0
+  "z_directness:C(referee_name)[T.Guillermo Cuadra Fern\xE1ndez]": 0.0
+  z_directness:C(referee_name)[T.Malang Diedhiou]: 0.06666666666666667
+  z_directness:C(referee_name)[T.Mark Geiger]: 0.0
+  "z_directness:C(referee_name)[T.Milorad Ma\u017Ei\u0107]": 0.0
+  "z_directness:C(referee_name)[T.N\xE9stor Fabi\xE1n Pitana]": 0.0
+  z_directness:C(referee_name)[T.Sandro Ricci]: 0.0
+  z_possession_share: 0.0
+  z_ppda: 0.0
+  "z_ppda:C(referee_name)[T.Andr\xE9s Cunha]": 0.0
+  z_ppda:C(referee_name)[T.Antonio Miguel Mateu Lahoz]: 0.0
+  "z_ppda:C(referee_name)[T.Bj\xF6rn Kuipers]": 0.0
+  z_ppda:C(referee_name)[T.Carlos del Cerro Grande]: 0.0
+  "z_ppda:C(referee_name)[T.C\xE9sar Arturo Ramos Palazuelos]": 0.0
+  "z_ppda:C(referee_name)[T.C\xFCneyt \xC7ak\u03B9r]": 0.0
+  z_ppda:C(referee_name)[T.Damir Skomina]: 0.0
+  z_ppda:C(referee_name)[T.Gianluca Rocchi]: 0.0
+  "z_ppda:C(referee_name)[T.Guillermo Cuadra Fern\xE1ndez]": 0.0
+  z_ppda:C(referee_name)[T.Malang Diedhiou]: 0.0
+  z_ppda:C(referee_name)[T.Mark Geiger]: 0.0
+  "z_ppda:C(referee_name)[T.Milorad Ma\u017Ei\u0107]": 0.0
+  "z_ppda:C(referee_name)[T.N\xE9stor Fabi\xE1n Pitana]": 0.0
+  z_ppda:C(referee_name)[T.Sandro Ricci]: 0.0
+  z_wing_share: 0.06666666666666667
+total_models: 15
+zones_analyzed:
+- zone_0_0
+- zone_0_1
+- zone_0_2
+- zone_1_0
+- zone_1_1
+- zone_1_2
+- zone_2_0
+- zone_2_1
+- zone_2_2
+- zone_3_0
+- zone_3_1
+- zone_3_2
+- zone_4_0
+- zone_4_1
+- zone_4_2
