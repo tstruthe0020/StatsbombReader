@@ -366,6 +366,123 @@ const MainDashboard = () => {
     }
   };
 
+  const fetchMatchFouls = async (matchId) => {
+    try {
+      setLoading(true);
+      const response = await axios.get(`${API_BASE_URL}/api/matches/${matchId}/fouls`);
+      if (response.data.success) {
+        setMatchFouls(response.data.data);
+      }
+    } catch (err) {
+      setError('Failed to fetch match fouls');
+      console.error(err);
+    } finally {
+      setLoading(false);
+    }
+  };
+
+  const fetchMatchSummary = async (matchId) => {
+    try {
+      const response = await axios.get(`${API_BASE_URL}/api/matches/${matchId}/summary`);
+      if (response.data.success) {
+        setMatchSummary(response.data.data);
+      }
+    } catch (err) {
+      setError('Failed to fetch match summary');
+      console.error(err);
+    }
+  };
+
+  const fetchRefereeDecisions = async (matchId) => {
+    try {
+      const response = await axios.get(`${API_BASE_URL}/api/matches/${matchId}/referee-decisions`);
+      if (response.data.success) {
+        setRefereeDecisions(response.data.data);
+      }
+    } catch (err) {
+      setError('Failed to fetch referee decisions');
+      console.error(err);
+    }
+  };
+
+  const fetchFoulTypesAnalysis = async () => {
+    try {
+      const response = await axios.get(`${API_BASE_URL}/api/analytics/foul-types`);
+      if (response.data.success) {
+        setFoulTypesAnalysis(response.data.data);
+      }
+    } catch (err) {
+      console.error('Failed to fetch foul types analysis', err);
+    }
+  };
+
+  const fetchCardStatistics = async () => {
+    try {
+      const response = await axios.get(`${API_BASE_URL}/api/analytics/card-statistics`);
+      if (response.data.success) {
+        setCardStats(response.data.data);
+      }
+    } catch (err) {
+      console.error('Failed to fetch card statistics', err);
+    }
+  };
+
+  const handleCompetitionSelect = (competitionId, seasonId) => {
+    const competition = competitions.find(c => c.competition_id == competitionId && c.season_id == seasonId);
+    setSelectedCompetition(competition);
+    setSelectedSeason({ id: seasonId });
+    fetchMatches(competitionId, seasonId);
+    setSelectedMatch(null);
+    setMatchFouls(null);
+    setMatchSummary(null);
+    setRefereeDecisions(null);
+  };
+
+  const handleMatchSelect = async (match) => {
+    setSelectedMatch(match);
+    await Promise.all([
+      fetchMatchFouls(match.match_id),
+      fetchMatchSummary(match.match_id),
+      fetchRefereeDecisions(match.match_id)
+    ]);
+  };
+
+  const FoulCard = ({ foul, index }) => (
+    <Card key={foul.id} className="mb-4 border-l-4 border-l-red-500">
+      <CardContent className="pt-4">
+        <div className="flex justify-between items-start mb-2">
+          <div>
+            <h4 className="font-semibold text-lg">{foul.player_name}</h4>
+            <p className="text-sm text-gray-600">{foul.team_name}</p>
+          </div>
+          <div className="text-right">
+            <Badge variant="outline" className="mb-1">
+              {foul.minute}:{foul.second < 10 ? `0${foul.second}` : foul.second}
+            </Badge>
+            {foul.card_type && (
+              <Badge 
+                variant={foul.card_type === 'Yellow Card' ? 'default' : 'destructive'}
+                className={foul.card_type === 'Yellow Card' ? 'bg-yellow-500' : ''}
+              >
+                {foul.card_type}
+              </Badge>
+            )}
+          </div>
+        </div>
+        <div className="flex items-center gap-2 text-sm">
+          <Target className="w-4 h-4" />
+          <span className="font-medium">{foul.foul_type}</span>
+          {foul.location && (
+            <>
+              <MapPin className="w-4 h-4 ml-2" />
+              <span>({foul.location[0]?.toFixed(1)}, {foul.location[1]?.toFixed(1)})</span>
+            </>
+          )}
+        </div>
+      </CardContent>
+    </Card>
+  );
+
   // Stats calculation
   const stats = {
     totalCompetitions: competitions.length,
