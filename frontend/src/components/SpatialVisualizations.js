@@ -718,21 +718,13 @@ export const SpatialFoulContextVisualization = ({ spatialData }) => {
   );
 };
 
-// Match Pressure Events Analysis
+// Match Pressure Events Analysis - Simplified Static Version
 export const PressureAnalysisVisualization = ({ pressureData }) => {
   if (!pressureData) return null;
 
-  const [selectedMatch, setSelectedMatch] = React.useState('');
+  const [selectedMatch, setSelectedMatch] = React.useState('Real Madrid vs Barcelona - El Clasico');
   const [currentScenarioIndex, setCurrentScenarioIndex] = React.useState(0);
-  const [hoveredPlayerInfo, setHoveredPlayerInfo] = React.useState(null);
-
-  const handlePlayerHover = (event) => {
-    setHoveredPlayerInfo(event);
-  };
-
-  const handlePlayerLeave = () => {
-    setHoveredPlayerInfo(null);
-  };
+  const [hoveredPlayer, setHoveredPlayer] = React.useState(null);
 
   // Available matches for selection
   const matches = [
@@ -743,106 +735,41 @@ export const PressureAnalysisVisualization = ({ pressureData }) => {
     'PSG vs Marseille - Ligue 1'
   ];
 
-  // Initialize with first match
-  React.useEffect(() => {
-    if (matches.length > 0) {
-      setSelectedMatch(matches[0]);
-    }
-  }, []);
-
-  const handleMatchChange = (match) => {
-    setSelectedMatch(match);
-    setCurrentScenarioIndex(0); // Reset scenario when match changes
-  };
-
-  // Generate pressure events showing PLAYER POSITIONS during pressure events for selected match
-  const generateMatchPressureEvents = () => {
-    const homeEvents = [];
-    const awayEvents = [];
+  // Static pressure events data - NEVER changes once generated
+  const getStaticPressureEvents = (matchName) => {
+    const events = [];
     
-    // Different player sets based on selected match
-    let homePlayerNames, awayPlayerNames, homeTeam, awayTeam;
-    
-    if (selectedMatch.includes('Real Madrid vs Barcelona')) {
-      homePlayerNames = ['Sergio Ramos', 'Luka Modric', 'Casemiro', 'Toni Kroos', 'Marcelo', 'Varane', 'Benzema'];
-      awayPlayerNames = ['Messi', 'Piqué', 'Busquets', 'Alba', 'Griezmann', 'De Jong', 'Ter Stegen'];
-      homeTeam = 'Real Madrid'; awayTeam = 'Barcelona';
-    } else if (selectedMatch.includes('Liverpool vs Manchester City')) {
-      homePlayerNames = ['Van Dijk', 'Henderson', 'Salah', 'Mané', 'Firmino', 'Alexander-Arnold', 'Alisson'];
-      awayPlayerNames = ['De Bruyne', 'Sterling', 'Aguero', 'Silva', 'Walker', 'Ederson', 'Mahrez'];
-      homeTeam = 'Liverpool'; awayTeam = 'Manchester City';
-    } else {
-      homePlayerNames = ['Player A', 'Player B', 'Player C', 'Player D', 'Player E', 'Player F', 'Player G'];
-      awayPlayerNames = ['Player H', 'Player I', 'Player J', 'Player K', 'Player L', 'Player M', 'Player N'];
-      homeTeam = 'Home Team'; awayTeam = 'Away Team';
-    }
-    
-    const pressureEventTypes = ['Tackle', 'Interception', 'Pressure', 'Block', 'Challenge'];
-    
-    // Home team pressure events (player positions when they made pressure)
-    for (let i = 0; i < 15; i++) {
-      const eventType = pressureEventTypes[Math.floor(Math.random() * pressureEventTypes.length)];
-      const minute = Math.floor(Math.random() * 90) + 1;
-      const player = homePlayerNames[Math.floor(Math.random() * homePlayerNames.length)];
+    if (matchName.includes('Real Madrid vs Barcelona')) {
+      const homeEvents = [
+        { player: 'Sergio Ramos', x: 25, y: 30, type: 'Tackle', minute: 15, outcome: 'Success', team: 'Real Madrid', teamType: 'home' },
+        { player: 'Casemiro', x: 35, y: 45, type: 'Interception', minute: 28, outcome: 'Success', team: 'Real Madrid', teamType: 'home' },
+        { player: 'Luka Modric', x: 45, y: 25, type: 'Pressure', minute: 42, outcome: 'Failed', team: 'Real Madrid', teamType: 'home' },
+        { player: 'Toni Kroos', x: 40, y: 55, type: 'Block', minute: 56, outcome: 'Success', team: 'Real Madrid', teamType: 'home' },
+        { player: 'Marcelo', x: 15, y: 40, type: 'Challenge', minute: 67, outcome: 'Success', team: 'Real Madrid', teamType: 'home' },
+        { player: 'Varane', x: 20, y: 20, type: 'Tackle', minute: 73, outcome: 'Failed', team: 'Real Madrid', teamType: 'home' },
+        { player: 'Benzema', x: 50, y: 35, type: 'Pressure', minute: 81, outcome: 'Success', team: 'Real Madrid', teamType: 'home' }
+      ];
       
-      homeEvents.push({
-        id: `home-${i}`,
-        playerX: Math.random() * 50 + 10, // Player was positioned on defensive side
-        playerY: Math.random() * 60 + 10,
-        minute,
-        eventType,
-        player,
-        team: homeTeam,
-        outcome: Math.random() > 0.3 ? 'Success' : 'Failed',
-        intensity: Math.random() * 0.8 + 0.2
-      });
-    }
-    
-    // Away team pressure events (player positions when they made pressure)
-    for (let i = 0; i < 12; i++) {
-      const eventType = pressureEventTypes[Math.floor(Math.random() * pressureEventTypes.length)];
-      const minute = Math.floor(Math.random() * 90) + 1;
-      const player = awayPlayerNames[Math.floor(Math.random() * awayPlayerNames.length)];
+      const awayEvents = [
+        { player: 'Messi', x: 70, y: 30, type: 'Pressure', minute: 12, outcome: 'Success', team: 'Barcelona', teamType: 'away' },
+        { player: 'Busquets', x: 65, y: 40, type: 'Interception', minute: 33, outcome: 'Failed', team: 'Barcelona', teamType: 'away' },
+        { player: 'Piqué', x: 85, y: 25, type: 'Block', minute: 48, outcome: 'Success', team: 'Barcelona', teamType: 'away' },
+        { player: 'Alba', x: 75, y: 50, type: 'Tackle', minute: 59, outcome: 'Success', team: 'Barcelona', teamType: 'away' },
+        { player: 'Griezmann', x: 80, y: 35, type: 'Challenge', minute: 71, outcome: 'Failed', team: 'Barcelona', teamType: 'away' },
+        { player: 'De Jong', x: 70, y: 45, type: 'Pressure', minute: 84, outcome: 'Success', team: 'Barcelona', teamType: 'away' }
+      ];
       
-      awayEvents.push({
-        id: `away-${i}`,
-        playerX: Math.random() * 50 + 60, // Player was positioned on attacking side
-        playerY: Math.random() * 60 + 10,
-        minute,
-        eventType,
-        player,
-        team: awayTeam,
-        outcome: Math.random() > 0.25 ? 'Success' : 'Failed',
-        intensity: Math.random() * 0.7 + 0.3
-      });
+      return [...homeEvents, ...awayEvents];
     }
     
-    return { homeEvents, awayEvents };
+    // Default events for other matches
+    return [
+      { player: 'Player A', x: 25, y: 30, type: 'Tackle', minute: 15, outcome: 'Success', team: 'Home Team', teamType: 'home' },
+      { player: 'Player B', x: 75, y: 30, type: 'Pressure', minute: 25, outcome: 'Failed', team: 'Away Team', teamType: 'away' }
+    ];
   };
 
-  const { homeEvents, awayEvents } = generateMatchPressureEvents();
-  const allEvents = [...homeEvents.map(e => ({...e, teamType: 'home'})), ...awayEvents.map(e => ({...e, teamType: 'away'}))];
-
-  // Pressure scenario navigation
-  const goToNextScenario = () => {
-    if (allEvents.length > 0) {
-      const nextIndex = (currentScenarioIndex + 1) % allEvents.length;
-      setCurrentScenarioIndex(nextIndex);
-    }
-  };
-
-  const goToPrevScenario = () => {
-    if (allEvents.length > 0) {
-      const prevIndex = (currentScenarioIndex - 1 + allEvents.length) % allEvents.length;
-      setCurrentScenarioIndex(prevIndex);
-    }
-  };
-
-  const getPressureColor = (intensity, teamType, outcome) => {
-    const baseColor = teamType === 'home' ? [59, 130, 246] : [239, 68, 68]; // Blue for home, Red for away
-    const alpha = outcome === 'Success' ? (0.4 + intensity * 0.5) : 0.3;
-    return `rgba(${baseColor[0]}, ${baseColor[1]}, ${baseColor[2]}, ${alpha})`;
-  };
+  const allEvents = getStaticPressureEvents(selectedMatch);
 
   return (
     <div className="space-y-4">
