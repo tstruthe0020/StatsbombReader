@@ -825,7 +825,7 @@ export const PressureAnalysisVisualization = ({ pressureData }) => {
         <CardHeader>
           <CardTitle>Player Positions During Pressure Events</CardTitle>
           <CardDescription>
-            {selectedMatch} - Hover over circles to see player names
+            Real Madrid vs Barcelona - El Clasico - Hover over circles to see player names
           </CardDescription>
         </CardHeader>
         <CardContent className="relative">
