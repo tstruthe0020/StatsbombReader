@@ -22,6 +22,30 @@ load_dotenv()
 logging.basicConfig(level=logging.INFO)
 logger = logging.getLogger(__name__)
 
+# Add imports for new analytics
+import sys
+sys.path.append(os.path.dirname(os.path.dirname(os.path.abspath(__file__))))
+
+try:
+    from src.modeling_zone_nb import ZoneNBModeler
+    from src.viz_referee import RefereeVisualizer
+    from src.features import PlaystyleFeatureExtractor
+    from src.discipline import DisciplineAnalyzer
+    ANALYTICS_AVAILABLE = True
+    logger.info("✓ Advanced analytics modules loaded successfully")
+except ImportError as e:
+    ANALYTICS_AVAILABLE = False
+    logger.warning(f"Advanced analytics not available: {e}")
+
+from pathlib import Path
+import warnings
+from scipy import stats
+
+# Statistical modeling (only if analytics available)
+if ANALYTICS_AVAILABLE:
+    import statsmodels.api as sm
+    from sklearn.preprocessing import StandardScaler
+
 # Environment validation
 def validate_environment():
     """Validate required environment variables for production deployment."""
