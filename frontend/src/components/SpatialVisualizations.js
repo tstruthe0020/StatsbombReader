@@ -948,13 +948,24 @@ export const PressureAnalysisVisualization = ({ pressureData }) => {
             })}
           </svg>
           
-          {/* Simple static tooltip */}
+          {/* Static static tooltip */}
           {hoveredPlayer && (
             <div className="absolute top-4 left-4 bg-black text-white px-3 py-2 rounded-lg text-sm shadow-lg z-10">
               <div className="font-medium">{hoveredPlayer.player}</div>
               <div className="text-xs text-gray-300 mt-1">
                 <div>{hoveredPlayer.type} - {hoveredPlayer.minute}'</div>
                 <div>Outcome: {hoveredPlayer.outcome}</div>
+              </div>
+            </div>
+          )}
+
+          {/* Current scenario details */}
+          {allEvents[currentScenarioIndex] && (
+            <div className="absolute top-4 right-4 bg-yellow-100 border border-yellow-300 text-yellow-800 px-3 py-2 rounded-lg text-sm shadow-lg">
+              <div className="font-medium">Current Scenario</div>
+              <div className="text-xs mt-1">
+                <div>#{currentScenarioIndex + 1}: {allEvents[currentScenarioIndex].player}</div>
+                <div>{allEvents[currentScenarioIndex].type} at {allEvents[currentScenarioIndex].minute}'</div>
               </div>
             </div>
           )}
