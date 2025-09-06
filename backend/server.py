@@ -2866,7 +2866,7 @@ def get_match_team_styles(match_id: int):
                     "possession_directness": team_row.get("cat_possess_dir"),
                     "width": team_row.get("cat_width"),
                     "transition": team_row.get("cat_transition"),
-                    "overlays": team_row.get("cat_overlays", [])
+                    "overlays": list(team_row.get("cat_overlays", [])) if team_row.get("cat_overlays") is not None else []
                 },
                 "match_metrics": {
                     "ppda": round(float(team_row.get("ppda", 0)), 2),
