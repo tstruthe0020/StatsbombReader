@@ -253,17 +253,20 @@ backend:
           comment: "Referee slopes endpoint tested successfully. Accepts feature parameters like 'directness' as specified in review request. Returns proper 503 status when zone models not available (expected behavior). Handles invalid features gracefully. When models are available, would return feature-specific slopes with summary statistics including total_slopes, significant_slopes, unique_referees, unique_zones, and average_slope. Proper error handling for both valid and invalid feature names."
 
 frontend:
-  - task: "Referee-Playstyle Analysis Tab Integration"
+  - task: "Referee-Discipline Analysis Tab Integration"
     implemented: true
-    working: true
-    file: "/app/frontend/src/components/RefereePlaystyleAnalysis.js"
-    stuck_count: 0
+    working: false
+    file: "/app/frontend/src/App.js"
+    stuck_count: 1
     priority: "high"
     needs_retesting: false
     status_history:
         - working: true
           agent: "testing"
           comment: "COMPREHENSIVE TESTING COMPLETED SUCCESSFULLY. All requirements from review request fully verified: ✅ Tab Navigation - 'Referee-Playstyle' tab correctly positioned between 'Advanced Analytics' and '360° Analysis' with Calculator icon, ✅ Component Loading - RefereePlaystyleAnalysis component loads without errors with proper gradient title and responsive layout, ✅ Analytics Status - /api/analytics/zone-models/status endpoint working, shows 'Zone Models Not Fitted' status as expected (models not trained yet), displays Total Models (0) and Zones Analyzed (0) metrics, ✅ Five Sub-tabs - All tabs functional: Overview (System Capabilities & Key Features), Feature Extraction (Match ID input & Extract Features button), Foul Prediction (directness, PPDA, possession, wing usage, referee inputs & Predict Expected Fouls button), Referee Analysis (feature selection dropdown & Analyze Referee Effects button), Documentation (Playstyle & Discipline feature tabs), ✅ Interactive Elements - All inputs, buttons, dropdowns working: Match ID input (tested with 7560), prediction input fields (directness: 0.5, PPDA: 12.5, possession: 0.6, wing usage: 0.3, referee: Antonio Mateu Lahoz), feature selection dropdown (tested switching to PPDA), all buttons clickable with loading states, ✅ API Integration - All 5 analytics endpoints called successfully: zone-models/status, available-features, team-match-features/7560, predict-fouls (POST), zone-models/referee-slopes/ppda, ✅ Error Handling - Proper 503 error handling for unavailable services, appropriate 'Zone Models Not Fitted' messages displayed, ✅ Visual Design - Purple/blue gradient theme applied throughout (4 gradient cards, 12 purple/blue elements), matches existing app design, ✅ Responsive Design - Layout adapts properly across desktop (1920x1080), tablet (768x1024), mobile (390x844) viewports, grid layouts remain functional. No JavaScript console errors detected. Component is production-ready and fully functional."
+        - working: false
+          agent: "testing"
+          comment: "CRITICAL COMPILATION ERROR: New modular Referee-Discipline Analysis system cannot be tested due to JSX syntax error preventing application from loading. Error: 'Adjacent JSX elements must be wrapped in an enclosing tag' in App.js. The system has been properly implemented with comprehensive modular architecture including: ✅ Feature flag implementation (isRefDisciplineEnabled), ✅ Routing structure for /analysis/ref-discipline/* paths, ✅ Tab integration in main dashboard with proper positioning, ✅ Mock components for Overview, Teams, Referees, Lab pages, ✅ Proper conditional rendering logic, ✅ Complete TypeScript module structure with state management, hooks, and components. However, critical issues prevent testing: 1) TypeScript files (.ts/.tsx) imported into JavaScript React app without proper TypeScript configuration, 2) JSX compilation error due to adjacent elements not properly wrapped, 3) Module build failure preventing frontend from loading. The modular structure and routing implementation appear correct but require either TypeScript configuration setup or conversion of TypeScript files to JavaScript to resolve compilation issues."
 
 agent_communication:
     - agent: "main"
