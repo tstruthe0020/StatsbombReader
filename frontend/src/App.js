@@ -17,8 +17,6 @@ import './App.css';
 // Temporary mock function for testing - will be replaced with proper feature flag
 const isRefDisciplineEnabled = () => true;
 
-const API_BASE_URL = process.env.REACT_APP_BACKEND_URL || '';
-
 function App() {
   const [competitions, setCompetitions] = useState([]);
   const [selectedCompetition, setSelectedCompetition] = useState(null);
