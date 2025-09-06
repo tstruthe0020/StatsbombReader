@@ -316,7 +316,7 @@ agent_communication:
     - agent: "testing"
       message: "REAL STATSBOMB DATA INTEGRATION TESTING COMPLETED SUCCESSFULLY. Comprehensive verification of tactical analysis endpoint fix confirms all requirements met: ✅ Primary Match (3773386): Real team names 'Deportivo Alavés vs Barcelona' confirmed (not fallback names like 'Liverpool vs Manchester City'), real player names verified including 'Fernando Pacheco Flores', 'Joaquín Navarro Jiménez', 'Víctor Laguardia Cisneros', 'Norberto Murara Neto', 'Sergi Roberto Carnicer', 'Gerard Piqué Bernabéu' (not generic names like 'Barcelona Goalkeeper'), realistic tactical statistics with possession 21.3% vs 78.7% (totaling 100%), passes 238 vs 880, shots 4 vs 25, fouls 20 vs 6. ✅ Multiple Match IDs: All specified matches working - 3773565 (Granada vs Barcelona), 3773457 (Celta Vigo vs Barcelona) returning real team names and realistic statistics. ✅ Performance: Response time 0.28s (well under 10s requirement). ✅ Error Handling: Invalid match IDs gracefully handled with fallback data. ✅ Data Validation: Formations show actual numbers (4-3-3, 4-2-3-1), all statistics within realistic ranges. The Real StatsBomb Data Integration fix is working perfectly - no more generic fallback data, all real team names, real player names, and accurate tactical metrics being returned as expected."
 
-## CURRENT STATUS - READY FOR TACTICAL ANALYSIS IMPLEMENTATION
+## CURRENT STATUS - TACTICAL ARCHETYPE SYSTEM IMPLEMENTED
 
 ### ✅ COMPLETED FEATURES:
 1. **Real StatsBomb Data Integration**: Backend successfully loads real match data, lineups, formations, and statistics
@@ -324,16 +324,32 @@ agent_communication:
 3. **Formation Graphics**: Visual formation display with all 11 players positioned correctly, enhanced name truncation, and support for multiple formations (4-3-3, 4-2-3-1, 3-5-2, 4-4-2, 3-4-3)
 4. **Interactive Foul Map**: Color-coded fouls with hover tooltips, match-specific data, and dynamic team names
 5. **Match Statistics**: Comprehensive team statistics with visual comparison bars
-6. **Tactical Profile Placeholder**: Structure ready for tactical analysis integration
+6. **Tactical Archetype System**: Complete implementation of tactical categorization pipeline
+   - Axis tag categorization (pressing, block, possession, width, transition, overlays)
+   - Human-readable archetype derivation (e.g., "High-Press Possession", "Low-Block Counter + Wing Overload Crossers")
+   - Match-level and season-level archetype computation
+   - API endpoints for tactical style data
+   - Enhanced TacticalProfile component with real archetype display
 
-### 🎯 NEXT DEVELOPMENT PHASE: TACTICAL ANALYSIS
-**Objective**: Implement comprehensive tactical analysis functionality to provide deep insights into team playstyles, formations effectiveness, and match patterns.
+### 🎯 TACTICAL ARCHETYPE SYSTEM DETAILS:
+**Core Components Implemented**:
+- **Categorizer Module** (`src/reader/categorizer.py`): Converts StatsBomb features to tactical axis tags
+- **Archetype Module** (`src/reader/archetypes.py`): Maps axis tags to human-readable archetypes  
+- **Pipeline Integration**: Updated `run_build_dataset.py` to compute archetypes
+- **Configuration**: Configurable thresholds in `config.yaml`
+- **API Endpoints**: `/api/style/team`, `/api/style/match/{match_id}`, `/api/style/competition/{competition_id}/season/{season_id}`
+- **Frontend Integration**: Enhanced TacticalProfile component with real archetype display
 
-**Ready for Implementation**:
-- Backend: Real StatsBomb data pipeline established and tested
-- Frontend: Match Viewer foundation built with tactical profile section ready
-- Data Flow: Match selection → Real data loading → Analysis display pipeline working
-- Integration Points: TacticalProfile component prepared for data integration
+**Data Pipeline**:
+- Input: StatsBomb features (ppda, possession_share, directness, wing_share, etc.)
+- Processing: Feature → Axis Tags → Archetype derivation
+- Output: Parquet files with `style_archetype` column and CSV with category labels
+
+**Ready for Production**:
+- All tests passing (archetype logic, categorizer edge cases)
+- Backend serving tactical archetype data
+- Frontend displaying tactical profiles with archetypes
+- Configuration system for threshold tuning
 
 **Architecture Status**: 
 - ✅ FastAPI backend with StatsBomb integration
