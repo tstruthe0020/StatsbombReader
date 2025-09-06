@@ -49,15 +49,15 @@ const SpatialAnalysis = () => {
     },
     { 
       id: 'foul-context', 
-      label: 'Foul Frequency Grid Heatmap', 
+      label: 'Referee 360° Foul Heatmap', 
       icon: Layers,
-      description: 'Grid-based analysis with competition filtering'
+      description: 'Referee-specific heatmap using 360° data'
     },
     { 
       id: 'pressure-analysis', 
-      label: 'Team Pressure Events', 
+      label: 'Match Pressure Events', 
       icon: Target,
-      description: 'Click-based event analysis from match data'
+      description: 'Player positions during pressure events by match'
     }
   ];
 
