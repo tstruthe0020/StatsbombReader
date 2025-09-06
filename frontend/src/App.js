@@ -554,8 +554,8 @@ const MainDashboard = () => {
               <CardContent>
                 <div className="space-y-2 max-h-64 overflow-y-auto">
                   {Array.from(new Set(selectedMatches.flatMap(match => [
-                    match.home_team?.home_team_name,
-                    match.away_team?.away_team_name
+                    match.home_team?.name || match.home_team?.home_team_name,
+                    match.away_team?.name || match.away_team?.away_team_name
                   ]).filter(Boolean))).map((teamName) => (
                     <div key={teamName} className="flex items-center justify-between p-2 bg-gray-50 rounded">
                       <span className="font-medium text-sm">{teamName}</span>
