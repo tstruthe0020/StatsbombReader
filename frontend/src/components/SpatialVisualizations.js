@@ -997,10 +997,17 @@ export const PressureAnalysisVisualization = ({ pressureData }) => {
             ))}
           </svg>
           
-          {/* Simple hover tooltip for player names */}
+          {/* Enhanced hover tooltip with player details */}
           {hoveredPlayer && (
-            <div className="absolute top-4 left-4 bg-black text-white px-2 py-1 rounded text-sm">
-              {hoveredPlayer}
+            <div className="absolute top-4 left-4 bg-black text-white px-3 py-2 rounded-lg text-sm shadow-lg">
+              <div className="font-medium">{hoveredPlayer}</div>
+              {allEvents.find(e => e.player === hoveredPlayer) && (
+                <div className="text-xs text-gray-300 mt-1">
+                  <div>Event: {allEvents.find(e => e.player === hoveredPlayer)?.eventType}</div>
+                  <div>Time: {allEvents.find(e => e.player === hoveredPlayer)?.minute}'</div>
+                  <div>Outcome: {allEvents.find(e => e.player === hoveredPlayer)?.outcome}</div>
+                </div>
+              )}
             </div>
           )}
 
