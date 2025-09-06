@@ -1,17 +1,8 @@
-import React, { useState, useEffect } from 'react';
-import axios from 'axios';
-import { Card, CardContent, CardDescription, CardHeader, CardTitle } from './components/ui/card';
-import { Button } from './components/ui/button';
-import { Badge } from './components/ui/badge';
-import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from './components/ui/select';
-import { Input } from './components/ui/input';
-import { Tabs, TabsContent, TabsList, TabsTrigger } from './components/ui/tabs';
-import { Alert, AlertDescription } from './components/ui/alert';
-import { Separator } from './components/ui/separator';
+import React, { useState } from 'react';
 import { 
-  Search, Users, MapPin, Target, Clock, Activity, 
-  TrendingUp, AlertTriangle, BarChart3, Shield, 
-  Calendar, Trophy, Play
+  Activity, 
+  TrendingUp, 
+  Trophy, Play
 } from 'lucide-react';
 import MatchViewer from './components/MatchViewer';
 import TacticalAnalysis from './components/TacticalAnalysis';
