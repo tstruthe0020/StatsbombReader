@@ -722,54 +722,25 @@ export const SpatialFoulContextVisualization = ({ spatialData }) => {
 export const PressureAnalysisVisualization = ({ pressureData }) => {
   if (!pressureData) return null;
 
-  const [selectedMatch, setSelectedMatch] = React.useState('Real Madrid vs Barcelona - El Clasico');
   const [currentScenarioIndex, setCurrentScenarioIndex] = React.useState(0);
   const [hoveredPlayer, setHoveredPlayer] = React.useState(null);
 
-  // Available matches for selection
-  const matches = [
-    'Real Madrid vs Barcelona - El Clasico', 
-    'Liverpool vs Manchester City - Premier League',
-    'Bayern Munich vs Borussia Dortmund - Bundesliga',
-    'Juventus vs AC Milan - Serie A',
-    'PSG vs Marseille - Ligue 1'
+  // Static El Clasico pressure events data - NEVER changes once set
+  const allEvents = [
+    { player: 'Sergio Ramos', x: 25, y: 30, type: 'Tackle', minute: 15, outcome: 'Success', team: 'Real Madrid', teamType: 'home' },
+    { player: 'Casemiro', x: 35, y: 45, type: 'Interception', minute: 28, outcome: 'Success', team: 'Real Madrid', teamType: 'home' },
+    { player: 'Luka Modric', x: 45, y: 25, type: 'Pressure', minute: 42, outcome: 'Failed', team: 'Real Madrid', teamType: 'home' },
+    { player: 'Toni Kroos', x: 40, y: 55, type: 'Block', minute: 56, outcome: 'Success', team: 'Real Madrid', teamType: 'home' },
+    { player: 'Marcelo', x: 15, y: 40, type: 'Challenge', minute: 67, outcome: 'Success', team: 'Real Madrid', teamType: 'home' },
+    { player: 'Varane', x: 20, y: 20, type: 'Tackle', minute: 73, outcome: 'Failed', team: 'Real Madrid', teamType: 'home' },
+    { player: 'Benzema', x: 50, y: 35, type: 'Pressure', minute: 81, outcome: 'Success', team: 'Real Madrid', teamType: 'home' },
+    { player: 'Messi', x: 70, y: 30, type: 'Pressure', minute: 12, outcome: 'Success', team: 'Barcelona', teamType: 'away' },
+    { player: 'Busquets', x: 65, y: 40, type: 'Interception', minute: 33, outcome: 'Failed', team: 'Barcelona', teamType: 'away' },
+    { player: 'Piqué', x: 85, y: 25, type: 'Block', minute: 48, outcome: 'Success', team: 'Barcelona', teamType: 'away' },
+    { player: 'Alba', x: 75, y: 50, type: 'Tackle', minute: 59, outcome: 'Success', team: 'Barcelona', teamType: 'away' },
+    { player: 'Griezmann', x: 80, y: 35, type: 'Challenge', minute: 71, outcome: 'Failed', team: 'Barcelona', teamType: 'away' },
+    { player: 'De Jong', x: 70, y: 45, type: 'Pressure', minute: 84, outcome: 'Success', team: 'Barcelona', teamType: 'away' }
   ];
-
-  // Static pressure events data - NEVER changes once generated
-  const getStaticPressureEvents = (matchName) => {
-    const events = [];
-    
-    if (matchName.includes('Real Madrid vs Barcelona')) {
-      const homeEvents = [
-        { player: 'Sergio Ramos', x: 25, y: 30, type: 'Tackle', minute: 15, outcome: 'Success', team: 'Real Madrid', teamType: 'home' },
-        { player: 'Casemiro', x: 35, y: 45, type: 'Interception', minute: 28, outcome: 'Success', team: 'Real Madrid', teamType: 'home' },
-        { player: 'Luka Modric', x: 45, y: 25, type: 'Pressure', minute: 42, outcome: 'Failed', team: 'Real Madrid', teamType: 'home' },
-        { player: 'Toni Kroos', x: 40, y: 55, type: 'Block', minute: 56, outcome: 'Success', team: 'Real Madrid', teamType: 'home' },
-        { player: 'Marcelo', x: 15, y: 40, type: 'Challenge', minute: 67, outcome: 'Success', team: 'Real Madrid', teamType: 'home' },
-        { player: 'Varane', x: 20, y: 20, type: 'Tackle', minute: 73, outcome: 'Failed', team: 'Real Madrid', teamType: 'home' },
-        { player: 'Benzema', x: 50, y: 35, type: 'Pressure', minute: 81, outcome: 'Success', team: 'Real Madrid', teamType: 'home' }
-      ];
-      
-      const awayEvents = [
-        { player: 'Messi', x: 70, y: 30, type: 'Pressure', minute: 12, outcome: 'Success', team: 'Barcelona', teamType: 'away' },
-        { player: 'Busquets', x: 65, y: 40, type: 'Interception', minute: 33, outcome: 'Failed', team: 'Barcelona', teamType: 'away' },
-        { player: 'Piqué', x: 85, y: 25, type: 'Block', minute: 48, outcome: 'Success', team: 'Barcelona', teamType: 'away' },
-        { player: 'Alba', x: 75, y: 50, type: 'Tackle', minute: 59, outcome: 'Success', team: 'Barcelona', teamType: 'away' },
-        { player: 'Griezmann', x: 80, y: 35, type: 'Challenge', minute: 71, outcome: 'Failed', team: 'Barcelona', teamType: 'away' },
-        { player: 'De Jong', x: 70, y: 45, type: 'Pressure', minute: 84, outcome: 'Success', team: 'Barcelona', teamType: 'away' }
-      ];
-      
-      return [...homeEvents, ...awayEvents];
-    }
-    
-    // Default events for other matches
-    return [
-      { player: 'Player A', x: 25, y: 30, type: 'Tackle', minute: 15, outcome: 'Success', team: 'Home Team', teamType: 'home' },
-      { player: 'Player B', x: 75, y: 30, type: 'Pressure', minute: 25, outcome: 'Failed', team: 'Away Team', teamType: 'away' }
-    ];
-  };
-
-  const allEvents = getStaticPressureEvents(selectedMatch);
 
   // Pressure scenario navigation
   const goToNextScenario = () => {
