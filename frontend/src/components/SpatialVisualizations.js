@@ -167,7 +167,7 @@ export const FormationBiasVisualization = ({ formationData }) => {
         <div className="text-center">
           <div className="w-6 h-6 bg-red-500 rounded-full mx-auto mb-1"></div>
           <div className="text-xs font-medium">Strongly Unfavorable</div>
-          <div className="text-xs text-gray-600"><0.35 bias score</div>
+          <div className="text-xs text-gray-600">&lt;0.35 bias score</div>
         </div>
       </div>
 
