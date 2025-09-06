@@ -2404,7 +2404,7 @@ async def get_match_tactical_analysis(match_id: int):
                                 team_stats["passes"] += 1
                             elif event_type == 'Foul Committed':
                                 team_stats["fouls_committed"] += 1
-                            elif event_type == 'Bad Behaviour' and event.get('bad_behaviour', {}).get('card', {}).get('name') == 'Yellow Card':
+                            elif event_type == 'Bad Behaviour' and event.get('foul_card') == 'Yellow Card':
                                 team_stats["yellow_cards"] += 1
                                 key_events.append({
                                     "minute": minute,
@@ -2413,7 +2413,7 @@ async def get_match_tactical_analysis(match_id: int):
                                     "player": player,
                                     "description": "Disciplinary action"
                                 })
-                            elif event_type == 'Bad Behaviour' and event.get('bad_behaviour', {}).get('card', {}).get('name') == 'Red Card':
+                            elif event_type == 'Bad Behaviour' and event.get('foul_card') == 'Red Card':
                                 team_stats["red_cards"] += 1
                                 key_events.append({
                                     "minute": minute,
@@ -2422,7 +2422,7 @@ async def get_match_tactical_analysis(match_id: int):
                                     "player": player,
                                     "description": "Sent off"
                                 })
-                            elif event_type == 'Shot' and event.get('shot', {}).get('outcome', {}).get('name') == 'Goal':
+                            elif event_type == 'Shot' and event.get('shot_outcome') == 'Goal':
                                 key_events.append({
                                     "minute": minute,
                                     "type": "Goal",
