@@ -299,6 +299,11 @@ const SpatialAnalysis = () => {
 
     return (
       <div className="space-y-6">
+        {/* Spatial Context Visualization */}
+        {analysisData.has_360_data && (
+          <SpatialFoulContextVisualization spatialData={analysisData} />
+        )}
+
         {/* Match Summary */}
         <Card>
           <CardHeader>
