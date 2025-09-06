@@ -726,6 +726,14 @@ export const PressureAnalysisVisualization = ({ pressureData }) => {
   const [currentScenarioIndex, setCurrentScenarioIndex] = React.useState(0);
   const [hoveredPlayerInfo, setHoveredPlayerInfo] = React.useState(null);
 
+  const handlePlayerHover = (event) => {
+    setHoveredPlayerInfo(event);
+  };
+
+  const handlePlayerLeave = () => {
+    setHoveredPlayerInfo(null);
+  };
+
   // Available matches for selection
   const matches = [
     'Real Madrid vs Barcelona - El Clasico', 
