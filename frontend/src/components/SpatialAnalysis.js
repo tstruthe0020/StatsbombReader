@@ -108,6 +108,25 @@ const SpatialAnalysis = () => {
 
     return (
       <div className="space-y-6">
+        {/* Formation Bias Visualizations */}
+        <Card>
+          <CardHeader>
+            <CardTitle className="flex items-center gap-2">
+              <Shield className="w-5 h-5" />
+              Formation Analysis Visualizations
+            </CardTitle>
+            <CardDescription>
+              Visual representation of {analysisData.referee_name}'s bias toward different formations
+            </CardDescription>
+          </CardHeader>
+          <CardContent>
+            <FormationBiasVisualization formationData={analysisData.formation_bias_analysis} />
+          </CardContent>
+        </Card>
+
+        {/* Tactical Bias Radar Chart */}
+        <TacticalBiasRadarChart tacticalData={analysisData.tactical_bias_scores} />
+
         {/* Tactical Preference Card */}
         <Card>
           <CardHeader>
