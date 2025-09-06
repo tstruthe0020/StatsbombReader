@@ -151,15 +151,45 @@ class TeamMatchDatasetBuilder:
             dataset_df = pd.DataFrame(all_team_matches)
             dataset_df = self._add_derived_features(dataset_df)
             
-            # Save dataset
-            if output_file is None:
-                output_file = self.data_dir / "team_match_features.parquet"
+            # Apply style categorization and archetype computation
+            cfg = load_config(self.config_path)
+            per_match_tagged = attach_style_tags(dataset_df, cfg)
+            per_match_tagged["style_archetype"] = per_match_tagged.apply(derive_archetype, axis=1)
             
-            dataset_df.to_parquet(output_file, index=False)
-            logger.info(f"Saved dataset with {len(dataset_df)} team-match rows to {output_file}")
+            # Save match-level dataset with tags
+            if output_file is None:
+                match_output_file = self.data_dir / "match_team_features_with_tags.parquet"
+            else:
+                match_output_file = Path(str(output_file).replace('.parquet', '_with_tags.parquet'))
+            
+            per_match_tagged.to_parquet(match_output_file, index=False)
+            logger.info(f"Saved match-level dataset with {len(per_match_tagged)} team-match rows to {match_output_file}")
+            
+            # Create season-level aggregations
+            season_agg = self._create_season_aggregations(per_match_tagged)
+            season_agg_tagged = attach_style_tags(season_agg, cfg)
+            season_agg_tagged["style_archetype"] = season_agg_tagged.apply(derive_archetype, axis=1)
+            
+            # Save season-level dataset
+            season_output_file = self.data_dir / "team_season_features_with_tags.parquet"
+            season_agg_tagged.to_parquet(season_output_file, index=False)
+            logger.info(f"Saved season-level dataset with {len(season_agg_tagged)} team-season rows to {season_output_file}")
+            
+            # Save slim CSV for categories
+            labels_cols = [
+                "competition_id","season_id","team",
+                "cat_pressing","cat_block","cat_possess_dir","cat_width","cat_transition","cat_overlays",
+                "style_archetype",
+            ]
+            cats_path = self.data_dir / "team_season_style_categories.csv"
+            season_agg_tagged[labels_cols].to_csv(cats_path, index=False)
+            logger.info(f"Saved style categories CSV to {cats_path}")
             
             # Save summary statistics
-            self._save_dataset_summary(dataset_df, output_file)
+            self._save_dataset_summary(per_match_tagged, match_output_file)
+            
+            # Return match-level data for compatibility
+            dataset_df = per_match_tagged
             
         else:
             logger.error("No team-match data was successfully processed")
