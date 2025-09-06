@@ -110,7 +110,11 @@ const LineupViewer = ({ formations }) => {
         position.includes('mid') ||
         position === 'cdm' || position === 'cm' || position === 'cam' ||
         position === 'dm' || position === 'am' ||
-        position === 'rm' || position === 'lm'
+        position === 'rm' || position === 'lm' ||
+        position.includes('defensive midfield') ||
+        position.includes('attacking midfield') ||
+        position.includes('center midfield') ||
+        position.includes('centre midfield')
       ) {
         groupedPlayers.midfield.push(player);
       }
