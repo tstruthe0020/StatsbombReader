@@ -107,7 +107,7 @@ const MainDashboard = () => {
   const fetchMatches = async (competitionId, seasonId) => {
     try {
       setLoading(true);
-      const response = await axios.get(`${API_BASE_URL}/api/matches/${competitionId}/${seasonId}`);
+      const response = await axios.get(`${API_BASE_URL}/api/competitions/${competitionId}/seasons/${seasonId}/matches`);
       if (response.data && response.data.success) {
         setMatches(response.data.data);
         setError(null);
