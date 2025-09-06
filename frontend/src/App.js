@@ -310,9 +310,16 @@ const MainDashboard = () => {
     const fetchRefereeSlopes = async (feature) => {
       try {
         setAnalyticsLoading(true);
+        console.log('Fetching referee slopes for feature:', feature);
         const response = await axios.get(`${API_BASE_URL}/api/analytics/zone-models/referee-slopes/${feature}`);
+        console.log('Referee slopes response:', response.data);
+        
         if (response.data && response.data.success) {
           setRefereeSlopes(response.data.data);
+          console.log('Referee slopes data set:', response.data.data);
+        } else {
+          console.error('Invalid response format:', response.data);
+          setRefereeSlopes(null);
         }
       } catch (err) {
         console.error('Failed to fetch referee slopes:', err);
