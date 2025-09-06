@@ -324,6 +324,31 @@ const MainDashboard = () => {
       }
     };
 
+    const handleMatchSelect = (match) => {
+      setSelectedMatches(prev => {
+        const isSelected = prev.find(m => m.match_id === match.match_id);
+        if (isSelected) {
+          return prev.filter(m => m.match_id !== match.match_id);
+        } else {
+          return [...prev, match];
+        }
+      });
+    };
+
+    const fetchMatchFeatures = async (matchId) => {
+      try {
+        const response = await axios.get(`${API_BASE_URL}/api/matches/${matchId}/features`);
+        if (response.data.success) {
+          setMatchFeatures(prev => ({
+            ...prev,
+            [matchId]: response.data.data
+          }));
+        }
+      } catch (err) {
+        console.error('Failed to fetch match features:', err);
+      }
+    };
+
     return (
       <div className="space-y-6">
         {/* Header */}
