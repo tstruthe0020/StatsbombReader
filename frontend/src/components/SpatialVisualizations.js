@@ -48,11 +48,11 @@ export const FormationBiasVisualization = ({ formationData }) => {
       <div className="space-y-4">
         <div className="text-center">
           <h3 className="font-semibold text-lg">{formation}</h3>
-          <div className="text-sm text-gray-600">{data?.formation_type || 'Tactical'} Formation</div>
+          <div className="text-sm text-gray-600">Formation Pattern</div>
           <div className="text-xs text-gray-500">Data source: StatsBomb match events</div>
         </div>
 
-        {/* Per-game tactical performance statistics */}
+        {/* Per-game performance statistics */}
         <div className="grid grid-cols-2 gap-3 text-sm">
           <div className="bg-blue-50 p-3 rounded">
             <div className="font-medium text-blue-800">Fouls/Game</div>
