@@ -130,12 +130,55 @@ export const FormationBiasVisualization = ({ formationData }) => {
   };
 
   return (
-    <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-4">
-      {Object.entries(formationData).map(([formation, data]) => (
-        <Card key={formation} className="p-4">
-          <FormationField formation={formation} biasData={data} />
-        </Card>
-      ))}
+    <div className="space-y-6">
+      {/* Reading Instructions */}
+      <div className="bg-blue-50 p-4 rounded-lg border border-blue-200">
+        <h4 className="font-semibold text-blue-800 mb-2">📖 How to Read Formation Bias Analysis</h4>
+        <div className="text-sm text-blue-700 space-y-2">
+          <p><strong>Player Colors:</strong> Each dot represents a player position, colored by referee bias toward this formation.</p>
+          <p><strong>Bias Score:</strong> 0.0-1.0 scale where 0.5 = neutral, >0.6 = favorable treatment, <0.4 = unfavorable treatment.</p>
+          <p><strong>Formation Type:</strong> Defensive (5-4-1), Attacking (4-3-3), or Balanced (4-4-2) tactical approach.</p>
+          <p><strong>Interpretation:</strong> Green formations get more favorable calls, red formations face stricter officiating.</p>
+        </div>
+      </div>
+
+      {/* Color Key */}
+      <div className="grid grid-cols-5 gap-2 p-4 bg-gray-50 rounded-lg">
+        <div className="text-center">
+          <div className="w-6 h-6 bg-green-500 rounded-full mx-auto mb-1"></div>
+          <div className="text-xs font-medium">Strongly Favorable</div>
+          <div className="text-xs text-gray-600">0.65+ bias score</div>
+        </div>
+        <div className="text-center">
+          <div className="w-6 h-6 bg-lime-400 rounded-full mx-auto mb-1"></div>
+          <div className="text-xs font-medium">Favorable</div>
+          <div className="text-xs text-gray-600">0.55-0.65</div>
+        </div>
+        <div className="text-center">
+          <div className="w-6 h-6 bg-yellow-500 rounded-full mx-auto mb-1"></div>
+          <div className="text-xs font-medium">Neutral</div>
+          <div className="text-xs text-gray-600">0.45-0.55</div>
+        </div>
+        <div className="text-center">
+          <div className="w-6 h-6 bg-orange-500 rounded-full mx-auto mb-1"></div>
+          <div className="text-xs font-medium">Unfavorable</div>
+          <div className="text-xs text-gray-600">0.35-0.45</div>
+        </div>
+        <div className="text-center">
+          <div className="w-6 h-6 bg-red-500 rounded-full mx-auto mb-1"></div>
+          <div className="text-xs font-medium">Strongly Unfavorable</div>
+          <div className="text-xs text-gray-600"><0.35 bias score</div>
+        </div>
+      </div>
+
+      {/* Formation visualizations */}
+      <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-4">
+        {Object.entries(formationData).map(([formation, data]) => (
+          <Card key={formation} className="p-4">
+            <FormationField formation={formation} biasData={data} />
+          </Card>
+        ))}
+      </div>
     </div>
   );
 };
