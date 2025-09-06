@@ -210,7 +210,7 @@ const MainDashboard = () => {
       setQueryLoading(true);
       const response = await axios.post(`${API_BASE_URL}/api/query`, {
         query: queryInput,
-        context: `Current state: ${selectedCompetition ? `Competition: ${selectedCompetition.competition_name}` : 'No competition selected'}, ${selectedMatch ? `Match: ${selectedMatch.home_team?.home_team_name} vs ${selectedMatch.away_team?.away_team_name}` : 'No match selected'}`
+        context: `Current state: ${selectedCompetition ? `Competition: ${selectedCompetition.competition_name}` : 'No competition selected'}, ${selectedMatch ? `Match: ${selectedMatch.home_team?.name || selectedMatch.home_team?.home_team_name} vs ${selectedMatch.away_team?.name || selectedMatch.away_team?.away_team_name}` : 'No match selected'}`
       });
       
       if (response.data.success) {
