@@ -1040,12 +1040,12 @@ export const PressureAnalysisVisualization = ({ pressureData }) => {
             ))}
           </svg>
           
-          {/* Event Details Panel (replaces glitchy tooltip) */}
+          {/* Event Details Panel (stable click-based information) */}
           {selectedEvent && (
             <div className="mt-4 p-4 bg-gray-100 rounded-lg border border-gray-300">
               <div className="flex justify-between items-start mb-2">
                 <h4 className="font-semibold text-gray-800">
-                  Event Details
+                  Pressure Event Details
                 </h4>
                 <button 
                   onClick={handleEventClose}
@@ -1070,14 +1070,14 @@ export const PressureAnalysisVisualization = ({ pressureData }) => {
                   <div>{selectedEvent.event.minute}'</div>
                 </div>
                 <div>
-                  <div className="font-medium">Success:</div>
-                  <div className={selectedEvent.event.success ? 'text-green-600' : 'text-red-600'}>
-                    {selectedEvent.event.success ? 'Yes' : 'No'}
+                  <div className="font-medium">Outcome:</div>
+                  <div className={selectedEvent.event.outcome === 'Success' ? 'text-green-600' : 'text-red-600'}>
+                    {selectedEvent.event.outcome}
                   </div>
                 </div>
                 <div>
-                  <div className="font-medium">Intensity:</div>
-                  <div>{(selectedEvent.event.intensity * 100).toFixed(0)}%</div>
+                  <div className="font-medium">Player Position:</div>
+                  <div>({selectedEvent.event.playerX.toFixed(1)}, {selectedEvent.event.playerY.toFixed(1)})</div>
                 </div>
                 <div>
                   <div className="font-medium">Team:</div>
