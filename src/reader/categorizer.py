@@ -118,6 +118,10 @@ def categorize_block(row: pd.Series, thresholds: Dict) -> str:
     
     block_height = row.get('block_height_x', 60)
     
+    # Handle None values
+    if block_height is None or pd.isna(block_height):
+        block_height = 60  # Default mid-field
+    
     for category, criteria in block_thresholds.items():
         height_range = criteria.get('block_height_x', [0, 120])
         
