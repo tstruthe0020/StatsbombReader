@@ -111,6 +111,12 @@ github_client = None
 db_client = None
 db = None
 
+# Analytics components (initialized on startup if available)
+zone_modeler = None
+referee_visualizer = None
+feature_extractor = None  
+discipline_analyzer = None
+
 class GitHubAPIClient:
     """GitHub API client for StatsBomb data access."""
     
