@@ -354,14 +354,30 @@ const MainDashboard = () => {
     };
 
     const handleMatchSelect = (match) => {
-      setSelectedMatches(prev => {
-        const isSelected = prev.find(m => m.match_id === match.match_id);
-        if (isSelected) {
-          return prev.filter(m => m.match_id !== match.match_id);
-        } else {
-          return [...prev, match];
-        }
-      });
+      const isSelected = selectedMatches.find(m => m.match_id === match.match_id);
+      if (isSelected) {
+        // Deselect match
+        setSelectedMatches(selectedMatches.filter(m => m.match_id !== match.match_id));
+        console.log('Deselected match:', match.match_id);
+      } else {
+        // Select match and fetch its features
+        setSelectedMatches([...selectedMatches, match]);
+        fetchMatchFeatures(match.match_id);
+        console.log('Selected match:', match.match_id);
+      }
+    };
+
+    const handleSelectAllMatches = () => {
+      setSelectedMatches([...matches]);
+      console.log('Selected all matches:', matches.length);
+      
+      // Optionally fetch features for all matches (might be expensive)
+      // matches.forEach(match => fetchMatchFeatures(match.match_id));
+    };
+
+    const handleClearAllMatches = () => {
+      setSelectedMatches([]);
+      console.log('Cleared all match selections');
     };
 
     const fetchMatchFeatures = async (matchId) => {
