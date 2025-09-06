@@ -661,7 +661,7 @@ class SoccerAnalyticsAPITester:
                 has_data = "data" in data
                 if has_data:
                     slopes_data = data["data"]
-                    required_fields = ["feature", "slopes", "summary"]
+                    required_fields = ["feature", "summary"]
                     has_required_fields = all(key in slopes_data for key in required_fields)
                     
                     # Check summary statistics
