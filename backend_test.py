@@ -39,16 +39,16 @@ class SoccerAnalyticsAPITester:
             success = response.status_code == 200
             
             if success:
-                data = response.json()
-                expected_keys = ["message", "version", "description"]
-                has_keys = all(key in data for key in expected_keys)
-                success = has_keys
-                details = f"Status: {response.status_code}, Keys present: {has_keys}"
+                # Root endpoint returns HTML (frontend) in this architecture
+                content_type = response.headers.get('content-type', '').lower()
+                is_html = 'text/html' in content_type or '<!doctype html>' in response.text.lower()
+                success = is_html
+                details = f"Status: {response.status_code}, Content-Type: {content_type}, Is HTML: {is_html}"
             else:
                 details = f"Status: {response.status_code}"
                 
             self.log_test("Root Endpoint", success, details)
-            return success, response.json() if success else {}
+            return success, {}
             
         except Exception as e:
             self.log_test("Root Endpoint", False, str(e))
