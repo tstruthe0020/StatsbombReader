@@ -2353,11 +2353,10 @@ async def get_match_tactical_analysis(match_id: int):
                     # Try to get formation from events data
                     if events_data:
                         for event in events_data:
-                            if event.get('type') == 'Starting XI':
+                            if event.get('event_type_name') == 'Starting XI':
                                 formation = event.get('formation')
                                 if formation:
-                                    team_data = event.get('team') or {}
-                                    team_name = team_data.get('name', '') if isinstance(team_data, dict) else ''
+                                    team_name = event.get('team_name', '')
                                     if team_name == home_team:
                                         home_formation = formation
                                     elif team_name == away_team:
