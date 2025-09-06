@@ -759,6 +759,7 @@ export const PressureAnalysisVisualization = ({ pressureData }) => {
 
   const [selectedPlayers, setSelectedPlayers] = React.useState(new Set());
   const [selectedEvent, setSelectedEvent] = React.useState(null);
+  const [currentScenarioIndex, setCurrentScenarioIndex] = React.useState(0);
 
   // Generate pressure events from match event data (simulated)
   const generatePressureEventsFromEventData = () => {
