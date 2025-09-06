@@ -756,7 +756,7 @@ function App() {
               <CardContent>
                 <div className="grid grid-cols-2 md:grid-cols-4 gap-4">
                   <div className="text-center">
-                    <Badge className="bg-blue-500 mb-2">6 Core Metrics</Badge>
+                    <Badge className="bg-blue-500 mb-2">3 Core Metrics</Badge>
                     <p className="text-xs text-blue-600">Primary statistics tracked</p>
                   </div>
                   <div className="text-center">
