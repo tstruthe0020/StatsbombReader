@@ -879,14 +879,14 @@ export const PressureAnalysisVisualization = ({ pressureData }) => {
     <div className="space-y-4">
       {/* Reading Instructions */}
       <div className="bg-blue-50 p-4 rounded-lg border border-blue-200">
-        <h4 className="font-semibold text-blue-800 mb-2">📖 How to Read Interactive Team Pressure Events</h4>
+        <h4 className="font-semibold text-blue-800 mb-2">📖 How to Read Team Pressure Events - Player Positions</h4>
         <div className="text-sm text-blue-700 space-y-2">
-          <p><strong>Blue Circles:</strong> Home team pressure events (tackles, interceptions, blocks) from event data.</p>
-          <p><strong>Red Circles:</strong> Away team pressure events from event data.</p>
-          <p><strong>Interactive:</strong> Click on event circles for detailed information - no more glitchy hovering!</p>
-          <p><strong>Circle Size & Opacity:</strong> Larger, more opaque circles = higher intensity successful events.</p>
-          <p><strong>Event Letters:</strong> T=Tackle, I=Interception, P=Pressure, B=Block, C=Challenge.</p>
-          <p><strong>Stable Interface:</strong> Map remains stable while viewing event details.</p>
+          <p><strong>What You're Seeing:</strong> Player positions at the moment they applied pressure (not where the pressure occurred).</p>
+          <p><strong>Blue Circles:</strong> Home team player positions when they made pressure events.</p>
+          <p><strong>Red Circles:</strong> Away team player positions when they made pressure events.</p>
+          <p><strong>Click to View:</strong> Click on any circle to see detailed information about that pressure event.</p>
+          <p><strong>Scenario Navigation:</strong> Use the menu to cycle through individual pressure scenarios.</p>
+          <p><strong>Player Filter:</strong> Currently filters which players' pressure events are shown on the map.</p>
         </div>
       </div>
 
