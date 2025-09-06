@@ -381,6 +381,43 @@ const MainDashboard = () => {
       console.log('Cleared all match selections');
     };
 
+    const fetchTacticalData = async (matchId) => {
+      try {
+        setAnalyticsLoading(true);
+        console.log('Fetching tactical data for match:', matchId);
+        const response = await axios.get(`${API_BASE_URL}/api/matches/${matchId}/tactical-analysis`);
+        
+        if (response.data && response.data.success) {
+          setTacticalData(prev => ({
+            ...prev,
+            [matchId]: response.data.data
+          }));
+          console.log('Tactical data loaded for match:', matchId);
+        }
+      } catch (err) {
+        console.error('Failed to fetch tactical data:', err);
+      } finally {
+        setAnalyticsLoading(false);
+      }
+    };
+
+    const handleMatchExpand = (matchId) => {
+      if (expandedMatch === matchId) {
+        // Collapse if already expanded
+        setExpandedMatch(null);
+        console.log('Collapsed match:', matchId);
+      } else {
+        // Expand this match
+        setExpandedMatch(matchId);
+        console.log('Expanded match:', matchId);
+        
+        // Load tactical data if not already loaded
+        if (!tacticalData[matchId]) {
+          fetchTacticalData(matchId);
+        }
+      }
+    };
+
     const fetchMatchFeatures = async (matchId) => {
       try {
         const response = await axios.get(`${API_BASE_URL}/api/analytics/team-match-features/${matchId}`);
