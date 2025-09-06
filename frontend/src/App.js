@@ -967,7 +967,7 @@ const MainDashboard = () => {
                 <CardHeader>
                   <CardTitle className="flex items-center gap-2">
                     <Activity className="w-5 h-5" />
-                    Match Summary: {matchSummary.home_team} vs {matchSummary.away_team}
+                    Match Summary: {matchSummary.home_team?.name || matchSummary.home_team || 'Home'} vs {matchSummary.away_team?.name || matchSummary.away_team || 'Away'}
                   </CardTitle>
                   <CardDescription>Match ID: {selectedMatch.match_id}</CardDescription>
                 </CardHeader>
