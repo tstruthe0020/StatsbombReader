@@ -538,12 +538,40 @@ const MainDashboard = () => {
         {matches.length > 0 && (
           <Card>
             <CardHeader>
-              <CardTitle className="flex items-center gap-2">
-                <Users className="w-5 h-5" />
-                Available Matches ({matches.length})
+              <CardTitle className="flex items-center justify-between">
+                <div className="flex items-center gap-2">
+                  <Users className="w-5 h-5" />
+                  Available Matches ({matches.length})
+                </div>
+                <div className="flex gap-2">
+                  <Button 
+                    size="sm" 
+                    variant="outline"
+                    onClick={() => {
+                      // Select all matches
+                      setSelectedMatches([...matches]);
+                      console.log('Selected all matches:', matches.length);
+                    }}
+                    disabled={selectedMatches.length === matches.length}
+                  >
+                    Select All
+                  </Button>
+                  <Button 
+                    size="sm" 
+                    variant="outline"
+                    onClick={() => {
+                      // Clear all selections
+                      setSelectedMatches([]);
+                      console.log('Cleared all match selections');
+                    }}
+                    disabled={selectedMatches.length === 0}
+                  >
+                    Clear All
+                  </Button>
+                </div>
               </CardTitle>
               <CardDescription>
-                Click matches to analyze. Selected: {selectedMatches.length}
+                Click matches to analyze individually. Selected: {selectedMatches.length} of {matches.length}
               </CardDescription>
             </CardHeader>
             <CardContent>
