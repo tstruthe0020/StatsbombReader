@@ -22,6 +22,8 @@ sys.path.append(os.path.dirname(os.path.dirname(os.path.abspath(__file__))))
 from src.io_load import StatsBombLoader
 from src.features import PlaystyleFeatureExtractor
 from src.discipline import DisciplineAnalyzer
+from src.reader.categorizer import load_config, attach_style_tags
+from src.reader.archetypes import derive_archetype
 from backend.server import GitHubAPIClient
 
 # Setup logging
