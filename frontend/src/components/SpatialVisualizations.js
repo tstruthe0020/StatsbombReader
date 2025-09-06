@@ -956,22 +956,52 @@ export const PressureAnalysisVisualization = ({ pressureData }) => {
             ))}
           </svg>
           
-          {/* Tooltip */}
-          {showTooltip && (
-            <div 
-              className="absolute z-10 bg-black text-white text-xs rounded-lg p-3 shadow-lg max-w-xs"
-              style={{
-                left: `${tooltipPosition.x - 100}px`,
-                top: `${tooltipPosition.y - 100}px`,
-                pointerEvents: 'none'
-              }}
-            >
-              <div className="font-semibold mb-1">
-                {showTooltip.event.eventType} - {showTooltip.event.player}
+          {/* Event Details Panel (replaces glitchy tooltip) */}
+          {selectedEvent && (
+            <div className="mt-4 p-4 bg-gray-100 rounded-lg border border-gray-300">
+              <div className="flex justify-between items-start mb-2">
+                <h4 className="font-semibold text-gray-800">
+                  Event Details
+                </h4>
+                <button 
+                  onClick={handleEventClose}
+                  className="text-gray-500 hover:text-gray-700 text-xl"
+                >
+                  ×
+                </button>
               </div>
-              <div>Time: {showTooltip.event.minute}'</div>
-              <div>Success: {showTooltip.event.success ? 'Yes' : 'No'}</div>
-              <div>Intensity: {(showTooltip.event.intensity * 100).toFixed(0)}%</div>
+              <div className="grid grid-cols-2 gap-4 text-sm">
+                <div>
+                  <div className="font-medium">Player:</div>
+                  <div className={selectedEvent.event.team === 'home' ? 'text-blue-600' : 'text-red-600'}>
+                    {selectedEvent.event.player}
+                  </div>
+                </div>
+                <div>
+                  <div className="font-medium">Event Type:</div>
+                  <div>{selectedEvent.event.eventType}</div>
+                </div>
+                <div>
+                  <div className="font-medium">Time:</div>
+                  <div>{selectedEvent.event.minute}'</div>
+                </div>
+                <div>
+                  <div className="font-medium">Success:</div>
+                  <div className={selectedEvent.event.success ? 'text-green-600' : 'text-red-600'}>
+                    {selectedEvent.event.success ? 'Yes' : 'No'}
+                  </div>
+                </div>
+                <div>
+                  <div className="font-medium">Intensity:</div>
+                  <div>{(selectedEvent.event.intensity * 100).toFixed(0)}%</div>
+                </div>
+                <div>
+                  <div className="font-medium">Team:</div>
+                  <div className={selectedEvent.event.team === 'home' ? 'text-blue-600' : 'text-red-600'}>
+                    {selectedEvent.event.team === 'home' ? 'Home' : 'Away'}
+                  </div>
+                </div>
+              </div>
             </div>
           )}
           
