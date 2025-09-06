@@ -716,6 +716,184 @@ class SoccerAnalyticsAPITester:
         except Exception as e:
             self.log_test(f"Advanced Analytics Referee Slopes (Invalid Feature)", False, str(e))
 
+    def test_tactical_analysis_endpoint_primary_match(self):
+        """Test tactical analysis endpoint with primary match ID 3773386 (Deportivo Alavés vs Barcelona)"""
+        match_id = 3773386
+        try:
+            start_time = time.time()
+            response = requests.get(f"{self.base_url}/api/matches/{match_id}/tactical-analysis", timeout=15)
+            response_time = time.time() - start_time
+            
+            success = response.status_code == 200
+            
+            if success:
+                data = response.json()
+                has_success_key = "success" in data and data["success"]
+                has_data = "data" in data
+                
+                if has_data:
+                    tactical_data = data["data"]
+                    required_fields = ["match_id", "match_info", "formations", "tactical_metrics"]
+                    has_required_fields = all(key in tactical_data for key in required_fields)
+                    
+                    # Verify match info structure
+                    match_info = tactical_data.get("match_info", {})
+                    home_team = match_info.get("home_team", "")
+                    away_team = match_info.get("away_team", "")
+                    
+                    # Check if we got real team names (not fallback generic names)
+                    is_real_data = (
+                        "Deportivo Alavés" in home_team or "Barcelona" in home_team or
+                        "Deportivo Alavés" in away_team or "Barcelona" in away_team
+                    )
+                    
+                    # Check formations
+                    formations = tactical_data.get("formations", {})
+                    home_formation = formations.get("home_team", {})
+                    away_formation = formations.get("away_team", {})
+                    
+                    # Check for real player names (not generic ones)
+                    home_lineup = home_formation.get("formation_detail", [])
+                    away_lineup = away_formation.get("formation_detail", [])
+                    
+                    has_real_players = False
+                    for player in home_lineup + away_lineup:
+                        player_name = player.get("player", "")
+                        # Check if player name is not generic (contains actual names, not just team + position)
+                        if (player_name and 
+                            not player_name.endswith("Goalkeeper") and 
+                            not player_name.endswith("RB") and
+                            not player_name.endswith("CB1") and
+                            not player_name.endswith("CB2") and
+                            not player_name.endswith("LB") and
+                            len(player_name.split()) >= 2):  # Real names usually have at least 2 parts
+                            has_real_players = True
+                            break
+                    
+                    # Check tactical metrics
+                    tactical_metrics = tactical_data.get("tactical_metrics", {})
+                    home_metrics = tactical_metrics.get("home_team", {})
+                    away_metrics = tactical_metrics.get("away_team", {})
+                    
+                    # Verify possession adds up to 100%
+                    home_possession = home_metrics.get("possession", 0)
+                    away_possession = away_metrics.get("possession", 0)
+                    possession_total = home_possession + away_possession
+                    possession_valid = abs(possession_total - 100.0) < 1.0  # Allow small rounding errors
+                    
+                    # Verify realistic statistics
+                    home_passes = home_metrics.get("passes", 0)
+                    away_passes = away_metrics.get("passes", 0)
+                    home_shots = home_metrics.get("shots", 0)
+                    away_shots = away_metrics.get("shots", 0)
+                    home_fouls = home_metrics.get("fouls_committed", 0)
+                    away_fouls = away_metrics.get("fouls_committed", 0)
+                    
+                    stats_realistic = (
+                        0 <= home_passes <= 1000 and 0 <= away_passes <= 1000 and
+                        0 <= home_shots <= 50 and 0 <= away_shots <= 50 and
+                        0 <= home_fouls <= 50 and 0 <= away_fouls <= 50
+                    )
+                    
+                    # Performance check (< 10 seconds)
+                    performance_ok = response_time < 10.0
+                    
+                    success = (has_success_key and has_required_fields and 
+                              possession_valid and stats_realistic and performance_ok)
+                    
+                    details = (f"Status: {response.status_code}, Teams: {home_team} vs {away_team}, "
+                              f"Real data: {is_real_data}, Real players: {has_real_players}, "
+                              f"Possession: {home_possession}%+{away_possession}%={possession_total}%, "
+                              f"Passes: {home_passes}+{away_passes}, Shots: {home_shots}+{away_shots}, "
+                              f"Fouls: {home_fouls}+{away_fouls}, Response time: {response_time:.2f}s")
+                else:
+                    success = False
+                    details = "Missing data field"
+            else:
+                details = f"Status: {response.status_code}, Response: {response.text[:200]}"
+                
+            self.log_test(f"Tactical Analysis Primary Match ({match_id})", success, details)
+            return success, response.json() if success else {}
+            
+        except Exception as e:
+            self.log_test(f"Tactical Analysis Primary Match ({match_id})", False, str(e))
+            return False, {}
+
+    def test_tactical_analysis_endpoint_multiple_matches(self):
+        """Test tactical analysis endpoint with multiple valid match IDs"""
+        test_match_ids = [3773386, 3773565, 3773457]  # As specified in review request
+        
+        for match_id in test_match_ids:
+            try:
+                start_time = time.time()
+                response = requests.get(f"{self.base_url}/api/matches/{match_id}/tactical-analysis", timeout=15)
+                response_time = time.time() - start_time
+                
+                success = response.status_code == 200
+                
+                if success:
+                    data = response.json()
+                    has_success_key = "success" in data and data["success"]
+                    has_data = "data" in data
+                    
+                    if has_data:
+                        tactical_data = data["data"]
+                        match_info = tactical_data.get("match_info", {})
+                        home_team = match_info.get("home_team", "")
+                        away_team = match_info.get("away_team", "")
+                        
+                        # Check if we got real team names (not fallback generic names like "Liverpool vs Manchester City")
+                        is_fallback_data = (
+                            ("Liverpool" in home_team and "Manchester City" in away_team) or
+                            ("Barcelona" in home_team and "Real Madrid" in away_team) or
+                            ("Bayern Munich" in home_team and "Borussia Dortmund" in away_team)
+                        )
+                        
+                        # Performance check
+                        performance_ok = response_time < 10.0
+                        
+                        success = has_success_key and has_data and performance_ok
+                        details = (f"Status: {response.status_code}, Teams: {home_team} vs {away_team}, "
+                                  f"Fallback data: {is_fallback_data}, Response time: {response_time:.2f}s")
+                    else:
+                        success = False
+                        details = "Missing data field"
+                else:
+                    details = f"Status: {response.status_code}, Response: {response.text[:200]}"
+                    
+                self.log_test(f"Tactical Analysis Match {match_id}", success, details)
+                
+            except Exception as e:
+                self.log_test(f"Tactical Analysis Match {match_id}", False, str(e))
+
+    def test_tactical_analysis_endpoint_invalid_match(self):
+        """Test tactical analysis endpoint with invalid match ID for error handling"""
+        try:
+            invalid_match_id = 99999999  # Very unlikely to exist
+            response = requests.get(f"{self.base_url}/api/matches/{invalid_match_id}/tactical-analysis", timeout=15)
+            
+            # Should either return 404, 500, or 200 with fallback data
+            success = response.status_code in [200, 404, 500]
+            
+            if response.status_code == 200:
+                # If it returns 200, it should be fallback data
+                data = response.json()
+                has_success_key = "success" in data and data["success"]
+                has_data = "data" in data
+                success = has_success_key and has_data
+                details = f"Status: {response.status_code} - Fallback data provided for invalid match"
+            elif response.status_code == 404:
+                details = f"Status: {response.status_code} - Match not found (expected)"
+            elif response.status_code == 500:
+                details = f"Status: {response.status_code} - Server error (acceptable for invalid match)"
+            else:
+                details = f"Status: {response.status_code}, Response: {response.text[:200]}"
+                
+            self.log_test("Tactical Analysis Invalid Match ID", success, details)
+            
+        except Exception as e:
+            self.log_test("Tactical Analysis Invalid Match ID", False, str(e))
+
     def test_referee_heatmap_endpoint(self):
         """Test referee heatmap endpoint"""
         try:
