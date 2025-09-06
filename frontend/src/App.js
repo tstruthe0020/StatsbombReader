@@ -14,6 +14,7 @@ import {
   Calendar, Trophy, Play
 } from 'lucide-react';
 import MatchViewer from './components/MatchViewer';
+import TacticalAnalysis from './components/TacticalAnalysis';
 import './App.css';
 
 function App() {
