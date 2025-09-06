@@ -596,7 +596,7 @@ const MainDashboard = () => {
                       <span className="font-medium text-sm">{refereeName}</span>
                       <div className="flex gap-1">
                         <Badge variant="secondary" className="text-xs">
-                          {selectedMatches.filter(m => (m.referee || 'Unknown Referee') === refereeName).length} matches
+                          {selectedMatches.filter(m => (m.referee?.name || m.referee || 'Unknown Referee') === refereeName).length} matches
                         </Badge>
                         <Button size="sm" variant="outline" className="text-xs h-6">
                           Analyze Bias
