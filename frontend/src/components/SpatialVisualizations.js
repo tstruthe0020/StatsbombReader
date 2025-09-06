@@ -136,7 +136,7 @@ export const FormationBiasVisualization = ({ formationData }) => {
         <h4 className="font-semibold text-blue-800 mb-2">📖 How to Read Formation Bias Analysis</h4>
         <div className="text-sm text-blue-700 space-y-2">
           <p><strong>Player Colors:</strong> Each dot represents a player position, colored by referee bias toward this formation.</p>
-          <p><strong>Bias Score:</strong> 0.0-1.0 scale where 0.5 = neutral, >0.6 = favorable treatment, <0.4 = unfavorable treatment.</p>
+          <p><strong>Bias Score:</strong> 0.0-1.0 scale where 0.5 = neutral, &gt;0.6 = favorable treatment, &lt;0.4 = unfavorable treatment.</p>
           <p><strong>Formation Type:</strong> Defensive (5-4-1), Attacking (4-3-3), or Balanced (4-4-2) tactical approach.</p>
           <p><strong>Interpretation:</strong> Green formations get more favorable calls, red formations face stricter officiating.</p>
         </div>
