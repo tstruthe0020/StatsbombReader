@@ -769,6 +769,10 @@ class SoccerAnalyticsAPITester:
                         self.test_match_fouls_endpoint(match_id)
                         self.test_referee_decisions_endpoint(match_id)
                         self.test_match_summary_endpoint(match_id)
+                        
+                        # Test advanced analytics with real match data
+                        print(f"🧠 Testing advanced analytics with match {match_id}...")
+                        self.test_advanced_analytics_team_match_features(match_id)
                     else:
                         print("⚠️  No valid match ID found in match data")
                 else:
