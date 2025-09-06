@@ -1991,6 +1991,25 @@ async def get_referee_slopes(feature: str):
     
     # If full models aren't fitted yet, provide sample/demo data
     if not zone_modeler.fitted_models:
+        # Return demo data to show system capabilities
+        demo_data = {
+            "total_slopes": 12,
+            "significant_slopes": 3,
+            "average_slope": 0.045,
+            "slope_range": [-0.12, 0.18],
+            "unique_referees": 8,
+            "unique_zones": 15
+        }
+        
+        return {
+            "success": True,
+            "data": {
+                "feature": feature,
+                "summary": demo_data,
+                "note": "Demo data - full models need to be fitted for real analysis",
+                "status": "models_not_fitted"
+            }
+        }
     
     try:
         slopes_df = zone_modeler.extract_referee_slopes(feature)
