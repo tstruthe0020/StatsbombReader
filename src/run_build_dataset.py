@@ -374,6 +374,94 @@ class TeamMatchDatasetBuilder:
         
         return df
     
+    def _create_season_aggregations(self, match_df: pd.DataFrame) -> pd.DataFrame:
+        """Create season-level aggregations from match-level data."""
+        
+        # Group by team, competition, and season
+        group_cols = ['team', 'competition_id', 'season_id']
+        
+        # Define aggregation functions for different feature types
+        agg_functions = {
+            # Basic info (first values)
+            'referee_name': 'first',  # We'll handle referee diversity separately
+            
+            # Playstyle features (means)
+            'ppda': 'mean',
+            'directness': 'mean', 
+            'possession_share': 'mean',
+            'block_height_x': 'mean',
+            'wing_share': 'mean',
+            'avg_pass_length': 'mean',
+            'passes_per_possession': 'mean',
+            'counter_rate': 'mean',
+            'long_pass_share': 'mean',
+            'forward_pass_share': 'mean',
+            'cross_share': 'mean',
+            'through_ball_share': 'mean',
+            'xg_mean': 'mean',
+            'passes_to_shot': 'mean',
+            
+            # Third and channel shares (means)
+            'def_share_def_third': 'mean',
+            'def_share_mid_third': 'mean', 
+            'def_share_att_third': 'mean',
+            'lane_left_share': 'mean',
+            'lane_center_share': 'mean',
+            'lane_right_share': 'mean',
+            
+            # Discipline features (sums and means)
+            'fouls_committed': 'sum',
+            'yellows': 'sum',
+            'reds': 'sum',
+            'second_yellows': 'sum',
+            'fouls_per_opp_pass': 'mean',
+            'located_fouls': 'sum',
+            'missing_location_fouls': 'sum',
+            
+            # Foul spatial shares (means)
+            'foul_share_def_third': 'mean',
+            'foul_share_mid_third': 'mean',
+            'foul_share_att_third': 'mean',
+            'foul_share_left': 'mean',
+            'foul_share_center': 'mean',
+            'foul_share_right': 'mean',
+            'foul_share_wide': 'mean',
+            
+            # Exposure metrics (sums)
+            'opp_passes': 'sum',
+            'minutes_played': 'sum',
+            
+            # Counts for context
+            'match_id': 'count'  # Number of matches
+        }
+        
+        # Add zone-specific foul counts (sums)
+        for x in range(5):  # Assuming 5x3 grid from discipline analyzer
+            for y in range(3):
+                zone_col = f'foul_grid_x{x}_y{y}'
+                if zone_col in match_df.columns:
+                    agg_functions[zone_col] = 'sum'
+        
+        # Perform aggregation
+        season_agg = match_df.groupby(group_cols).agg(agg_functions).reset_index()
+        
+        # Rename match count column
+        season_agg = season_agg.rename(columns={'match_id': 'matches_played'})
+        
+        # Recalculate log offsets for season totals
+        season_agg['log_opp_passes'] = np.log(np.maximum(season_agg['opp_passes'], 1))
+        season_agg['log_minutes'] = np.log(np.maximum(season_agg['minutes_played'], 1))
+        
+        # Add referee diversity metrics
+        referee_diversity = match_df.groupby(group_cols)['referee_name'].agg(['nunique', 'count']).reset_index()
+        referee_diversity.columns = group_cols + ['unique_referees', 'total_referee_encounters']
+        
+        season_agg = season_agg.merge(referee_diversity, on=group_cols, how='left')
+        
+        logger.info(f"Created season aggregations: {len(season_agg)} team-seasons from {len(match_df)} team-matches")
+        
+        return season_agg
+    
     def _save_dataset_summary(self, df: pd.DataFrame, output_file: Path):
         """Save dataset summary statistics."""
         summary_file = output_file.parent / f"{output_file.stem}_summary.txt"
