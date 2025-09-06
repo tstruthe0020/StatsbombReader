@@ -525,12 +525,49 @@ export const PressureAnalysisVisualization = ({ pressureData }) => {
   };
 
   return (
-    <div className="grid grid-cols-1 md:grid-cols-3 gap-4">
-      {Object.entries(pressureData.sample_incidents).map(([pressureType, incidents]) => (
-        <Card key={pressureType} className="p-3">
-          {renderPressureSituations(incidents, pressureType)}
-        </Card>
-      ))}
+    <div className="space-y-4">
+      {/* Reading Instructions */}
+      <div className="bg-blue-50 p-4 rounded-lg border border-blue-200">
+        <h4 className="font-semibold text-blue-800 mb-2">📖 How to Read Pressure Situation Maps</h4>
+        <div className="text-sm text-blue-700 space-y-2">
+          <p><strong>Three Separate Fields:</strong> Each mini-field shows incidents from different pressure categories.</p>
+          <p><strong>Circle Size:</strong> Larger circles = more players within 15-meter radius of the foul.</p>
+          <p><strong>Numbers in Circles:</strong> Exact count of nearby players during the incident.</p>
+          <p><strong>Color Coding:</strong> Red (high pressure 6+ players), Orange (medium 3-6), Green (low 1-2).</p>
+          <p><strong>Field Position:</strong> Notice how pressure patterns vary by field location (penalty area vs midfield).</p>
+          <p><strong>Pattern Analysis:</strong> Compare density and distribution across the three pressure levels.</p>
+        </div>
+      </div>
+
+      {/* Pressure Categories Guide */}
+      <div className="grid grid-cols-3 gap-4 p-4 bg-gray-50 rounded-lg">
+        <div className="text-center">
+          <div className="w-8 h-8 bg-red-500 rounded-full mx-auto mb-2"></div>
+          <div className="text-sm font-medium">High Pressure</div>
+          <div className="text-xs text-gray-600">6+ players within 15m</div>
+          <div className="text-xs text-gray-600">Usually in penalty areas</div>
+        </div>
+        <div className="text-center">
+          <div className="w-8 h-8 bg-orange-500 rounded-full mx-auto mb-2"></div>
+          <div className="text-sm font-medium">Medium Pressure</div>
+          <div className="text-xs text-gray-600">3-6 players within 15m</div>
+          <div className="text-xs text-gray-600">Common in midfield</div>
+        </div>
+        <div className="text-center">
+          <div className="w-8 h-8 bg-green-500 rounded-full mx-auto mb-2"></div>
+          <div className="text-sm font-medium">Low Pressure</div>
+          <div className="text-xs text-gray-600">1-2 players within 15m</div>
+          <div className="text-xs text-gray-600">Isolated incidents</div>
+        </div>
+      </div>
+
+      <div className="grid grid-cols-1 md:grid-cols-3 gap-4">
+        {Object.entries(pressureData.sample_incidents).map(([pressureType, incidents]) => (
+          <Card key={pressureType} className="p-3">
+            {renderPressureSituations(incidents, pressureType)}
+          </Card>
+        ))}
+      </div>
     </div>
   );
 };
