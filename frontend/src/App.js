@@ -563,11 +563,7 @@ const MainDashboard = () => {
                   <Button 
                     size="sm" 
                     variant="outline"
-                    onClick={() => {
-                      // Select all matches
-                      setSelectedMatches([...matches]);
-                      console.log('Selected all matches:', matches.length);
-                    }}
+                    onClick={handleSelectAllMatches}
                     disabled={selectedMatches.length === matches.length}
                   >
                     Select All
@@ -575,11 +571,7 @@ const MainDashboard = () => {
                   <Button 
                     size="sm" 
                     variant="outline"
-                    onClick={() => {
-                      // Clear all selections
-                      setSelectedMatches([]);
-                      console.log('Cleared all match selections');
-                    }}
+                    onClick={handleClearAllMatches}
                     disabled={selectedMatches.length === 0}
                   >
                     Clear All
