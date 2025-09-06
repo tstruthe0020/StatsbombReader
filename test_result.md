@@ -175,8 +175,9 @@ task_completion_summary: "Successfully integrated comprehensive Referee-Playstyl
 
 test_plan:
   current_focus:
-    - "Referee-Playstyle Analysis Tab Integration"
-  stuck_tasks: []
+    - "Referee-Discipline Analysis Tab Integration"
+  stuck_tasks:
+    - "Referee-Discipline Analysis Tab Integration"
   test_all: false
   test_priority: "high_first"
 
