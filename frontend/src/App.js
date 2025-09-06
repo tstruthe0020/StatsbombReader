@@ -260,43 +260,29 @@ function App() {
     <Router>
       <div className="min-h-screen bg-gradient-to-br from-green-50 via-white to-blue-50">
         <Routes>
-          {/* Referee Discipline Analysis Routes (if enabled) */}
-          {isRefDisciplineEnabled() && (
+          {/* Referee Discipline Analysis Routes (if enabled) - temporarily disabled */}
+          {false && (
             <>
               <Route path="/analysis/ref-discipline" element={
-                <Suspense fallback={<div className="flex items-center justify-center min-h-screen"><div className="text-gray-500">Loading...</div></div>}>
-                  <OverviewPage />
-                </Suspense>
+                <div>Mock Overview Page</div>
               } />
               <Route path="/analysis/ref-discipline/teams" element={
-                <Suspense fallback={<div className="flex items-center justify-center min-h-screen"><div className="text-gray-500">Loading...</div></div>}>
-                  <TeamsPage />
-                </Suspense>
+                <div>Mock Teams Page</div>
               } />
               <Route path="/analysis/ref-discipline/teams/:teamId" element={
-                <Suspense fallback={<div className="flex items-center justify-center min-h-screen"><div className="text-gray-500">Loading...</div></div>}>
-                  <TeamDetailPage />
-                </Suspense>
+                <div>Mock Team Detail Page</div>
               } />
               <Route path="/analysis/ref-discipline/referees" element={
-                <Suspense fallback={<div className="flex items-center justify-center min-h-screen"><div className="text-gray-500">Loading...</div></div>}>
-                  <RefereesPage />
-                </Suspense>
+                <div>Mock Referees Page</div>
               } />
               <Route path="/analysis/ref-discipline/referees/:refId" element={
-                <Suspense fallback={<div className="flex items-center justify-center min-h-screen"><div className="text-gray-500">Loading...</div></div>}>
-                  <RefDetailPage />
-                </Suspense>
+                <div>Mock Ref Detail Page</div>
               } />
               <Route path="/analysis/ref-discipline/lab" element={
-                <Suspense fallback={<div className="flex items-center justify-center min-h-screen"><div className="text-gray-500">Loading...</div></div>}>
-                  <LabPage />
-                </Suspense>
+                <div>Mock Lab Page</div>
               } />
               <Route path="/analysis/ref-discipline/reports" element={
-                <Suspense fallback={<div className="flex items-center justify-center min-h-screen"><div className="text-gray-500">Loading...</div></div>}>
-                  <ReportsPage />
-                </Suspense>
+                <div>Mock Reports Page</div>
               } />
             </>
           )}
