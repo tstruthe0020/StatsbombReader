@@ -654,8 +654,14 @@ const MainDashboard = () => {
                         <Badge variant="secondary" className="text-xs">
                           {selectedMatches.filter(m => (m.referee?.name || m.referee || 'Unknown Referee') === refereeName).length} matches
                         </Badge>
-                        <Button size="sm" variant="outline" className="text-xs h-6">
-                          Analyze Bias
+                        <Button 
+                          size="sm" 
+                          variant="outline" 
+                          className="text-xs h-6"
+                          onClick={() => handleRefereeAnalysis(refereeName)}
+                          disabled={analyticsLoading}
+                        >
+                          {analyticsLoading ? "..." : "Analyze Bias"}
                         </Button>
                       </div>
                     </div>
