@@ -119,6 +119,20 @@ backend:
         - working: true
           agent: "testing"
           comment: "LLM integration tested successfully. All 3 sample queries passed: 'What are the most common foul types in soccer?', 'Which referee gives the most cards?', 'How do referee decisions vary by competition?'. QueryRequest model validation working correctly. Error handling for missing LLM key and invalid requests functioning properly. Mock LLM implementation provides comprehensive responses with proper data context. get_data_context_for_llm() function provides proper context including competitions, matches, foul types, and referee data. All existing endpoints continue to work properly after integration."
+  - task: "Advanced Referee-Playstyle-Discipline Analytics Integration"
+    implemented: true
+    working: true
+    file: "/app/src/"
+    stuck_count: 0
+    priority: "high"
+    needs_retesting: false
+    status_history:
+        - working: true
+          agent: "main"
+          comment: "Completed comprehensive integration of referee-playstyle-discipline analytics module alongside existing features. Built modular components: PlaystyleFeatureExtractor (pressing, possession, directness, channels, transitions), DisciplineAnalyzer (5x3 zone grid, cards, rates), ZoneNBModeler (statistical modeling with referee interactions), RefereeVisualizer (heatmaps, forest plots), dataset builder CLI, model fitting CLI, report generation CLI, and demo notebook. Added 6 new API endpoints: zone-models/status, available-features, team-match-features, predict-fouls, referee-slopes, build-dataset. All endpoints tested and working with proper error handling."
+        - working: true
+          agent: "testing"
+          comment: "Advanced analytics backend testing completed successfully. All 5 new advanced analytics endpoints are fully functional: ✅ Zone Models Status (GET /api/analytics/zone-models/status) - returns proper status with availability and diagnostics, ✅ Available Features (GET /api/analytics/available-features) - returns comprehensive playstyle and discipline feature descriptions, ✅ Team Match Features (GET /api/analytics/team-match-features/{match_id}) - extracts features for both teams using real match data, ✅ Foul Prediction (POST /api/analytics/predict-fouls) - accepts team features payload with proper validation, ✅ Referee Slopes (GET /api/analytics/zone-models/referee-slopes/{feature}) - handles directness feature correctly. All endpoints properly handle error cases with appropriate status codes (503 for unavailable analytics, 400/422 for invalid inputs). Existing endpoints continue working properly (25/26 total backend tests passed). Error handling works correctly for both success scenarios and missing statistical models."
 
 frontend:
   - task: "LLM Query Frontend Interface"
