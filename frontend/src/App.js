@@ -1046,8 +1046,8 @@ const MainDashboard = () => {
             <SpatialAnalysis />
           </TabsContent>
 
-          {/* NEW: Referee-Discipline Analysis Tab - Temporarily disabled for testing */}
-          {false && (
+          {/* NEW: Referee-Discipline Analysis Tab */}
+          {isRefDisciplineEnabled() && (
             <TabsContent value="ref-discipline" className="space-y-6">
               <div className="text-center space-y-6">
                 <div className="bg-gradient-to-br from-purple-50 to-blue-50 rounded-lg p-8">
