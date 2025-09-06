@@ -1,8 +1,8 @@
-import React from 'react';
+import React, { useState, useEffect } from 'react';
 import { Card, CardContent, CardHeader, CardTitle } from './ui/card';
 import { Badge } from './ui/badge';
 import { Button } from './ui/button';
-import { Brain, TrendingUp, Target, Activity, Zap, Settings } from 'lucide-react';
+import { Brain, TrendingUp, Target, Activity, Zap, Settings, Shield, ArrowUp, ArrowRight } from 'lucide-react';
 
 const TacticalProfile = ({ homeTeam, awayTeam, matchId }) => {
   return (
