@@ -117,21 +117,21 @@ const LineupViewer = ({ formations }) => {
           </Badge>
         </div>
 
-        <div className="relative bg-green-400 rounded-lg" style={{ aspectRatio: '3/4', height: '400px' }}>
+        <div className="relative bg-green-400 rounded-lg" style={{ aspectRatio: '3/4', height: '500px' }}>
           {/* Field markings */}
           <div className="absolute inset-0">
             {/* Center line */}
             <div className="absolute left-0 right-0 top-1/2 h-0.5 bg-white transform -translate-y-0.5"></div>
             {/* Center circle */}
-            <div className="absolute left-1/2 top-1/2 w-16 h-16 border-2 border-white rounded-full transform -translate-x-1/2 -translate-y-1/2"></div>
+            <div className="absolute left-1/2 top-1/2 w-20 h-20 border-2 border-white rounded-full transform -translate-x-1/2 -translate-y-1/2"></div>
             
             {/* Goal areas */}
-            <div className="absolute left-1/2 bottom-0 w-16 h-6 border-2 border-white border-b-0 transform -translate-x-1/2"></div>
-            <div className="absolute left-1/2 top-0 w-16 h-6 border-2 border-white border-t-0 transform -translate-x-1/2"></div>
+            <div className="absolute left-1/2 bottom-0 w-20 h-8 border-2 border-white border-b-0 transform -translate-x-1/2"></div>
+            <div className="absolute left-1/2 top-0 w-20 h-8 border-2 border-white border-t-0 transform -translate-x-1/2"></div>
             
             {/* Penalty areas */}
-            <div className="absolute left-1/2 bottom-0 w-32 h-12 border-2 border-white border-b-0 transform -translate-x-1/2"></div>
-            <div className="absolute left-1/2 top-0 w-32 h-12 border-2 border-white border-t-0 transform -translate-x-1/2"></div>
+            <div className="absolute left-1/2 bottom-0 w-40 h-16 border-2 border-white border-b-0 transform -translate-x-1/2"></div>
+            <div className="absolute left-1/2 top-0 w-40 h-16 border-2 border-white border-t-0 transform -translate-x-1/2"></div>
           </div>
 
           {/* Players */}
@@ -145,16 +145,16 @@ const LineupViewer = ({ formations }) => {
                   top: `${player.y}%`
                 }}
               >
-                <div className={`w-8 h-8 rounded-full flex items-center justify-center text-xs font-bold text-white shadow-lg ${
+                <div className={`w-10 h-10 rounded-full flex items-center justify-center text-sm font-bold text-white shadow-lg ${
                   isHome ? 'bg-blue-600' : 'bg-red-600'
                 }`}>
                   {player.jersey || '?'}
                 </div>
-                <div className="absolute top-10 left-1/2 transform -translate-x-1/2 text-xs font-medium text-gray-800 bg-white/90 px-2 py-1 rounded whitespace-nowrap">
+                <div className="absolute top-12 left-1/2 transform -translate-x-1/2 text-xs font-medium text-gray-800 bg-white/95 px-2 py-1 rounded shadow-sm whitespace-nowrap max-w-24 truncate">
                   {player.player ? (
-                    player.player.length > 15 
+                    player.player.length > 12 
                       ? player.player.split(' ').slice(-1)[0] // Show last name if too long
-                      : player.player
+                      : player.player.split(' ').slice(0, 2).join(' ') // Show first two names
                   ) : 'Unknown'}
                 </div>
               </div>
