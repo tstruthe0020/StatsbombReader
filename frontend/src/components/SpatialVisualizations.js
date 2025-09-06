@@ -890,6 +890,40 @@ export const PressureAnalysisVisualization = ({ pressureData }) => {
         </div>
       </div>
 
+      {/* Pressure Scenario Navigation Menu */}
+      <Card>
+        <CardHeader>
+          <CardTitle className="flex items-center justify-between">
+            <span>Pressure Scenario Navigation</span>
+            <div className="flex gap-2">
+              <button
+                onClick={goToPrevScenario}
+                disabled={pressureScenarios.length === 0}
+                className="px-3 py-1 bg-blue-100 hover:bg-blue-200 disabled:bg-gray-100 disabled:text-gray-400 rounded-md text-sm"
+              >
+                ← Previous
+              </button>
+              <button
+                onClick={goToNextScenario}
+                disabled={pressureScenarios.length === 0}
+                className="px-3 py-1 bg-blue-100 hover:bg-blue-200 disabled:bg-gray-100 disabled:text-gray-400 rounded-md text-sm"
+              >
+                Next →
+              </button>
+            </div>
+          </CardTitle>
+        </CardHeader>
+        <CardContent>
+          <div className="text-sm text-gray-600">
+            {pressureScenarios.length > 0 ? (
+              <>Scenario {currentScenarioIndex + 1} of {pressureScenarios.length} pressure events</>
+            ) : (
+              <>No pressure scenarios available (select players to view their events)</>
+            )}
+          </div>
+        </CardContent>
+      </Card>
+
       {/* Player Filter Controls */}
       <Card>
         <CardHeader>
