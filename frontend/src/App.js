@@ -753,48 +753,164 @@ const MainDashboard = () => {
         {/* Analysis Results */}
         {selectedMatches.length > 0 && (
           <div className="grid grid-cols-1 lg:grid-cols-2 gap-6">
-            {/* Match Features */}
+            {/* Tactical Match Analysis */}
             <Card>
               <CardHeader>
                 <CardTitle className="flex items-center gap-2">
                   <BarChart3 className="w-5 h-5" />
-                  Match Features Analysis
+                  Tactical Match Analysis
                 </CardTitle>
                 <CardDescription>
-                  Playstyle and discipline features for {selectedMatches.length} selected matches
+                  Click matches to view lineups, formations, and tactical details ({selectedMatches.length} selected)
                 </CardDescription>
               </CardHeader>
               <CardContent>
                 <div className="space-y-4 max-h-96 overflow-y-auto">
                   {selectedMatches.map((match) => {
-                    const features = matchFeatures[match.match_id];
+                    const tactical = tacticalData[match.match_id];
+                    const isExpanded = expandedMatch === match.match_id;
+                    
                     return (
-                      <div key={match.match_id} className="border rounded-lg p-3">
-                        <h4 className="font-semibold text-sm mb-2">
-                          {match.home_team?.name || match.home_team?.home_team_name} vs {match.away_team?.name || match.away_team?.away_team_name}
-                        </h4>
-                        {features ? (
-                          <div className="grid grid-cols-2 gap-2 text-xs">
-                            <div>Teams: {features.teams_analyzed || 0}</div>
-                            <div>Features: {Object.keys(features.team_features || {}).length}</div>
-                            <div className="col-span-2">
-                              <Badge className="text-xs bg-blue-500">Match {match.match_id}</Badge>
-                              {match.referee && (
-                                <Badge className="text-xs bg-green-500 ml-1">Ref: {match.referee?.name || match.referee}</Badge>
+                      <div key={match.match_id} className="border rounded-lg">
+                        {/* Match Header - Always Visible */}
+                        <div 
+                          className="p-3 cursor-pointer hover:bg-gray-50 transition-colors"
+                          onClick={() => handleMatchExpand(match.match_id)}
+                        >
+                          <div className="flex items-center justify-between">
+                            <div>
+                              <h4 className="font-semibold text-sm mb-1">
+                                {match.home_team?.name || match.home_team?.home_team_name || 'Home'} vs{' '}
+                                {match.away_team?.name || match.away_team?.away_team_name || 'Away'}
+                              </h4>
+                              <div className="flex gap-1">
+                                <Badge className="text-xs bg-blue-500">ID: {match.match_id}</Badge>
+                                {match.referee && (
+                                  <Badge className="text-xs bg-green-500">Ref: {match.referee?.name || match.referee}</Badge>
+                                )}
+                                {match.match_date && (
+                                  <Badge className="text-xs bg-gray-500">{match.match_date}</Badge>
+                                )}
+                              </div>
+                            </div>
+                            <div className="flex items-center gap-2">
+                              {tactical ? (
+                                <Badge className="text-xs bg-purple-500">✓ Loaded</Badge>
+                              ) : (
+                                <Button 
+                                  size="sm" 
+                                  variant="outline" 
+                                  onClick={(e) => {
+                                    e.stopPropagation();
+                                    fetchTacticalData(match.match_id);
+                                  }}
+                                  className="text-xs"
+                                >
+                                  Load Tactical Data
+                                </Button>
                               )}
+                              <div className="text-gray-400">
+                                {isExpanded ? '▼' : '▶'}
+                              </div>
                             </div>
                           </div>
-                        ) : (
-                          <div className="text-gray-500 text-sm">
-                            <div className="flex justify-center">
-                              <Button 
-                                size="sm" 
-                                variant="outline" 
-                                onClick={() => fetchMatchFeatures(match.match_id)}
-                                className="text-xs"
-                              >
-                                Load Features
-                              </Button>
+                        </div>
+
+                        {/* Expanded Tactical Details */}
+                        {isExpanded && tactical && (
+                          <div className="border-t bg-gray-50 p-4">
+                            <div className="space-y-4">
+                              {/* Match Info */}
+                              <div className="grid grid-cols-2 gap-4 text-sm">
+                                <div>
+                                  <h5 className="font-semibold text-blue-600 mb-2">Match Information</h5>
+                                  <div className="space-y-1">
+                                    <div>📅 {tactical.match_info?.date}</div>
+                                    <div>🏟️ {tactical.match_info?.venue}</div>
+                                    <div>👨‍⚖️ {tactical.match_info?.referee}</div>
+                                  </div>
+                                </div>
+                                <div>
+                                  <h5 className="font-semibold text-green-600 mb-2">Formations</h5>
+                                  <div className="space-y-1">
+                                    <div>🏠 {tactical.match_info?.home_team}: {tactical.formations?.home_team?.formation}</div>
+                                    <div>✈️ {tactical.match_info?.away_team}: {tactical.formations?.away_team?.formation}</div>
+                                  </div>
+                                </div>
+                              </div>
+
+                              {/* Tactical Metrics */}
+                              <div>
+                                <h5 className="font-semibold text-purple-600 mb-2">Key Statistics</h5>
+                                <div className="grid grid-cols-2 gap-4">
+                                  <div className="bg-white rounded p-3">
+                                    <div className="font-medium text-sm mb-2">🏠 {tactical.match_info?.home_team}</div>
+                                    <div className="grid grid-cols-2 gap-2 text-xs">
+                                      <div>Possession: {tactical.tactical_metrics?.home_team?.possession}%</div>
+                                      <div>Passes: {tactical.tactical_metrics?.home_team?.passes}</div>
+                                      <div>Shots: {tactical.tactical_metrics?.home_team?.shots}</div>
+                                      <div>Fouls: {tactical.tactical_metrics?.home_team?.fouls_committed}</div>
+                                    </div>
+                                  </div>
+                                  <div className="bg-white rounded p-3">
+                                    <div className="font-medium text-sm mb-2">✈️ {tactical.match_info?.away_team}</div>
+                                    <div className="grid grid-cols-2 gap-2 text-xs">
+                                      <div>Possession: {tactical.tactical_metrics?.away_team?.possession}%</div>
+                                      <div>Passes: {tactical.tactical_metrics?.away_team?.passes}</div>
+                                      <div>Shots: {tactical.tactical_metrics?.away_team?.shots}</div>
+                                      <div>Fouls: {tactical.tactical_metrics?.away_team?.fouls_committed}</div>
+                                    </div>
+                                  </div>
+                                </div>
+                              </div>
+
+                              {/* Lineups */}
+                              <div>
+                                <h5 className="font-semibold text-orange-600 mb-2">Starting Lineups</h5>
+                                <div className="grid grid-cols-2 gap-4">
+                                  <div className="bg-white rounded p-3">
+                                    <div className="font-medium text-sm mb-2">🏠 {tactical.formations?.home_team?.formation}</div>
+                                    <div className="space-y-1 text-xs max-h-32 overflow-y-auto">
+                                      {tactical.formations?.home_team?.formation_detail?.map((player, idx) => (
+                                        <div key={idx} className="flex justify-between">
+                                          <span>{player.jersey} {player.player}</span>
+                                          <span className="text-gray-500">{player.position}</span>
+                                        </div>
+                                      ))}
+                                    </div>
+                                  </div>
+                                  <div className="bg-white rounded p-3">
+                                    <div className="font-medium text-sm mb-2">✈️ {tactical.formations?.away_team?.formation}</div>
+                                    <div className="space-y-1 text-xs max-h-32 overflow-y-auto">
+                                      {tactical.formations?.away_team?.formation_detail?.map((player, idx) => (
+                                        <div key={idx} className="flex justify-between">
+                                          <span>{player.jersey} {player.player}</span>
+                                          <span className="text-gray-500">{player.position}</span>
+                                        </div>
+                                      ))}
+                                    </div>
+                                  </div>
+                                </div>
+                              </div>
+
+                              {/* Key Events */}
+                              {tactical.key_events && tactical.key_events.length > 0 && (
+                                <div>
+                                  <h5 className="font-semibold text-red-600 mb-2">Key Match Events</h5>
+                                  <div className="space-y-1 text-xs max-h-24 overflow-y-auto bg-white rounded p-2">
+                                    {tactical.key_events.map((event, idx) => (
+                                      <div key={idx} className="flex items-center gap-2">
+                                        <Badge className="text-xs">{event.minute}'</Badge>
+                                        <span className="font-medium">{event.type}</span>
+                                        <span>{event.player}</span>
+                                        {event.description && (
+                                          <span className="text-gray-500">- {event.description}</span>
+                                        )}
+                                      </div>
+                                    ))}
+                                  </div>
+                                </div>
+                              )}
                             </div>
                           </div>
                         )}
