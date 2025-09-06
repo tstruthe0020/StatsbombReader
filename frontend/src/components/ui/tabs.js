@@ -36,8 +36,7 @@ const TabsTrigger = ({ value, children, className = '', tabsValue, onTabsValueCh
   );
 };
 
-const TabsContent = ({ value, children, className = '', ...props }) => {
-  const tabsValue = props.value;
+const TabsContent = ({ value, children, className = '', tabsValue, ...props }) => {
   const isActive = tabsValue === value;
   
   if (!isActive) return null;
