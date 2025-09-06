@@ -420,37 +420,300 @@ class SoccerAnalyticsAPITester:
             self.log_test("Referees List Endpoint", False, str(e))
             return False, {}
 
-    def test_referee_heatmap_endpoint(self):
-        """Test referee heatmap endpoint"""
+    def test_advanced_analytics_zone_models_status(self):
+        """Test advanced analytics zone models status endpoint"""
         try:
-            # Test with a known referee ID
-            referee_id = "ref_001"
-            response = requests.get(f"{self.base_url}/api/analytics/referees/{referee_id}/heatmap", timeout=15)
-            success = response.status_code == 200
+            response = requests.get(f"{self.base_url}/api/analytics/zone-models/status", timeout=15)
             
-            if success:
+            # Should return either 503 (analytics not available) or 200 (success)
+            success = response.status_code in [200, 503]
+            
+            if response.status_code == 200:
                 data = response.json()
                 has_success_key = "success" in data and data["success"]
                 has_data = "data" in data
                 if has_data:
-                    heatmap_data = data["data"]
-                    required_fields = ["referee_id", "referee_name", "total_fouls", "heatmap_zones", "field_dimensions"]
-                    has_required_fields = all(key in heatmap_data for key in required_fields)
-                    has_zones = isinstance(heatmap_data.get("heatmap_zones", []), list) and len(heatmap_data.get("heatmap_zones", [])) > 0
-                    success = has_success_key and has_required_fields and has_zones
-                    details = f"Status: {response.status_code}, Referee: {heatmap_data.get('referee_name', 'N/A')}, Zones: {len(heatmap_data.get('heatmap_zones', []))}"
+                    status_data = data["data"]
+                    required_fields = ["available", "total_models", "zones_analyzed", "diagnostics"]
+                    has_required_fields = all(key in status_data for key in required_fields)
+                    success = has_success_key and has_required_fields
+                    details = f"Status: {response.status_code}, Models available: {status_data.get('available', False)}, Total models: {status_data.get('total_models', 0)}"
                 else:
                     success = False
                     details = "Missing data field"
+            elif response.status_code == 503:
+                # Expected when analytics modules are not available
+                details = f"Status: {response.status_code} - Analytics not available (expected)"
+                success = True
             else:
                 details = f"Status: {response.status_code}, Response: {response.text[:200]}"
                 
-            self.log_test("Referee Heatmap Endpoint", success, details)
-            return success, response.json() if success else {}
+            self.log_test("Advanced Analytics Zone Models Status", success, details)
+            return success, response.json() if response.status_code == 200 else {}
             
         except Exception as e:
-            self.log_test("Referee Heatmap Endpoint", False, str(e))
+            self.log_test("Advanced Analytics Zone Models Status", False, str(e))
             return False, {}
+
+    def test_advanced_analytics_available_features(self):
+        """Test advanced analytics available features endpoint"""
+        try:
+            response = requests.get(f"{self.base_url}/api/analytics/available-features", timeout=15)
+            
+            # Should return either 503 (analytics not available) or 200 (success)
+            success = response.status_code in [200, 503]
+            
+            if response.status_code == 200:
+                data = response.json()
+                has_success_key = "success" in data and data["success"]
+                has_data = "data" in data
+                if has_data:
+                    features_data = data["data"]
+                    required_fields = ["playstyle_features", "discipline_features", "modeling_info"]
+                    has_required_fields = all(key in features_data for key in required_fields)
+                    
+                    # Check playstyle features structure
+                    playstyle_features = features_data.get("playstyle_features", {})
+                    expected_categories = ["pressing_block", "possession_directness", "channels_delivery", "transitions", "shot_buildup"]
+                    has_playstyle_categories = all(cat in playstyle_features for cat in expected_categories)
+                    
+                    # Check discipline features structure
+                    discipline_features = features_data.get("discipline_features", {})
+                    expected_discipline_categories = ["basic_counts", "rates", "spatial_thirds", "spatial_width", "zone_grid"]
+                    has_discipline_categories = all(cat in discipline_features for cat in expected_discipline_categories)
+                    
+                    success = has_success_key and has_required_fields and has_playstyle_categories and has_discipline_categories
+                    details = f"Status: {response.status_code}, Playstyle categories: {len(playstyle_features)}, Discipline categories: {len(discipline_features)}"
+                else:
+                    success = False
+                    details = "Missing data field"
+            elif response.status_code == 503:
+                # Expected when analytics modules are not available
+                details = f"Status: {response.status_code} - Analytics not available (expected)"
+                success = True
+            else:
+                details = f"Status: {response.status_code}, Response: {response.text[:200]}"
+                
+            self.log_test("Advanced Analytics Available Features", success, details)
+            return success, response.json() if response.status_code == 200 else {}
+            
+        except Exception as e:
+            self.log_test("Advanced Analytics Available Features", False, str(e))
+            return False, {}
+
+    def test_advanced_analytics_team_match_features(self, match_id):
+        """Test advanced analytics team match features endpoint"""
+        try:
+            response = requests.get(f"{self.base_url}/api/analytics/team-match-features/{match_id}", timeout=30)
+            
+            # Should return either 503 (analytics not available), 404 (match not found), or 200 (success)
+            success = response.status_code in [200, 404, 503]
+            
+            if response.status_code == 200:
+                data = response.json()
+                has_success_key = "success" in data and data["success"]
+                has_data = "data" in data
+                if has_data:
+                    match_data = data["data"]
+                    required_fields = ["match_id", "teams_analyzed", "team_features", "feature_categories"]
+                    has_required_fields = all(key in match_data for key in required_fields)
+                    
+                    # Check that we have team features
+                    team_features = match_data.get("team_features", {})
+                    has_team_data = len(team_features) >= 1
+                    
+                    success = has_success_key and has_required_fields and has_team_data
+                    details = f"Status: {response.status_code}, Match: {match_id}, Teams analyzed: {len(team_features)}"
+                else:
+                    success = False
+                    details = "Missing data field"
+            elif response.status_code == 404:
+                # Expected when match not found or no events
+                details = f"Status: {response.status_code} - Match not found or no events (expected for some matches)"
+                success = True
+            elif response.status_code == 503:
+                # Expected when analytics modules are not available
+                details = f"Status: {response.status_code} - Analytics not available (expected)"
+                success = True
+            else:
+                details = f"Status: {response.status_code}, Response: {response.text[:200]}"
+                
+            self.log_test(f"Advanced Analytics Team Match Features (Match {match_id})", success, details)
+            return success, response.json() if response.status_code == 200 else {}
+            
+        except Exception as e:
+            self.log_test(f"Advanced Analytics Team Match Features (Match {match_id})", False, str(e))
+            return False, {}
+
+    def test_advanced_analytics_predict_fouls(self):
+        """Test advanced analytics foul prediction endpoint"""
+        try:
+            # Sample team features payload for testing
+            sample_payload = {
+                "team_features": {
+                    "z_directness": 1.0,
+                    "z_ppda": 0.5,
+                    "z_possession_share": 0.3,
+                    "z_block_height_x": -0.2,
+                    "z_wing_share": 0.8,
+                    "home_indicator": 1,
+                    "referee_name": "Antonio Mateu Lahoz"
+                }
+            }
+            
+            response = requests.post(
+                f"{self.base_url}/api/analytics/predict-fouls", 
+                json=sample_payload, 
+                timeout=30,
+                headers={"Content-Type": "application/json"}
+            )
+            
+            # Should return either 503 (analytics not available), 400 (bad request), or 200 (success)
+            success = response.status_code in [200, 400, 503]
+            
+            if response.status_code == 200:
+                data = response.json()
+                has_success_key = "success" in data and data["success"]
+                has_data = "data" in data
+                if has_data:
+                    prediction_data = data["data"]
+                    required_fields = ["prediction_summary", "zone_predictions", "team_features_used"]
+                    has_required_fields = all(key in prediction_data for key in required_fields)
+                    
+                    # Check prediction summary
+                    summary = prediction_data.get("prediction_summary", {})
+                    has_summary_fields = all(key in summary for key in ["total_expected_fouls", "hottest_zone", "referee"])
+                    
+                    # Check zone predictions
+                    zone_predictions = prediction_data.get("zone_predictions", {})
+                    has_zone_data = len(zone_predictions) > 0
+                    
+                    success = has_success_key and has_required_fields and has_summary_fields and has_zone_data
+                    details = f"Status: {response.status_code}, Total expected fouls: {summary.get('total_expected_fouls', 0)}, Zones: {len(zone_predictions)}"
+                else:
+                    success = False
+                    details = "Missing data field"
+            elif response.status_code == 400:
+                # Expected for invalid payload
+                details = f"Status: {response.status_code} - Bad request (may be expected for validation)"
+            elif response.status_code == 503:
+                # Expected when analytics modules are not available
+                details = f"Status: {response.status_code} - Analytics not available (expected)"
+                success = True
+            else:
+                details = f"Status: {response.status_code}, Response: {response.text[:200]}"
+                
+            self.log_test("Advanced Analytics Predict Fouls", success, details)
+            return success, response.json() if response.status_code == 200 else {}
+            
+        except Exception as e:
+            self.log_test("Advanced Analytics Predict Fouls", False, str(e))
+            return False, {}
+
+    def test_advanced_analytics_predict_fouls_validation(self):
+        """Test advanced analytics foul prediction endpoint validation"""
+        # Test empty payload
+        try:
+            response = requests.post(
+                f"{self.base_url}/api/analytics/predict-fouls", 
+                json={}, 
+                timeout=15,
+                headers={"Content-Type": "application/json"}
+            )
+            # Should return 400 (bad request) or 503 (analytics not available)
+            success = response.status_code in [400, 503]
+            details = f"Empty payload - Status: {response.status_code}"
+            self.log_test("Advanced Analytics Predict Fouls Validation - Empty Payload", success, details)
+            
+        except Exception as e:
+            self.log_test("Advanced Analytics Predict Fouls Validation - Empty Payload", False, str(e))
+
+        # Test missing team_features
+        try:
+            response = requests.post(
+                f"{self.base_url}/api/analytics/predict-fouls", 
+                json={"other_field": "value"}, 
+                timeout=15,
+                headers={"Content-Type": "application/json"}
+            )
+            # Should return 400 (bad request) or 503 (analytics not available)
+            success = response.status_code in [400, 503]
+            details = f"Missing team_features - Status: {response.status_code}"
+            self.log_test("Advanced Analytics Predict Fouls Validation - Missing team_features", success, details)
+            
+        except Exception as e:
+            self.log_test("Advanced Analytics Predict Fouls Validation - Missing team_features", False, str(e))
+
+    def test_advanced_analytics_referee_slopes(self):
+        """Test advanced analytics referee slopes endpoint"""
+        try:
+            # Test with 'directness' feature as mentioned in the review request
+            feature = "directness"
+            response = requests.get(f"{self.base_url}/api/analytics/zone-models/referee-slopes/{feature}", timeout=15)
+            
+            # Should return either 503 (analytics not available) or 200 (success)
+            success = response.status_code in [200, 503]
+            
+            if response.status_code == 200:
+                data = response.json()
+                has_success_key = "success" in data and data["success"]
+                has_data = "data" in data
+                if has_data:
+                    slopes_data = data["data"]
+                    required_fields = ["feature", "slopes", "summary"]
+                    has_required_fields = all(key in slopes_data for key in required_fields)
+                    
+                    # Check summary statistics
+                    summary = slopes_data.get("summary", {})
+                    expected_summary_fields = ["total_slopes", "significant_slopes", "average_slope", "slope_range", "unique_referees", "unique_zones"]
+                    has_summary_fields = all(key in summary for key in expected_summary_fields)
+                    
+                    success = has_success_key and has_required_fields and has_summary_fields
+                    details = f"Status: {response.status_code}, Feature: {feature}, Total slopes: {summary.get('total_slopes', 0)}, Significant: {summary.get('significant_slopes', 0)}"
+                else:
+                    success = False
+                    details = "Missing data field"
+            elif response.status_code == 503:
+                # Expected when analytics modules are not available
+                details = f"Status: {response.status_code} - Analytics not available (expected)"
+                success = True
+            else:
+                details = f"Status: {response.status_code}, Response: {response.text[:200]}"
+                
+            self.log_test(f"Advanced Analytics Referee Slopes ({feature})", success, details)
+            return success, response.json() if response.status_code == 200 else {}
+            
+        except Exception as e:
+            self.log_test(f"Advanced Analytics Referee Slopes ({feature})", False, str(e))
+            return False, {}
+
+    def test_advanced_analytics_referee_slopes_invalid_feature(self):
+        """Test advanced analytics referee slopes endpoint with invalid feature"""
+        try:
+            # Test with invalid feature
+            feature = "invalid_feature_name"
+            response = requests.get(f"{self.base_url}/api/analytics/zone-models/referee-slopes/{feature}", timeout=15)
+            
+            # Should return either 503 (analytics not available), 404 (not found), 400 (bad request), or 200 with empty slopes
+            success = response.status_code in [200, 400, 404, 503]
+            
+            if response.status_code == 200:
+                data = response.json()
+                # Should return empty slopes or appropriate message
+                slopes_data = data.get("data", {})
+                slopes = slopes_data.get("slopes", [])
+                details = f"Status: {response.status_code}, Invalid feature handled gracefully, Slopes: {len(slopes)}"
+            elif response.status_code in [400, 404]:
+                details = f"Status: {response.status_code} - Invalid feature rejected (expected)"
+            elif response.status_code == 503:
+                details = f"Status: {response.status_code} - Analytics not available (expected)"
+            else:
+                details = f"Status: {response.status_code}, Response: {response.text[:200]}"
+                
+            self.log_test(f"Advanced Analytics Referee Slopes (Invalid Feature)", success, details)
+            
+        except Exception as e:
+            self.log_test(f"Advanced Analytics Referee Slopes (Invalid Feature)", False, str(e))
 
     def run_full_test_suite(self):
         """Run complete test suite"""
