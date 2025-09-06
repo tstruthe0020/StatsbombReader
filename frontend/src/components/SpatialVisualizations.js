@@ -976,8 +976,8 @@ export const PressureAnalysisVisualization = ({ pressureData }) => {
                   cy={event.playerY}
                   r={2 + event.intensity * 2}
                   fill={getPressureColor(event.intensity, 'away', event.outcome)}
-                  stroke={currentScenarioIndex === (idx + homeEvents.length) ? "#1f2937" : (event.outcome === 'Success' ? "rgba(239, 68, 68, 0.8)" : "rgba(239, 68, 68, 0.4)")}
-                  strokeWidth={currentScenarioIndex === (idx + homeEvents.length) ? "2" : "0.8"}
+                  stroke={event.outcome === 'Success' ? "rgba(239, 68, 68, 0.8)" : "rgba(239, 68, 68, 0.4)"}
+                  strokeWidth="0.8"
                   className="cursor-pointer"
                   onMouseEnter={() => setHoveredPlayer(event.player)}
                   onMouseLeave={() => setHoveredPlayer(null)}
