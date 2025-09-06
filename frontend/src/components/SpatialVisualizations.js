@@ -733,8 +733,7 @@ export const PressureAnalysisVisualization = ({ pressureData }) => {
   if (!pressureData) return null;
 
   const [selectedPlayers, setSelectedPlayers] = React.useState(new Set());
-  const [showTooltip, setShowTooltip] = React.useState(null);
-  const [tooltipPosition, setTooltipPosition] = React.useState({ x: 0, y: 0 });
+  const [selectedEvent, setSelectedEvent] = React.useState(null);
 
   // Generate pressure events from match event data (simulated)
   const generatePressureEventsFromEventData = () => {
@@ -753,6 +752,7 @@ export const PressureAnalysisVisualization = ({ pressureData }) => {
       const player = homePlayerNames[Math.floor(Math.random() * homePlayerNames.length)];
       
       homeEvents.push({
+        id: `home-${i}`,
         x: Math.random() * 50 + 10, // More on defensive side
         y: Math.random() * 60 + 10,
         minute,
@@ -770,6 +770,7 @@ export const PressureAnalysisVisualization = ({ pressureData }) => {
       const player = awayPlayerNames[Math.floor(Math.random() * awayPlayerNames.length)];
       
       awayEvents.push({
+        id: `away-${i}`,
         x: Math.random() * 50 + 60, // More on attacking side
         y: Math.random() * 60 + 10,
         minute,
@@ -810,14 +811,12 @@ export const PressureAnalysisVisualization = ({ pressureData }) => {
     }
   };
 
-  const handleMouseEnter = (event, index, mouseEvent) => {
-    const rect = mouseEvent.currentTarget.getBoundingClientRect();
-    setTooltipPosition({ x: mouseEvent.clientX, y: mouseEvent.clientY });
-    setShowTooltip({ event, index });
+  const handleEventClick = (event, index) => {
+    setSelectedEvent({ event, index });
   };
 
-  const handleMouseLeave = () => {
-    setShowTooltip(null);
+  const handleEventClose = () => {
+    setSelectedEvent(null);
   };
 
   const getPressureColor = (intensity, teamType, success) => {
