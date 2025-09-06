@@ -2118,15 +2118,33 @@ async def extract_team_match_features(match_id: int):
         for i, team in enumerate(teams[:2]):  # Process first 2 teams
             opponent = teams[1-i] if i < 1 else teams[0]
             
+            # Convert events to DataFrame for feature extraction
+            team_events = [e for e in events if e.get('team', {}).get('name') == team]
+            team_events_df = pd.DataFrame(team_events)
+            
+            if team_events_df.empty:
+                continue
+            
+            # Add team_name column for compatibility
+            team_events_df['team_name'] = team
+            
             # Extract playstyle features
-            playstyle_features = feature_extractor.extract_team_match_features(
-                events_df, team, opponent
-            )
+            try:
+                playstyle_features = feature_extractor.extract_team_match_features(
+                    team_events_df, team, opponent
+                )
+            except Exception as e:
+                logger.warning(f"Could not extract playstyle features for {team}: {e}")
+                playstyle_features = {}
             
             # Extract discipline features  
-            discipline_features = discipline_analyzer.extract_team_match_discipline(
-                events_df, team, opponent
-            )
+            try:
+                discipline_features = discipline_analyzer.extract_team_match_discipline(
+                    team_events_df, team, opponent
+                )
+            except Exception as e:
+                logger.warning(f"Could not extract discipline features for {team}: {e}")
+                discipline_features = {}
             
             # Combine features
             combined_features = {
