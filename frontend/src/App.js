@@ -703,11 +703,14 @@ const MainDashboard = () => {
             </Select>
             
             <Button 
-              onClick={() => fetchRefereeSlopes(selectedFeature)}
+              onClick={() => {
+                setCurrentAnalysis('referee-effects');
+                fetchRefereeSlopes(selectedFeature);
+              }}
               disabled={analyticsLoading}
               className="w-full mt-3"
             >
-              {analyticsLoading ? "Loading..." : "Analyze Referee Effects"}
+              {analyticsLoading && currentAnalysis === 'referee-effects' ? "Analyzing Referee Effects..." : "Analyze Referee Effects"}
             </Button>
           </CardContent>
         </Card>
