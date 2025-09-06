@@ -9,7 +9,7 @@ import { Tabs, TabsContent, TabsList, TabsTrigger } from './components/ui/tabs';
 import { Alert, AlertDescription } from './components/ui/alert';
 import { Progress } from './components/ui/progress';
 import { Separator } from './components/ui/separator';
-import { Activity, TrendingUp, Users, AlertTriangle, BarChart3, Target, Clock, MapPin, Zap, Brain, MessageCircle, Layers, Calculator } from 'lucide-react';
+import { Activity, TrendingUp, Users, AlertTriangle, BarChart3, Target, Clock, MapPin, Zap, Brain, MessageCircle, Layers } from 'lucide-react';
 import RefereeHeatmap from './components/RefereeHeatmap';
 import SpatialAnalysis from './components/SpatialAnalysis';
 import RefereePlaystyleAnalysis from './components/RefereePlaystyleAnalysis';
