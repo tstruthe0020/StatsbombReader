@@ -297,6 +297,10 @@ const MainDashboard = () => {
   const RefereeAnalyticsPanel = ({ competitions, matches, selectedCompetition, onCompetitionSelect, API_BASE_URL }) => {
     const [analyticsStatus, setAnalyticsStatus] = useState(null);
     const [analyticsLoading, setAnalyticsLoading] = useState(false);
+    const [selectedMatches, setSelectedMatches] = useState([]);
+    const [matchFeatures, setMatchFeatures] = useState({});
+    const [selectedFeature, setSelectedFeature] = useState('cards_per_match');
+    const [refereeSlopes, setRefereeSlopes] = useState(null);
 
     // Load analytics status on component mount
     useEffect(() => {
