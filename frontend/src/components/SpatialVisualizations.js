@@ -836,9 +836,10 @@ export const PressureAnalysisVisualization = ({ pressureData }) => {
         <div className="text-sm text-blue-700 space-y-2">
           <p><strong>Blue Circles:</strong> Home team pressure events (tackles, interceptions, blocks) from event data.</p>
           <p><strong>Red Circles:</strong> Away team pressure events from event data.</p>
-          <p><strong>Interactive:</strong> Hover for event details, use player filter to focus on specific players.</p>
+          <p><strong>Interactive:</strong> Click on event circles for detailed information - no more glitchy hovering!</p>
           <p><strong>Circle Size & Opacity:</strong> Larger, more opaque circles = higher intensity successful events.</p>
           <p><strong>Event Letters:</strong> T=Tackle, I=Interception, P=Pressure, B=Block, C=Challenge.</p>
+          <p><strong>Stable Interface:</strong> Map remains stable while viewing event details.</p>
         </div>
       </div>
 
