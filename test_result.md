@@ -102,7 +102,7 @@
 # Testing Data - Main Agent and testing sub agent both should log testing data below this section
 #====================================================================================================
 
-user_problem_statement: "Complete the spatial analysis visualizations by adding comprehensive keys, legends, and reading instructions for each 360° analysis feature. Fix any crashes in the spatial context visualization."
+user_problem_statement: "Integrate a **Referee–Playstyle–Discipline** analytics module into an existing Python app that already ingests **StatsBomb Open Data** (events, matches, lineups). The goal is to quantify how team playstyles affect **disciplinary outcomes** (fouls, cards, foul location) **by referee**, with a spatial (zone) component."
 
 backend:
   - task: "LLM Integration Backend API"
