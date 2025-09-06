@@ -860,8 +860,16 @@ export const PressureAnalysisVisualization = ({ pressureData }) => {
               <>
                 Scenario {currentScenarioIndex + 1} of {allEvents.length} pressure events
                 {allEvents[currentScenarioIndex] && (
-                  <div className="mt-1 text-xs">
-                    Currently viewing: {allEvents[currentScenarioIndex].player} - {allEvents[currentScenarioIndex].eventType} ({allEvents[currentScenarioIndex].minute}')
+                  <div className="mt-2 p-2 bg-gray-50 rounded border">
+                    <div className="font-medium text-gray-800">
+                      Currently Viewing: {allEvents[currentScenarioIndex].player}
+                    </div>
+                    <div className="text-xs text-gray-600 mt-1">
+                      <span className="font-medium">{allEvents[currentScenarioIndex].type}</span> • 
+                      <span className="ml-1">{allEvents[currentScenarioIndex].minute}' • </span>
+                      <span className="ml-1">Outcome: {allEvents[currentScenarioIndex].outcome} • </span>
+                      <span className="ml-1">Team: {allEvents[currentScenarioIndex].team}</span>
+                    </div>
                   </div>
                 )}
               </>
