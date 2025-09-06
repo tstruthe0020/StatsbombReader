@@ -188,81 +188,119 @@ export const RefereePositioningVisualization = ({ positioningData }) => {
   if (!positioningData?.detailed_analysis) return null;
 
   return (
-    <Card>
-      <CardHeader>
-        <CardTitle>Referee Positioning Heatmap</CardTitle>
-      </CardHeader>
-      <CardContent>
-        <svg viewBox="0 0 120 80" className="w-full h-64 border rounded-lg bg-green-100">
-          {/* Soccer field */}
-          <defs>
-            <pattern id="grass" patternUnits="userSpaceOnUse" width="4" height="4">
-              <rect width="4" height="4" fill="#22c55e" />
-              <rect width="2" height="2" fill="#16a34a" opacity="0.5" />
-            </pattern>
-          </defs>
-          
-          <rect width="120" height="80" fill="url(#grass)" />
-          
-          {/* Field markings */}
-          <g stroke="white" strokeWidth="0.8" fill="none">
-            <rect x="0" y="0" width="120" height="80" />
-            <line x1="60" y1="0" x2="60" y2="80" />
-            <circle cx="60" cy="40" r="10" />
-            <rect x="0" y="22" width="18" height="36" />
-            <rect x="102" y="22" width="18" height="36" />
-            <rect x="0" y="30" width="6" height="20" />
-            <rect x="114" y="30" width="6" height="20" />
-          </g>
-          
-          {/* Positioning analysis */}
-          {positioningData.detailed_analysis?.slice(0, 10).map((incident, idx) => {
-            const foulX = incident.foul_location?.[0] || 60;
-            const foulY = incident.foul_location?.[1] || 40;
-            const refX = incident.estimated_referee_position?.[0] || 60;
-            const refY = incident.estimated_referee_position?.[1] || 40;
-            const optimalX = incident.optimal_position?.[0] || 60;
-            const optimalY = incident.optimal_position?.[1] || 40;
-            
-            return (
-              <g key={idx} opacity="0.7">
-                {/* Foul location */}
-                <circle cx={foulX} cy={foulY} r="1.5" fill="#ef4444" />
-                
-                {/* Referee position */}
-                <circle cx={refX} cy={refY} r="2" fill="#3b82f6" stroke="white" strokeWidth="0.5" />
-                
-                {/* Optimal position */}
-                <circle cx={optimalX} cy={optimalY} r="2" fill="#22c55e" stroke="white" strokeWidth="0.5" opacity="0.8" />
-                
-                {/* Line from referee to incident */}
-                <line x1={refX} y1={refY} x2={foulX} y2={foulY} stroke="#3b82f6" strokeWidth="0.5" opacity="0.6" />
-                
-                {/* Distance indicator */}
-                <text x={refX} y={refY - 3} textAnchor="middle" fontSize="2" fill="white" fontWeight="bold">
-                  {incident.distance_from_optimal?.toFixed(1)}m
-                </text>
-              </g>
-            );
-          })}
-        </svg>
-        
-        <div className="mt-4 grid grid-cols-3 gap-4 text-sm">
-          <div className="flex items-center gap-2">
-            <div className="w-3 h-3 bg-red-500 rounded-full"></div>
-            <span>Foul Location</span>
-          </div>
-          <div className="flex items-center gap-2">
-            <div className="w-3 h-3 bg-blue-500 rounded-full"></div>
-            <span>Actual Position</span>
-          </div>
-          <div className="flex items-center gap-2">
-            <div className="w-3 h-3 bg-green-500 rounded-full"></div>
-            <span>Optimal Position</span>
-          </div>
+    <div className="space-y-4">
+      {/* Reading Instructions */}
+      <div className="bg-blue-50 p-4 rounded-lg border border-blue-200">
+        <h4 className="font-semibold text-blue-800 mb-2">📖 How to Read Referee Positioning Analysis</h4>
+        <div className="text-sm text-blue-700 space-y-2">
+          <p><strong>Red Dots:</strong> Exact location where foul incidents occurred on the field.</p>
+          <p><strong>Blue Circles:</strong> Referee's estimated actual position during the incident.</p>
+          <p><strong>Green Circles:</strong> Calculated optimal position for best decision-making angle.</p>
+          <p><strong>Blue Lines:</strong> Sight lines from referee position to foul incident.</p>
+          <p><strong>Distance Numbers:</strong> Distance in meters between actual and optimal positioning.</p>
+          <p><strong>Interpretation:</strong> Shorter distances = better positioning. Longer sight lines may indicate obstructed views.</p>
         </div>
-      </CardContent>
-    </Card>
+      </div>
+
+      <Card>
+        <CardHeader>
+          <CardTitle>Referee Positioning Heatmap</CardTitle>
+        </CardHeader>
+        <CardContent>
+          <svg viewBox="0 0 120 80" className="w-full h-64 border rounded-lg bg-green-100">
+            {/* Soccer field */}
+            <defs>
+              <pattern id="grass" patternUnits="userSpaceOnUse" width="4" height="4">
+                <rect width="4" height="4" fill="#22c55e" />
+                <rect width="2" height="2" fill="#16a34a" opacity="0.5" />
+              </pattern>
+            </defs>
+            
+            <rect width="120" height="80" fill="url(#grass)" />
+            
+            {/* Field markings */}
+            <g stroke="white" strokeWidth="0.8" fill="none">
+              <rect x="0" y="0" width="120" height="80" />
+              <line x1="60" y1="0" x2="60" y2="80" />
+              <circle cx="60" cy="40" r="10" />
+              <rect x="0" y="22" width="18" height="36" />
+              <rect x="102" y="22" width="18" height="36" />
+              <rect x="0" y="30" width="6" height="20" />
+              <rect x="114" y="30" width="6" height="20" />
+            </g>
+            
+            {/* Positioning analysis */}
+            {positioningData.detailed_analysis?.slice(0, 10).map((incident, idx) => {
+              const foulX = incident.foul_location?.[0] || 60;
+              const foulY = incident.foul_location?.[1] || 40;
+              const refX = incident.estimated_referee_position?.[0] || 60;
+              const refY = incident.estimated_referee_position?.[1] || 40;
+              const optimalX = incident.optimal_position?.[0] || 60;
+              const optimalY = incident.optimal_position?.[1] || 40;
+              
+              return (
+                <g key={idx} opacity="0.7">
+                  {/* Foul location */}
+                  <circle cx={foulX} cy={foulY} r="1.5" fill="#ef4444" />
+                  
+                  {/* Referee position */}
+                  <circle cx={refX} cy={refY} r="2" fill="#3b82f6" stroke="white" strokeWidth="0.5" />
+                  
+                  {/* Optimal position */}
+                  <circle cx={optimalX} cy={optimalY} r="2" fill="#22c55e" stroke="white" strokeWidth="0.5" opacity="0.8" />
+                  
+                  {/* Line from referee to incident */}
+                  <line x1={refX} y1={refY} x2={foulX} y2={foulY} stroke="#3b82f6" strokeWidth="0.5" opacity="0.6" />
+                  
+                  {/* Distance indicator */}
+                  <text x={refX} y={refY - 3} textAnchor="middle" fontSize="2" fill="white" fontWeight="bold">
+                    {incident.distance_from_optimal?.toFixed(1)}m
+                  </text>
+                </g>
+              );
+            })}
+          </svg>
+          
+          <div className="mt-4 grid grid-cols-3 gap-4 text-sm">
+            <div className="flex items-center gap-2">
+              <div className="w-3 h-3 bg-red-500 rounded-full"></div>
+              <span>Foul Location</span>
+            </div>
+            <div className="flex items-center gap-2">
+              <div className="w-3 h-3 bg-blue-500 rounded-full"></div>
+              <span>Actual Position</span>
+            </div>
+            <div className="flex items-center gap-2">
+              <div className="w-3 h-3 bg-green-500 rounded-full"></div>
+              <span>Optimal Position</span>
+            </div>
+          </div>
+
+          {/* Performance Indicators */}
+          <div className="mt-4 p-3 bg-gray-50 rounded-lg">
+            <h4 className="font-semibold mb-2">Positioning Performance Guide:</h4>
+            <div className="grid grid-cols-2 md:grid-cols-4 gap-3 text-xs">
+              <div className="text-center">
+                <div className="font-medium text-green-600">Excellent</div>
+                <div>&lt;8m from optimal</div>
+              </div>
+              <div className="text-center">
+                <div className="font-medium text-yellow-600">Good</div>
+                <div>8-15m from optimal</div>
+              </div>
+              <div className="text-center">
+                <div className="font-medium text-orange-600">Fair</div>
+                <div>15-25m from optimal</div>
+              </div>
+              <div className="text-center">
+                <div className="font-medium text-red-600">Poor</div>
+                <div>&gt;25m from optimal</div>
+              </div>
+            </div>
+          </div>
+        </CardContent>
+      </Card>
+    </div>
   );
 };
 
