@@ -264,7 +264,7 @@ async def startup_event():
         
         github_api = Github(github_token)
         github_client = GitHubAPIClient(github_token)
-        statsbomb_loader = StatsBombLoader(github_api)
+        statsbomb_loader = StatsBombLoader(github_client)
         
         logger.info("✓ GitHub client and StatsBomb loader initialized successfully")
         
