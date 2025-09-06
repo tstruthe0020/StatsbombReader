@@ -847,6 +847,25 @@ export const PressureAnalysisVisualization = ({ pressureData }) => {
     setSelectedEvent(null);
   };
 
+  // Pressure scenario navigation
+  const pressureScenarios = allEvents.filter(event => selectedPlayers.has(event.player));
+  
+  const goToNextScenario = () => {
+    if (pressureScenarios.length > 0) {
+      const nextIndex = (currentScenarioIndex + 1) % pressureScenarios.length;
+      setCurrentScenarioIndex(nextIndex);
+      setSelectedEvent({ event: pressureScenarios[nextIndex], index: nextIndex });
+    }
+  };
+
+  const goToPrevScenario = () => {
+    if (pressureScenarios.length > 0) {
+      const prevIndex = (currentScenarioIndex - 1 + pressureScenarios.length) % pressureScenarios.length;
+      setCurrentScenarioIndex(prevIndex);
+      setSelectedEvent({ event: pressureScenarios[prevIndex], index: prevIndex });
+    }
+  };
+
   const getPressureColor = (intensity, teamType, success) => {
     const baseColor = teamType === 'home' ? [59, 130, 246] : [239, 68, 68]; // Blue for home, Red for away
     const alpha = success ? (0.4 + intensity * 0.5) : 0.3; // Lower opacity for unsuccessful events
