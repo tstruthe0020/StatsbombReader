@@ -2508,6 +2508,14 @@ async def get_match_tactical_analysis(match_id: int):
         team_pair = teams[match_id % len(teams)]
         home_team, away_team = team_pair
         
+        # Generate fallback match details
+        venues = ["Santiago Bernabéu", "Camp Nou", "Old Trafford", "Anfield", "Allianz Arena", "Parc des Princes"]
+        referees = ["Antonio Mateu Lahoz", "Björn Kuipers", "Cüneyt Çakır", "Damir Skomina", "Felix Brych"]
+        
+        venue = venues[match_id % len(venues)]
+        referee = referees[match_id % len(referees)]
+        match_date = f"2019-0{(match_id % 12) + 1:02d}-{(match_id % 28) + 1:02d}"
+        
         # Build fallback tactical data
         tactical_data = {
             "match_id": match_id,
