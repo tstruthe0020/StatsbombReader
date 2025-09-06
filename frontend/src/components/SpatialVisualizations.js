@@ -909,11 +909,10 @@ export const PressureAnalysisVisualization = ({ pressureData }) => {
                   cy={event.y}
                   r={2 + event.intensity * 2}
                   fill={getPressureColor(event.intensity, 'home', event.success)}
-                  stroke={event.success ? "rgba(59, 130, 246, 0.8)" : "rgba(59, 130, 246, 0.4)"}
-                  strokeWidth="0.8"
-                  className="cursor-pointer hover:r-4"
-                  onMouseEnter={(e) => handleMouseEnter(event, idx, e)}
-                  onMouseLeave={handleMouseLeave}
+                  stroke={selectedEvent?.event?.id === event.id ? "#1f2937" : (event.success ? "rgba(59, 130, 246, 0.8)" : "rgba(59, 130, 246, 0.4)")}
+                  strokeWidth={selectedEvent?.event?.id === event.id ? "2" : "0.8"}
+                  className="cursor-pointer"
+                  onClick={() => handleEventClick(event, idx)}
                 />
                 <text
                   x={event.x}
@@ -937,11 +936,10 @@ export const PressureAnalysisVisualization = ({ pressureData }) => {
                   cy={event.y}
                   r={2 + event.intensity * 2}
                   fill={getPressureColor(event.intensity, 'away', event.success)}
-                  stroke={event.success ? "rgba(239, 68, 68, 0.8)" : "rgba(239, 68, 68, 0.4)"}
-                  strokeWidth="0.8"
-                  className="cursor-pointer hover:r-4"
-                  onMouseEnter={(e) => handleMouseEnter(event, idx, e)}
-                  onMouseLeave={handleMouseLeave}
+                  stroke={selectedEvent?.event?.id === event.id ? "#1f2937" : (event.success ? "rgba(239, 68, 68, 0.8)" : "rgba(239, 68, 68, 0.4)")}
+                  strokeWidth={selectedEvent?.event?.id === event.id ? "2" : "0.8"}
+                  className="cursor-pointer"
+                  onClick={() => handleEventClick(event, idx)}
                 />
                 <text
                   x={event.x}
