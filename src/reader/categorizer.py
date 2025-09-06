@@ -141,6 +141,12 @@ def categorize_possession_directness(row: pd.Series, thresholds: Dict) -> str:
     possession = row.get('possession_share', 0.5)
     directness = row.get('directness', 0.5)
     
+    # Handle None values
+    if possession is None or pd.isna(possession):
+        possession = 0.5
+    if directness is None or pd.isna(directness):
+        directness = 0.5
+    
     for category, criteria in poss_thresholds.items():
         poss_range = criteria.get('possession_share', [0, 1])
         dir_range = criteria.get('directness', [0, 1])
