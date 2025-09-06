@@ -954,6 +954,12 @@ class SoccerAnalyticsAPITester:
         self.test_advanced_analytics_referee_slopes()
         self.test_advanced_analytics_referee_slopes_invalid_feature()
         
+        # Test tactical analysis endpoints (focus of this review)
+        print("\n⚽ Testing Tactical Analysis Endpoints (Real StatsBomb Data Integration)...")
+        self.test_tactical_analysis_endpoint_primary_match()
+        self.test_tactical_analysis_endpoint_multiple_matches()
+        self.test_tactical_analysis_endpoint_invalid_match()
+        
         # Test LLM integration endpoints
         print("\n🤖 Testing LLM Integration...")
         self.test_llm_query_endpoint_valid_queries()
