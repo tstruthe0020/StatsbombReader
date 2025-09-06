@@ -1198,6 +1198,13 @@ class SoccerAnalyticsAPITester:
         self.test_advanced_analytics_referee_slopes()
         self.test_advanced_analytics_referee_slopes_invalid_feature()
         
+        # Test tactical archetype endpoints (NEW - as specified in review request)
+        print("\n🎯 Testing Tactical Archetype Endpoints...")
+        self.test_tactical_archetype_team_endpoint()
+        self.test_tactical_archetype_match_endpoint()
+        self.test_tactical_archetype_competition_endpoint()
+        self.test_tactical_archetype_error_handling()
+        
         # Test tactical analysis endpoints (focus of this review)
         print("\n⚽ Testing Tactical Analysis Endpoints (Real StatsBomb Data Integration)...")
         self.test_tactical_analysis_endpoint_primary_match()
