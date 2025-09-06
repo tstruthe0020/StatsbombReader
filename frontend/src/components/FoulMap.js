@@ -90,27 +90,25 @@ const FoulMap = ({ matchId }) => {
     setMousePosition({ x: e.clientX, y: e.clientY });
   };
 
-  const getFoulColor = (foulType) => {
-    switch (foulType.toLowerCase()) {
-      case 'red card':
+  const getFoulColor = (displayType) => {
+    switch (displayType) {
+      case 'Red Card':
         return 'bg-red-500';
-      case 'yellow card':
+      case 'Yellow Card':
         return 'bg-yellow-500';
-      case 'dangerous play':
-        return 'bg-orange-500';
-      case 'unsporting behaviour':
-        return 'bg-purple-500';
+      case 'Foul':
       default:
         return 'bg-blue-500';
     }
   };
 
-  const getFoulSize = (foulType) => {
-    switch (foulType.toLowerCase()) {
-      case 'red card':
+  const getFoulSize = (displayType) => {
+    switch (displayType) {
+      case 'Red Card':
         return 'w-4 h-4';
-      case 'yellow card':
+      case 'Yellow Card':
         return 'w-3 h-3';
+      case 'Foul':
       default:
         return 'w-2 h-2';
     }
