@@ -610,6 +610,37 @@ const MainDashboard = () => {
           </div>
         )}
 
+        {/* Feature Selection */}
+        <Card>
+          <CardHeader>
+            <CardTitle className="flex items-center gap-2">
+              <Brain className="w-5 h-5" />
+              Analysis Feature
+            </CardTitle>
+            <CardDescription>Choose playstyle feature to analyze referee effects</CardDescription>
+          </CardHeader>
+          <CardContent>
+            <Select value={selectedFeature} onValueChange={handleFeatureChange}>
+              <SelectTrigger>
+                <SelectValue />
+              </SelectTrigger>
+              <SelectContent>
+                <SelectItem value="directness">Directness</SelectItem>
+                <SelectItem value="ppda">PPDA (Pressing)</SelectItem>
+                <SelectItem value="possession_share">Possession Share</SelectItem>
+                <SelectItem value="wing_share">Wing Usage</SelectItem>
+              </SelectContent>
+            </Select>
+            
+            <Button 
+              onClick={() => fetchRefereeSlopes(selectedFeature)}
+              disabled={analyticsLoading}
+              className="w-full mt-3"
+            >
+              {analyticsLoading ? "Loading..." : "Analyze Referee Effects"}
+            </Button>
+          </CardContent>
+        </Card>
         {/* Analysis Results */}
         {selectedMatches.length > 0 && (
           <div className="grid grid-cols-1 lg:grid-cols-2 gap-6">
