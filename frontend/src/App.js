@@ -1,4 +1,4 @@
-import React, { useState, useEffect, Suspense } from 'react';
+import React, { useState, useEffect } from 'react';
 import { BrowserRouter as Router, Routes, Route, Navigate } from 'react-router-dom';
 import axios from 'axios';
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from './components/ui/card';
@@ -12,22 +12,10 @@ import { Separator } from './components/ui/separator';
 import { Activity, TrendingUp, Users, AlertTriangle, BarChart3, Target, Clock, MapPin, Zap, Brain, MessageCircle, Layers } from 'lucide-react';
 import RefereeHeatmap from './components/RefereeHeatmap';
 import SpatialAnalysis from './components/SpatialAnalysis';
-
-// Import referee discipline module - temporarily disabled for testing
-// import { 
-//   isRefDisciplineEnabled, 
-//   OverviewPage,
-//   TeamsPage,
-//   TeamDetailPage,
-//   RefereesPage,
-//   RefDetailPage,
-//   LabPage,
-//   ReportsPage
-// } from './modules/refDiscipline';
-
-// Temporary mock function for testing
-const isRefDisciplineEnabled = () => true;
 import './App.css';
+
+// Temporary mock function for testing - will be replaced with proper feature flag
+const isRefDisciplineEnabled = () => true;
 
 const API_BASE_URL = process.env.REACT_APP_BACKEND_URL || '';
 
