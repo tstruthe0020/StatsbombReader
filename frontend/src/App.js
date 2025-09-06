@@ -427,7 +427,7 @@ const MainDashboard = () => {
           </CardContent>
         </Card>
 
-        {/* Available Matches */}
+        {/* Available Matches with Selection */}
         {matches.length > 0 && (
           <Card>
             <CardHeader>
@@ -436,30 +436,51 @@ const MainDashboard = () => {
                 Available Matches ({matches.length})
               </CardTitle>
               <CardDescription>
-                Real match data loaded from backend
+                Click matches to analyze. Selected: {selectedMatches.length}
               </CardDescription>
             </CardHeader>
             <CardContent>
               <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-3 max-h-64 overflow-y-auto">
-                {matches.slice(0, 12).map((match) => (
-                  <Card key={match.match_id} className="hover:shadow-md transition-all">
-                    <CardContent className="p-3">
-                      <div className="text-center">
-                        <p className="font-medium text-sm">
-                          {match.home_team?.home_team_name || 'Home'} vs{' '}
-                          {match.away_team?.away_team_name || 'Away'}
-                        </p>
-                        <p className="text-xs text-gray-500 mt-1">{match.match_date}</p>
-                        <Badge variant="secondary" className="text-xs mt-1">
-                          ID: {match.match_id}
-                        </Badge>
-                      </div>
-                    </CardContent>
-                  </Card>
-                ))}
-                {matches.length > 12 && (
+                {matches.slice(0, 24).map((match) => {
+                  const isSelected = selectedMatches.find(m => m.match_id === match.match_id);
+                  return (
+                    <Card 
+                      key={match.match_id} 
+                      className={`cursor-pointer transition-all hover:shadow-md ${
+                        isSelected ? 'ring-2 ring-purple-500 bg-purple-50' : 'hover:bg-gray-50'
+                      }`}
+                      onClick={() => handleMatchSelect(match)}
+                    >
+                      <CardContent className="p-3">
+                        <div className="text-center">
+                          <p className="font-medium text-sm">
+                            {match.home_team?.home_team_name || 'Home'} vs{' '}
+                            {match.away_team?.away_team_name || 'Away'}
+                          </p>
+                          <p className="text-xs text-gray-500 mt-1">{match.match_date}</p>
+                          <div className="flex justify-center gap-1 mt-1">
+                            <Badge variant="secondary" className="text-xs">
+                              ID: {match.match_id}
+                            </Badge>
+                            {isSelected && (
+                              <Badge className="text-xs bg-purple-500">
+                                ✓ Selected
+                              </Badge>
+                            )}
+                          </div>
+                          {match.referee && (
+                            <p className="text-xs text-gray-400 mt-1">
+                              Ref: {match.referee}
+                            </p>
+                          )}
+                        </div>
+                      </CardContent>
+                    </Card>
+                  );
+                })}
+                {matches.length > 24 && (
                   <div className="col-span-full text-center text-gray-500 text-sm">
-                    + {matches.length - 12} more matches available
+                    + {matches.length - 24} more matches available
                   </div>
                 )}
               </div>
