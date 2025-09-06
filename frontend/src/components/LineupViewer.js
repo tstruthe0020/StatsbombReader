@@ -238,11 +238,25 @@ const LineupViewer = ({ formations }) => {
                 }`}>
                   {player.jersey || '?'}
                 </div>
-                <div className="absolute top-12 left-1/2 transform -translate-x-1/2 text-xs font-medium text-gray-800 bg-white/95 px-2 py-1 rounded shadow-sm whitespace-nowrap max-w-24 truncate">
+                <div className="absolute top-12 left-1/2 transform -translate-x-1/2 text-xs font-medium text-gray-800 bg-white/95 px-2 py-1 rounded shadow-sm whitespace-nowrap max-w-28 truncate">
                   {player.player ? (
-                    player.player.length > 12 
-                      ? player.player.split(' ').slice(-1)[0] // Show last name if too long
-                      : player.player.split(' ').slice(0, 2).join(' ') // Show first two names
+                    (() => {
+                      const fullName = player.player;
+                      const words = fullName.split(' ');
+                      
+                      // For very long names (more than 20 characters), show first name + last name
+                      if (fullName.length > 20) {
+                        return `${words[0]} ${words[words.length - 1]}`;
+                      }
+                      // For moderately long names (12-20 chars), show last name only
+                      else if (fullName.length > 12) {
+                        return words[words.length - 1];
+                      }
+                      // For short names, show full name
+                      else {
+                        return fullName;
+                      }
+                    })()
                   ) : 'Unknown'}
                 </div>
               </div>
