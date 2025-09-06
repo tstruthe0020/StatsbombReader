@@ -102,7 +102,7 @@
 # Testing Data - Main Agent and testing sub agent both should log testing data below this section
 #====================================================================================================
 
-user_problem_statement: "Integrate LLM capabilities for natural language querying into the Soccer Foul & Referee Analytics application. Users should be able to ask questions in plain English about soccer statistics, referee patterns, and foul analysis."
+user_problem_statement: "Complete the spatial analysis visualizations by adding comprehensive keys, legends, and reading instructions for each 360° analysis feature. Fix any crashes in the spatial context visualization."
 
 backend:
   - task: "LLM Integration Backend API"
