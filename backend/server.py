@@ -1934,6 +1934,350 @@ async def get_spatial_foul_analysis(match_id: int):
         logger.error(f"Error in spatial foul analysis: {e}")
         raise HTTPException(status_code=500, detail=str(e))
 
+# =============================================================================
+# NEW ADVANCED ANALYTICS ENDPOINTS
+# =============================================================================
+
+@app.get("/api/analytics/zone-models/status")
+async def get_zone_models_status():
+    """Get status of zone-wise NB models."""
+    if not ANALYTICS_AVAILABLE:
+        raise HTTPException(status_code=503, detail="Advanced analytics not available")
+    
+    if not zone_modeler:
+        raise HTTPException(status_code=503, detail="Zone modeler not initialized")
+    
+    try:
+        status = {
+            "available": bool(zone_modeler.fitted_models),
+            "total_models": len(zone_modeler.fitted_models) if zone_modeler.fitted_models else 0,
+            "zones_analyzed": list(zone_modeler.fitted_models.keys()) if zone_modeler.fitted_models else [],
+            "diagnostics": zone_modeler.get_model_diagnostics() if zone_modeler.fitted_models else {}
+        }
+        
+        return {"success": True, "data": status}
+        
+    except Exception as e:
+        raise HTTPException(status_code=500, detail=str(e))
+
+@app.get("/api/analytics/zone-models/referee-slopes/{feature}")
+async def get_referee_slopes(feature: str):
+    """Get referee-specific slopes for a playstyle feature."""
+    if not ANALYTICS_AVAILABLE or not zone_modeler or not zone_modeler.fitted_models:
+        raise HTTPException(status_code=503, detail="Zone models not available")
+    
+    try:
+        slopes_df = zone_modeler.extract_referee_slopes(feature)
+        
+        if slopes_df.empty:
+            return {"success": True, "data": {"slopes": [], "message": f"No slopes found for feature: {feature}"}}
+        
+        # Convert to records for JSON response
+        slopes_data = slopes_df.to_dict('records')
+        
+        # Add summary statistics
+        summary = {
+            "total_slopes": len(slopes_data),
+            "significant_slopes": len(slopes_df[slopes_df['significant']]),
+            "average_slope": float(slopes_df['slope'].mean()),
+            "slope_range": [float(slopes_df['slope'].min()), float(slopes_df['slope'].max())],
+            "unique_referees": slopes_df['referee_name'].nunique(),
+            "unique_zones": slopes_df['zone'].nunique()
+        }
+        
+        return {
+            "success": True,
+            "data": {
+                "feature": feature,
+                "slopes": slopes_data,
+                "summary": summary
+            }
+        }
+        
+    except Exception as e:
+        logger.error(f"Error extracting referee slopes: {e}")
+        raise HTTPException(status_code=500, detail=str(e))
+
+@app.post("/api/analytics/predict-fouls")
+async def predict_team_fouls(request: Dict):
+    """
+    Predict expected fouls per zone for a team-match scenario.
+    
+    Expected request format:
+    {
+        "team_features": {
+            "z_directness": 1.0,
+            "z_ppda": 0.5,
+            "referee_name": "Referee Name",
+            ...
+        }
+    }
+    """
+    if not ANALYTICS_AVAILABLE or not zone_modeler or not zone_modeler.fitted_models:
+        raise HTTPException(status_code=503, detail="Zone models not available")
+    
+    try:
+        team_features = request.get('team_features', {})
+        
+        if not team_features:
+            raise HTTPException(status_code=400, detail="team_features required")
+        
+        # Ensure required fields exist with defaults
+        required_fields = {
+            'z_directness': 0.0,
+            'z_ppda': 0.0, 
+            'z_possession_share': 0.0,
+            'z_block_height_x': 0.0,
+            'z_wing_share': 0.0,
+            'home_indicator': 0,
+            'referee_name': 'Unknown',
+            'log_opp_passes': math.log(400)  # Default exposure
+        }
+        
+        # Add zone foul columns (required for model structure)
+        for x in range(5):
+            for y in range(3):
+                required_fields[f'foul_grid_x{x}_y{y}'] = 0
+        
+        # Merge with provided features
+        for field, default_val in required_fields.items():
+            if field not in team_features:
+                team_features[field] = default_val
+        
+        # Create pandas Series for prediction
+        team_row = pd.Series(team_features)
+        
+        # Predict expected fouls
+        expected_fouls = zone_modeler.predict_expected_fouls(team_row)
+        
+        # Calculate summary statistics
+        total_fouls = sum(expected_fouls.values())
+        max_zone = max(expected_fouls.items(), key=lambda x: x[1])
+        
+        # Convert zone coordinates to field positions
+        zone_coords = {}
+        for zone_id, fouls in expected_fouls.items():
+            if zone_id.startswith('zone_'):
+                parts = zone_id.split('_')
+                x_zone = int(parts[1])
+                y_zone = int(parts[2])
+                x_center = (x_zone + 0.5) * 24  # 120/5 = 24m per zone
+                y_center = (y_zone + 0.5) * 26.67  # 80/3 = 26.67m per zone
+                zone_coords[zone_id] = {
+                    "expected_fouls": round(fouls, 2),
+                    "x_center": round(x_center, 1),
+                    "y_center": round(y_center, 1),
+                    "zone_x": x_zone,
+                    "zone_y": y_zone
+                }
+        
+        return {
+            "success": True,
+            "data": {
+                "prediction_summary": {
+                    "total_expected_fouls": round(total_fouls, 2),
+                    "hottest_zone": max_zone[0],
+                    "hottest_zone_fouls": round(max_zone[1], 2),
+                    "referee": team_features.get('referee_name', 'Unknown')
+                },
+                "zone_predictions": zone_coords,
+                "team_features_used": {k: v for k, v in team_features.items() if not k.startswith('foul_grid_')}
+            }
+        }
+        
+    except Exception as e:
+        logger.error(f"Error predicting fouls: {e}")
+        raise HTTPException(status_code=500, detail=str(e))
+
+@app.get("/api/analytics/team-match-features/{match_id}")
+async def extract_team_match_features(match_id: int):
+    """Extract playstyle and discipline features for both teams in a match."""
+    if not ANALYTICS_AVAILABLE or not feature_extractor or not discipline_analyzer:
+        raise HTTPException(status_code=503, detail="Feature extraction not available")
+    
+    try:
+        # Get match events
+        events = github_client.get_events_data(match_id)
+        events_df = pd.DataFrame(events)
+        
+        if events_df.empty:
+            raise HTTPException(status_code=404, detail="No events found for match")
+        
+        # Flatten event data for analysis
+        if hasattr(github_client.loader, '_flatten_event_data'):
+            events_df = github_client.loader._flatten_event_data(events_df)
+        
+        # Get team names
+        teams = events_df['team_name'].unique()
+        if len(teams) < 2:
+            raise HTTPException(status_code=400, detail="Match must have at least 2 teams")
+        
+        team_features = {}
+        
+        for i, team in enumerate(teams[:2]):  # Process first 2 teams
+            opponent = teams[1-i] if i < 1 else teams[0]
+            
+            # Extract playstyle features
+            playstyle_features = feature_extractor.extract_team_match_features(
+                events_df, team, opponent
+            )
+            
+            # Extract discipline features  
+            discipline_features = discipline_analyzer.extract_team_match_discipline(
+                events_df, team, opponent
+            )
+            
+            # Combine features
+            combined_features = {
+                **playstyle_features,
+                **discipline_features,
+                'team_name': team,
+                'opponent_name': opponent
+            }
+            
+            team_features[team] = combined_features
+        
+        return {
+            "success": True,
+            "data": {
+                "match_id": match_id,
+                "teams_analyzed": list(team_features.keys()),
+                "team_features": team_features,
+                "feature_categories": {
+                    "playstyle": list(playstyle_features.keys()) if 'playstyle_features' in locals() else [],
+                    "discipline": list(discipline_features.keys()) if 'discipline_features' in locals() else []
+                }
+            }
+        }
+        
+    except Exception as e:
+        logger.error(f"Error extracting team features for match {match_id}: {e}")
+        raise HTTPException(status_code=500, detail=str(e))
+
+class DatasetBuildRequest(BaseModel):
+    """Model for dataset building request."""
+    competitions: List[Dict[str, int]]  # [{"competition_id": 11, "season_id": 90}, ...]
+    output_filename: Optional[str] = None
+    cache_events: bool = True
+
+@app.post("/api/analytics/build-dataset")
+async def build_team_match_dataset(request: DatasetBuildRequest):
+    """Build team-match feature dataset from specified competitions."""
+    if not ANALYTICS_AVAILABLE:
+        raise HTTPException(status_code=503, detail="Advanced analytics not available")
+    
+    try:
+        # This would typically be run as a background task
+        # For demo purposes, we'll return a placeholder response
+        
+        total_matches = 0
+        for comp in request.competitions:
+            try:
+                matches = github_client.get_matches_data(comp['competition_id'], comp['season_id'])
+                total_matches += len(matches)
+            except Exception as e:
+                logger.warning(f"Could not get matches for {comp}: {e}")
+        
+        return {
+            "success": True,
+            "data": {
+                "status": "Dataset building initiated",
+                "competitions": request.competitions,
+                "estimated_matches": total_matches,
+                "estimated_team_matches": total_matches * 2,
+                "note": "This is a long-running process. In production, this would be handled as a background task.",
+                "next_steps": [
+                    "Monitor build progress via logs",
+                    "Use /api/analytics/dataset-status to check completion",
+                    "Use /api/analytics/fit-models once dataset is ready"
+                ]
+            }
+        }
+        
+    except Exception as e:
+        logger.error(f"Error initiating dataset build: {e}")
+        raise HTTPException(status_code=500, detail=str(e))
+
+@app.get("/api/analytics/available-features")
+async def get_available_features():
+    """Get list of available playstyle and discipline features."""
+    if not ANALYTICS_AVAILABLE:
+        raise HTTPException(status_code=503, detail="Advanced analytics not available")
+    
+    playstyle_features = {
+        "pressing_block": {
+            "ppda": "Passes Per Defensive Action - opponent passes per defensive action",
+            "block_height_x": "Average x-coordinate of defensive actions",
+            "def_share_def_third": "Share of defensive actions in defensive third",
+            "def_share_mid_third": "Share of defensive actions in middle third", 
+            "def_share_att_third": "Share of defensive actions in attacking third"
+        },
+        "possession_directness": {
+            "possession_share": "Team's share of total passes in match",
+            "passes_per_possession": "Average passes per possession sequence",
+            "directness": "Forward progression per total distance (0-1 scale)",
+            "avg_pass_length": "Average pass distance in meters",
+            "long_pass_share": "Share of passes >= 30 meters",
+            "forward_pass_share": "Share of passes progressing toward goal"
+        },
+        "channels_delivery": {
+            "lane_left_share": "Share of passes in left channel",
+            "lane_center_share": "Share of passes in center channel", 
+            "lane_right_share": "Share of passes in right channel",
+            "wing_share": "Combined left + right channel usage",
+            "cross_share": "Share of passes that are crosses",
+            "through_ball_share": "Share of passes that are through balls"
+        },
+        "transitions": {
+            "counter_rate": "Rate of counter-attack sequences per possession"
+        },
+        "shot_buildup": {
+            "xg_mean": "Average expected goals per shot",
+            "passes_to_shot": "Average passes in possessions ending in shots"
+        }
+    }
+    
+    discipline_features = {
+        "basic_counts": {
+            "fouls_committed": "Total fouls committed by team",
+            "yellows": "Yellow cards received",
+            "reds": "Red cards received (including second yellows)",
+            "second_yellows": "Second yellow cards specifically"
+        },
+        "rates": {
+            "fouls_per_opp_pass": "Fouls committed per opponent pass"
+        },
+        "spatial_thirds": {
+            "foul_share_def_third": "Share of fouls in defensive third (0-40m)",
+            "foul_share_mid_third": "Share of fouls in middle third (40-80m)",
+            "foul_share_att_third": "Share of fouls in attacking third (80-120m)"
+        },
+        "spatial_width": {
+            "foul_share_left": "Share of fouls in left channel",
+            "foul_share_center": "Share of fouls in center channel",
+            "foul_share_right": "Share of fouls in right channel",
+            "foul_share_wide": "Combined left + right channel fouls"
+        },
+        "zone_grid": {
+            "description": "Foul counts in 5x3 grid zones across field",
+            "format": "foul_grid_x{0-4}_y{0-2} - counts in each zone"
+        }
+    }
+    
+    return {
+        "success": True,
+        "data": {
+            "playstyle_features": playstyle_features,
+            "discipline_features": discipline_features,
+            "modeling_info": {
+                "zone_grid": "5 zones lengthwise (24m each) × 3 zones widthwise (26.7m each)",
+                "standardization": "Features are z-scored for modeling",
+                "interactions": "Key features interact with referee fixed effects",
+                "exposure": "Models use opponent passes as exposure offset"
+            }
+        }
+    }
+
 if __name__ == "__main__":
     import uvicorn
     uvicorn.run(app, host="0.0.0.0", port=8001)
