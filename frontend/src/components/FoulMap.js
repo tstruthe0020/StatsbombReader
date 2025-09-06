@@ -28,10 +28,10 @@ const FoulMap = ({ matchId }) => {
       // Try to get fouls from match fouls endpoint
       const response = await axios.get(`${API_BASE_URL}/api/matches/${matchId}/fouls`);
       
-      if (response.data && response.data.success) {
-        setFouls(response.data.data || []);
+      if (response.data && response.data.success && Array.isArray(response.data.data)) {
+        setFouls(response.data.data);
       } else {
-        // Generate mock fouls for demonstration if no real data
+        // Generate mock fouls for demonstration if no real data or data is not an array
         setFouls(generateMockFouls());
       }
     } catch (err) {
