@@ -10,10 +10,12 @@ const Tabs = ({ value, onValueChange, children, className = '' }) => {
   );
 };
 
-const TabsList = ({ children, className = '' }) => {
+const TabsList = ({ children, className = '', tabsValue, onTabsValueChange }) => {
   return (
-    <div className={`inline-flex h-10 items-center justify-center rounded-md bg-muted p-1 text-muted-foreground ${className}`}>
-      {children}
+    <div className={`inline-flex h-10 items-center justify-center rounded-md bg-gray-100 p-1 text-gray-600 ${className}`}>
+      {React.Children.map(children, child =>
+        React.isValidElement(child) ? React.cloneElement(child, { tabsValue, onTabsValueChange }) : child
+      )}
     </div>
   );
 };
