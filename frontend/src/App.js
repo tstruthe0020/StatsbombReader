@@ -978,6 +978,6 @@ const MainDashboard = () => {
       </div>
     </div>
   );
-}
+};
 
 export default App;
