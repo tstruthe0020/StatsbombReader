@@ -2743,7 +2743,9 @@ def load_archetype_data():
     """Load tactical archetype data from parquet files."""
     global SEASON_TAGS_DF, MATCH_TAGS_DF
     
-    data_dir = Path("data")
+    # Use absolute path relative to app root
+    app_root = Path(__file__).parent.parent
+    data_dir = app_root / "data"
     season_file = data_dir / "team_season_features_with_tags.parquet"
     match_file = data_dir / "match_team_features_with_tags.parquet"
     
