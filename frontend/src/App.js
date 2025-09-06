@@ -302,7 +302,6 @@ const MainDashboard = () => {
     const [selectedFeature, setSelectedFeature] = useState('directness');
     const [refereeSlopes, setRefereeSlopes] = useState(null);
     const [currentAnalysis, setCurrentAnalysis] = useState(null);
-    const [selectedMatches, setSelectedMatches] = useState([]);
     const [tacticalData, setTacticalData] = useState({});
     const [expandedMatch, setExpandedMatch] = useState(null);
 
