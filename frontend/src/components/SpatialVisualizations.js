@@ -317,96 +317,153 @@ export const SpatialFoulContextVisualization = ({ spatialData }) => {
   };
 
   return (
-    <Card>
-      <CardHeader>
-        <CardTitle>Spatial Context Visualization</CardTitle>
-      </CardHeader>
-      <CardContent>
-        <svg viewBox="0 0 120 80" className="w-full h-64 border rounded-lg bg-green-100">
-          {/* Soccer field */}
-          <rect width="120" height="80" fill="#22c55e" opacity="0.3" />
-          
-          {/* Field markings */}
-          <g stroke="white" strokeWidth="0.5" fill="none">
-            <rect x="0" y="0" width="120" height="80" />
-            <line x1="60" y1="0" x2="60" y2="80" />
-            <circle cx="60" cy="40" r="10" />
-            <rect x="0" y="22" width="18" height="36" />
-            <rect x="102" y="22" width="18" height="36" />
-          </g>
-          
-          {/* Foul incidents with spatial context */}
-          {spatialData.spatial_foul_analysis?.slice(0, 15).map((foul, idx) => {
-            if (!foul.location || !foul.spatial_context) return null;
+    <div className="space-y-4">
+      {/* Reading Instructions */}
+      <div className="bg-blue-50 p-4 rounded-lg border border-blue-200">
+        <h4 className="font-semibold text-blue-800 mb-2">📖 How to Read Spatial Foul Context</h4>
+        <div className="text-sm text-blue-700 space-y-2">
+          <p><strong>Circle Size:</strong> Larger circles = more players within 10 meters of the foul incident.</p>
+          <p><strong>Circle Color:</strong> Indicates pressure level - Red (high pressure) to Green (low pressure).</p>
+          <p><strong>Numbers Above Circles:</strong> Exact count of players within 10-meter radius.</p>
+          <p><strong>Black Dots:</strong> Foul incidents without cards. Red dots = incidents with cards issued.</p>
+          <p><strong>Pressure Ratio:</strong> Red &gt;2x = very high pressure, Green &lt;0.7x = low pressure situations.</p>
+          <p><strong>Field Context:</strong> Penalty areas (small rectangles) vs midfield incidents show different patterns.</p>
+        </div>
+      </div>
+
+      {/* Pressure Level Key */}
+      <div className="grid grid-cols-4 gap-2 p-4 bg-gray-50 rounded-lg">
+        <div className="text-center">
+          <div className="w-8 h-8 bg-red-500 rounded-full mx-auto mb-2 opacity-60"></div>
+          <div className="text-xs font-medium">High Pressure</div>
+          <div className="text-xs text-gray-600">2.0x+ ratio</div>
+          <div className="text-xs text-gray-600">6+ players nearby</div>
+        </div>
+        <div className="text-center">
+          <div className="w-8 h-8 bg-orange-500 rounded-full mx-auto mb-2 opacity-60"></div>
+          <div className="text-xs font-medium">Medium-High</div>
+          <div className="text-xs text-gray-600">1.3-2.0x ratio</div>
+          <div className="text-xs text-gray-600">4-6 players</div>
+        </div>
+        <div className="text-center">
+          <div className="w-8 h-8 bg-yellow-500 rounded-full mx-auto mb-2 opacity-60"></div>
+          <div className="text-xs font-medium">Medium</div>
+          <div className="text-xs text-gray-600">0.7-1.3x ratio</div>
+          <div className="text-xs text-gray-600">3-4 players</div>
+        </div>
+        <div className="text-center">
+          <div className="w-8 h-8 bg-green-500 rounded-full mx-auto mb-2 opacity-60"></div>
+          <div className="text-xs font-medium">Low Pressure</div>
+          <div className="text-xs text-gray-600">&lt;0.7x ratio</div>
+          <div className="text-xs text-gray-600">1-2 players</div>
+        </div>
+      </div>
+
+      <Card>
+        <CardHeader>
+          <CardTitle>Spatial Context Visualization</CardTitle>
+          <CardDescription>
+            Real-time player positions during foul incidents from StatsBomb 360° data
+          </CardDescription>
+        </CardHeader>
+        <CardContent>
+          <svg viewBox="0 0 120 80" className="w-full h-64 border rounded-lg bg-green-100">
+            {/* Soccer field */}
+            <rect width="120" height="80" fill="#22c55e" opacity="0.3" />
             
-            const [x, y] = foul.location;
-            const density = foul.spatial_context.player_density_10m || 0;
-            const pressure = foul.spatial_context.pressure_index;
+            {/* Field markings */}
+            <g stroke="white" strokeWidth="0.5" fill="none">
+              <rect x="0" y="0" width="120" height="80" />
+              <line x1="60" y1="0" x2="60" y2="80" />
+              <circle cx="60" cy="40" r="10" />
+              <rect x="0" y="22" width="18" height="36" />
+              <rect x="102" y="22" width="18" height="36" />
+            </g>
             
-            return (
-              <g key={idx}>
-                {/* Pressure circle (radius based on player density) */}
-                <circle
-                  cx={x}
-                  cy={y}
-                  r={Math.max(2, density * 0.8)}
-                  fill={getPressureColor(pressure)}
-                  opacity="0.4"
-                  stroke={getPressureColor(pressure)}
-                  strokeWidth="0.5"
-                />
-                
-                {/* Foul marker */}
-                <circle
-                  cx={x}
-                  cy={y}
-                  r="1"
-                  fill={foul.card_type ? '#dc2626' : '#374151'}
-                  stroke="white"
-                  strokeWidth="0.3"
-                />
-                
-                {/* Player count indicator */}
-                <text
-                  x={x}
-                  y={y - (density * 0.8 + 2)}
-                  textAnchor="middle"
-                  fontSize="2"
-                  fill="black"
-                  fontWeight="bold"
-                >
-                  {density}
-                </text>
-              </g>
-            );
-          })}
-        </svg>
-        
-        <div className="mt-4">
-          <div className="grid grid-cols-2 md:grid-cols-4 gap-4 text-xs">
-            <div className="flex items-center gap-2">
-              <div className="w-4 h-4 bg-red-500 rounded-full opacity-60"></div>
-              <span>High Pressure</span>
+            {/* Foul incidents with spatial context */}
+            {spatialData.spatial_foul_analysis?.slice(0, 15).map((foul, idx) => {
+              if (!foul.location || !foul.spatial_context) return null;
+              
+              const [x, y] = foul.location;
+              const density = foul.spatial_context.player_density_10m || 0;
+              const pressure = foul.spatial_context.pressure_index;
+              
+              return (
+                <g key={idx}>
+                  {/* Pressure circle (radius based on player density) */}
+                  <circle
+                    cx={x}
+                    cy={y}
+                    r={Math.max(2, density * 0.8)}
+                    fill={getPressureColor(pressure)}
+                    opacity="0.4"
+                    stroke={getPressureColor(pressure)}
+                    strokeWidth="0.5"
+                  />
+                  
+                  {/* Foul marker */}
+                  <circle
+                    cx={x}
+                    cy={y}
+                    r="1"
+                    fill={foul.card_type ? '#dc2626' : '#374151'}
+                    stroke="white"
+                    strokeWidth="0.3"
+                  />
+                  
+                  {/* Player count indicator */}
+                  <text
+                    x={x}
+                    y={y - (density * 0.8 + 2)}
+                    textAnchor="middle"
+                    fontSize="2"
+                    fill="black"
+                    fontWeight="bold"
+                  >
+                    {density}
+                  </text>
+                </g>
+              );
+            })}
+          </svg>
+          
+          <div className="mt-4">
+            <div className="grid grid-cols-2 md:grid-cols-4 gap-4 text-xs">
+              <div className="flex items-center gap-2">
+                <div className="w-4 h-4 bg-red-500 rounded-full opacity-60"></div>
+                <span>High Pressure</span>
+              </div>
+              <div className="flex items-center gap-2">
+                <div className="w-4 h-4 bg-orange-500 rounded-full opacity-60"></div>
+                <span>Medium-High</span>
+              </div>
+              <div className="flex items-center gap-2">
+                <div className="w-4 h-4 bg-yellow-500 rounded-full opacity-60"></div>
+                <span>Medium</span>
+              </div>
+              <div className="flex items-center gap-2">
+                <div className="w-4 h-4 bg-green-500 rounded-full opacity-60"></div>
+                <span>Low Pressure</span>
+              </div>
             </div>
-            <div className="flex items-center gap-2">
-              <div className="w-4 h-4 bg-orange-500 rounded-full opacity-60"></div>
-              <span>Medium-High</span>
-            </div>
-            <div className="flex items-center gap-2">
-              <div className="w-4 h-4 bg-yellow-500 rounded-full opacity-60"></div>
-              <span>Medium</span>
-            </div>
-            <div className="flex items-center gap-2">
-              <div className="w-4 h-4 bg-green-500 rounded-full opacity-60"></div>
-              <span>Low Pressure</span>
+            <p className="text-xs text-gray-600 mt-2">
+              Circle size = player density, Color = pressure ratio, Number = players within 10m
+            </p>
+
+            {/* Analysis Summary */}
+            <div className="mt-3 p-3 bg-yellow-50 rounded border border-yellow-200">
+              <div className="text-sm font-medium text-yellow-800 mb-1">Key Insights:</div>
+              <div className="text-xs text-yellow-700 space-y-1">
+                <p>• Penalty area incidents typically show higher player density (larger circles)</p>
+                <p>• Red circles indicate high-pressure situations that often lead to cards</p>
+                <p>• Midfield fouls generally have lower pressure ratios (green/yellow)</p>
+                <p>• Player clustering around fouls correlates with referee decision severity</p>
+              </div>
             </div>
           </div>
-          <p className="text-xs text-gray-600 mt-2">
-            Circle size = player density, Color = pressure ratio, Number = players within 10m
-          </p>
-        </div>
-      </CardContent>
-    </Card>
+        </CardContent>
+      </Card>
+    </div>
   );
 };
 
