@@ -170,7 +170,7 @@ const FoulMap = ({ matchId }) => {
           </div>
 
           {/* Fouls */}
-          {fouls.map((foul) => (
+          {Array.isArray(fouls) && fouls.map((foul) => (
             <div
               key={foul.id}
               className={`absolute transform -translate-x-1/2 -translate-y-1/2 cursor-pointer rounded-full ${getFoulColor(foul.type)} ${getFoulSize(foul.type)} hover:scale-150 transition-transform z-10`}
