@@ -2391,10 +2391,12 @@ async def get_match_tactical_analysis(match_id: int):
                     
                     if events_data:
                         for event in events_data:
-                            event_team = event.get('team', {}).get('name', '')
+                            team_data = event.get('team') or {}
+                            event_team = team_data.get('name', '') if isinstance(team_data, dict) else ''
                             event_type = event.get('type', '')
                             minute = event.get('minute', 0)
-                            player = event.get('player', {}).get('name', 'Unknown Player')
+                            player_data = event.get('player') or {}
+                            player = player_data.get('name', 'Unknown Player') if isinstance(player_data, dict) else 'Unknown Player'
                             
                             # Count statistics
                             team_stats = home_stats if event_team == home_team else away_stats
