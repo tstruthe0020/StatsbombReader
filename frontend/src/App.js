@@ -616,8 +616,14 @@ const MainDashboard = () => {
                             (m.away_team?.name || m.away_team?.away_team_name) === teamName
                           ).length} matches
                         </Badge>
-                        <Button size="sm" variant="outline" className="text-xs h-6">
-                          Analyze
+                        <Button 
+                          size="sm" 
+                          variant="outline" 
+                          className="text-xs h-6"
+                          onClick={() => handleTeamAnalysis(teamName)}
+                          disabled={analyticsLoading}
+                        >
+                          {analyticsLoading ? "..." : "Analyze"}
                         </Button>
                       </div>
                     </div>
