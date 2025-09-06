@@ -1100,13 +1100,15 @@ export const PressureAnalysisVisualization = ({ pressureData }) => {
                 <div className="flex justify-between">
                   <span>Success Rate:</span>
                   <span className="font-medium">
-                    {filteredHomeEvents.length > 0 ? Math.round((filteredHomeEvents.filter(e => e.success).length / filteredHomeEvents.length) * 100) : 0}%
+                    {filteredHomeEvents.length > 0 ? Math.round((filteredHomeEvents.filter(e => e.outcome === 'Success').length / filteredHomeEvents.length) * 100) : 0}%
                   </span>
                 </div>
                 <div className="flex justify-between">
-                  <span>Avg Intensity:</span>
-                  <span className="font-medium">
-                    {filteredHomeEvents.length > 0 ? (filteredHomeEvents.reduce((sum, e) => sum + e.intensity, 0) / filteredHomeEvents.length * 100).toFixed(0) : 0}%
+                  <span>Most Active Player:</span>
+                  <span className="font-medium text-xs">
+                    {filteredHomeEvents.length > 0 ? 
+                      [...filteredHomeEvents.reduce((acc, e) => acc.set(e.player, (acc.get(e.player) || 0) + 1), new Map())]
+                        .sort((a, b) => b[1] - a[1])[0]?.[0] || 'N/A' : 'N/A'}
                   </span>
                 </div>
               </div>
@@ -1121,13 +1123,15 @@ export const PressureAnalysisVisualization = ({ pressureData }) => {
                 <div className="flex justify-between">
                   <span>Success Rate:</span>
                   <span className="font-medium">
-                    {filteredAwayEvents.length > 0 ? Math.round((filteredAwayEvents.filter(e => e.success).length / filteredAwayEvents.length) * 100) : 0}%
+                    {filteredAwayEvents.length > 0 ? Math.round((filteredAwayEvents.filter(e => e.outcome === 'Success').length / filteredAwayEvents.length) * 100) : 0}%
                   </span>
                 </div>
                 <div className="flex justify-between">
-                  <span>Avg Intensity:</span>
-                  <span className="font-medium">
-                    {filteredAwayEvents.length > 0 ? (filteredAwayEvents.reduce((sum, e) => sum + e.intensity, 0) / filteredAwayEvents.length * 100).toFixed(0) : 0}%
+                  <span>Most Active Player:</span>
+                  <span className="font-medium text-xs">
+                    {filteredAwayEvents.length > 0 ? 
+                      [...filteredAwayEvents.reduce((acc, e) => acc.set(e.player, (acc.get(e.player) || 0) + 1), new Map())]
+                        .sort((a, b) => b[1] - a[1])[0]?.[0] || 'N/A' : 'N/A'}
                   </span>
                 </div>
               </div>
