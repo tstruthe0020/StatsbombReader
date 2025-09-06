@@ -718,58 +718,93 @@ export const SpatialFoulContextVisualization = ({ spatialData }) => {
   );
 };
 
-// Interactive Team Pressure Events from Event Data
+// Match Pressure Events Analysis
 export const PressureAnalysisVisualization = ({ pressureData }) => {
   if (!pressureData) return null;
 
-  const [selectedPlayers, setSelectedPlayers] = React.useState(new Set());
-  const [selectedEvent, setSelectedEvent] = React.useState(null);
+  const [selectedMatch, setSelectedMatch] = React.useState('');
   const [currentScenarioIndex, setCurrentScenarioIndex] = React.useState(0);
+  const [hoveredPlayer, setHoveredPlayer] = React.useState(null);
 
-  // Generate pressure events showing PLAYER POSITIONS during pressure events
-  const generatePressureEventsFromEventData = () => {
+  // Available matches for selection
+  const matches = [
+    'Real Madrid vs Barcelona - El Clasico', 
+    'Liverpool vs Manchester City - Premier League',
+    'Bayern Munich vs Borussia Dortmund - Bundesliga',
+    'Juventus vs AC Milan - Serie A',
+    'PSG vs Marseille - Ligue 1'
+  ];
+
+  // Initialize with first match
+  React.useEffect(() => {
+    if (matches.length > 0) {
+      setSelectedMatch(matches[0]);
+    }
+  }, []);
+
+  const handleMatchChange = (match) => {
+    setSelectedMatch(match);
+    setCurrentScenarioIndex(0); // Reset scenario when match changes
+  };
+
+  // Generate pressure events showing PLAYER POSITIONS during pressure events for selected match
+  const generateMatchPressureEvents = () => {
     const homeEvents = [];
     const awayEvents = [];
     
-    // Simulate pressure events extracted from event data
-    const pressureEventTypes = ['Tackle', 'Interception', 'Pressure', 'Block', 'Challenge'];
-    const homePlayerNames = ['Sergio Ramos', 'Luka Modric', 'Casemiro', 'Toni Kroos', 'Marcelo', 'Varane', 'Benzema'];
-    const awayPlayerNames = ['Messi', 'Piqué', 'Busquets', 'Alba', 'Griezmann', 'De Jong', 'Ter Stegen'];
+    // Different player sets based on selected match
+    let homePlayerNames, awayPlayerNames, homeTeam, awayTeam;
     
-    // Home team events (player positions when they made pressure)
-    for (let i = 0; i < 18; i++) {
+    if (selectedMatch.includes('Real Madrid vs Barcelona')) {
+      homePlayerNames = ['Sergio Ramos', 'Luka Modric', 'Casemiro', 'Toni Kroos', 'Marcelo', 'Varane', 'Benzema'];
+      awayPlayerNames = ['Messi', 'Piqué', 'Busquets', 'Alba', 'Griezmann', 'De Jong', 'Ter Stegen'];
+      homeTeam = 'Real Madrid'; awayTeam = 'Barcelona';
+    } else if (selectedMatch.includes('Liverpool vs Manchester City')) {
+      homePlayerNames = ['Van Dijk', 'Henderson', 'Salah', 'Mané', 'Firmino', 'Alexander-Arnold', 'Alisson'];
+      awayPlayerNames = ['De Bruyne', 'Sterling', 'Aguero', 'Silva', 'Walker', 'Ederson', 'Mahrez'];
+      homeTeam = 'Liverpool'; awayTeam = 'Manchester City';
+    } else {
+      homePlayerNames = ['Player A', 'Player B', 'Player C', 'Player D', 'Player E', 'Player F', 'Player G'];
+      awayPlayerNames = ['Player H', 'Player I', 'Player J', 'Player K', 'Player L', 'Player M', 'Player N'];
+      homeTeam = 'Home Team'; awayTeam = 'Away Team';
+    }
+    
+    const pressureEventTypes = ['Tackle', 'Interception', 'Pressure', 'Block', 'Challenge'];
+    
+    // Home team pressure events (player positions when they made pressure)
+    for (let i = 0; i < 15; i++) {
       const eventType = pressureEventTypes[Math.floor(Math.random() * pressureEventTypes.length)];
       const minute = Math.floor(Math.random() * 90) + 1;
       const player = homePlayerNames[Math.floor(Math.random() * homePlayerNames.length)];
       
       homeEvents.push({
         id: `home-${i}`,
-        // PLAYER POSITION at the time they made the pressure (not event location)
         playerX: Math.random() * 50 + 10, // Player was positioned on defensive side
         playerY: Math.random() * 60 + 10,
         minute,
         eventType,
         player,
-        outcome: Math.random() > 0.3 ? 'Success' : 'Failed', // 70% success rate
+        team: homeTeam,
+        outcome: Math.random() > 0.3 ? 'Success' : 'Failed',
         intensity: Math.random() * 0.8 + 0.2
       });
     }
     
-    // Away team events (player positions when they made pressure)
-    for (let i = 0; i < 15; i++) {
+    // Away team pressure events (player positions when they made pressure)
+    for (let i = 0; i < 12; i++) {
       const eventType = pressureEventTypes[Math.floor(Math.random() * pressureEventTypes.length)];
       const minute = Math.floor(Math.random() * 90) + 1;
       const player = awayPlayerNames[Math.floor(Math.random() * awayPlayerNames.length)];
       
       awayEvents.push({
         id: `away-${i}`,
-        // PLAYER POSITION at the time they made the pressure (not event location)
         playerX: Math.random() * 50 + 60, // Player was positioned on attacking side
         playerY: Math.random() * 60 + 10,
         minute,
         eventType,
         player,
-        outcome: Math.random() > 0.25 ? 'Success' : 'Failed', // 75% success rate
+        team: awayTeam,
+        outcome: Math.random() > 0.25 ? 'Success' : 'Failed',
         intensity: Math.random() * 0.7 + 0.3
       });
     }
@@ -777,83 +812,69 @@ export const PressureAnalysisVisualization = ({ pressureData }) => {
     return { homeEvents, awayEvents };
   };
 
-  const { homeEvents, awayEvents } = generatePressureEventsFromEventData();
-  const allEvents = [...homeEvents.map(e => ({...e, team: 'home'})), ...awayEvents.map(e => ({...e, team: 'away'}))];
-  const allPlayers = [...new Set(allEvents.map(e => e.player))];
-
-  // Initialize all players as selected
-  React.useEffect(() => {
-    setSelectedPlayers(new Set(allPlayers));
-  }, []);
-
-  const togglePlayer = (player) => {
-    const newSelected = new Set(selectedPlayers);
-    if (newSelected.has(player)) {
-      newSelected.delete(player);
-    } else {
-      newSelected.add(player);
-    }
-    setSelectedPlayers(newSelected);
-  };
-
-  const toggleAllPlayers = () => {
-    if (selectedPlayers.size === allPlayers.length) {
-      setSelectedPlayers(new Set());
-    } else {
-      setSelectedPlayers(new Set(allPlayers));
-    }
-  };
-
-  const handleEventClick = (event, index) => {
-    setSelectedEvent({ event, index });
-  };
-
-  const handleEventClose = () => {
-    setSelectedEvent(null);
-  };
+  const { homeEvents, awayEvents } = generateMatchPressureEvents();
+  const allEvents = [...homeEvents.map(e => ({...e, teamType: 'home'})), ...awayEvents.map(e => ({...e, teamType: 'away'}))];
 
   // Pressure scenario navigation
-  const pressureScenarios = allEvents.filter(event => selectedPlayers.has(event.player));
-  
   const goToNextScenario = () => {
-    if (pressureScenarios.length > 0) {
-      const nextIndex = (currentScenarioIndex + 1) % pressureScenarios.length;
+    if (allEvents.length > 0) {
+      const nextIndex = (currentScenarioIndex + 1) % allEvents.length;
       setCurrentScenarioIndex(nextIndex);
-      setSelectedEvent({ event: pressureScenarios[nextIndex], index: nextIndex });
     }
   };
 
   const goToPrevScenario = () => {
-    if (pressureScenarios.length > 0) {
-      const prevIndex = (currentScenarioIndex - 1 + pressureScenarios.length) % pressureScenarios.length;
+    if (allEvents.length > 0) {
+      const prevIndex = (currentScenarioIndex - 1 + allEvents.length) % allEvents.length;
       setCurrentScenarioIndex(prevIndex);
-      setSelectedEvent({ event: pressureScenarios[prevIndex], index: prevIndex });
     }
   };
 
   const getPressureColor = (intensity, teamType, outcome) => {
     const baseColor = teamType === 'home' ? [59, 130, 246] : [239, 68, 68]; // Blue for home, Red for away
-    const alpha = outcome === 'Success' ? (0.4 + intensity * 0.5) : 0.3; // Lower opacity for failed events
+    const alpha = outcome === 'Success' ? (0.4 + intensity * 0.5) : 0.3;
     return `rgba(${baseColor[0]}, ${baseColor[1]}, ${baseColor[2]}, ${alpha})`;
   };
-
-  const filteredHomeEvents = homeEvents.filter(event => selectedPlayers.has(event.player));
-  const filteredAwayEvents = awayEvents.filter(event => selectedPlayers.has(event.player));
 
   return (
     <div className="space-y-4">
       {/* Reading Instructions */}
       <div className="bg-blue-50 p-4 rounded-lg border border-blue-200">
-        <h4 className="font-semibold text-blue-800 mb-2">📖 How to Read Team Pressure Events - Player Positions</h4>
+        <h4 className="font-semibold text-blue-800 mb-2">📖 How to Read Match Pressure Events</h4>
         <div className="text-sm text-blue-700 space-y-2">
-          <p><strong>What You're Seeing:</strong> Player positions at the moment they applied pressure (not where the pressure occurred).</p>
+          <p><strong>What You're Seeing:</strong> Player positions at the moment they applied pressure during the selected match.</p>
           <p><strong>Blue Circles:</strong> Home team player positions when they made pressure events.</p>
           <p><strong>Red Circles:</strong> Away team player positions when they made pressure events.</p>
-          <p><strong>Click to View:</strong> Click on any circle to see detailed information about that pressure event.</p>
-          <p><strong>Scenario Navigation:</strong> Use the menu to cycle through individual pressure scenarios.</p>
-          <p><strong>Player Filter:</strong> Currently filters which players' pressure events are shown on the map.</p>
+          <p><strong>Hover for Player Name:</strong> Simply hover over any circle to see which player it was.</p>
+          <p><strong>Scenario Navigation:</strong> Use Previous/Next to cycle through individual pressure events.</p>
+          <p><strong>No Click Actions:</strong> Circles are for viewing only - no click functionality.</p>
         </div>
       </div>
+
+      {/* Match Selection */}
+      <Card>
+        <CardHeader>
+          <CardTitle className="text-base">Select Match for Analysis</CardTitle>
+          <CardDescription>Choose a specific match to see pressure events</CardDescription>
+        </CardHeader>
+        <CardContent>
+          <div className="space-y-2">
+            {matches.map((match) => (
+              <button
+                key={match}
+                onClick={() => handleMatchChange(match)}
+                className={`w-full text-left p-3 rounded-md border transition-colors ${
+                  selectedMatch === match
+                    ? 'bg-blue-500 text-white border-blue-500'
+                    : 'bg-white text-gray-700 border-gray-300 hover:border-blue-300'
+                }`}
+              >
+                {match}
+              </button>
+            ))}
+          </div>
+        </CardContent>
+      </Card>
 
       {/* Pressure Scenario Navigation Menu */}
       <Card>
@@ -863,14 +884,14 @@ export const PressureAnalysisVisualization = ({ pressureData }) => {
             <div className="flex gap-2">
               <button
                 onClick={goToPrevScenario}
-                disabled={pressureScenarios.length === 0}
+                disabled={allEvents.length === 0}
                 className="px-3 py-1 bg-blue-100 hover:bg-blue-200 disabled:bg-gray-100 disabled:text-gray-400 rounded-md text-sm"
               >
                 ← Previous
               </button>
               <button
                 onClick={goToNextScenario}
-                disabled={pressureScenarios.length === 0}
+                disabled={allEvents.length === 0}
                 className="px-3 py-1 bg-blue-100 hover:bg-blue-200 disabled:bg-gray-100 disabled:text-gray-400 rounded-md text-sm"
               >
                 Next →
@@ -880,49 +901,18 @@ export const PressureAnalysisVisualization = ({ pressureData }) => {
         </CardHeader>
         <CardContent>
           <div className="text-sm text-gray-600">
-            {pressureScenarios.length > 0 ? (
-              <>Scenario {currentScenarioIndex + 1} of {pressureScenarios.length} pressure events</>
+            {allEvents.length > 0 ? (
+              <>
+                Scenario {currentScenarioIndex + 1} of {allEvents.length} pressure events
+                {allEvents[currentScenarioIndex] && (
+                  <div className="mt-1 text-xs">
+                    Currently viewing: {allEvents[currentScenarioIndex].player} - {allEvents[currentScenarioIndex].eventType} ({allEvents[currentScenarioIndex].minute}')
+                  </div>
+                )}
+              </>
             ) : (
-              <>No pressure scenarios available (select players to view their events)</>
+              <>No pressure scenarios available for selected match</>
             )}
-          </div>
-        </CardContent>
-      </Card>
-
-      {/* Player Filter Controls */}
-      <Card>
-        <CardHeader>
-          <CardTitle className="flex items-center justify-between">
-            <span>Player Filters (What This Does)</span>
-            <button
-              onClick={toggleAllPlayers}
-              className="text-sm px-3 py-1 bg-blue-100 hover:bg-blue-200 rounded-md"
-            >
-              {selectedPlayers.size === allPlayers.length ? 'Deselect All' : 'Select All'}
-            </button>
-          </CardTitle>
-          <CardDescription>
-            Filter controls which players' pressure events are shown on the map. Unchecking a player hides their pressure events.
-          </CardDescription>
-        </CardHeader>
-        <CardContent>
-          <div className="grid grid-cols-2 md:grid-cols-3 lg:grid-cols-4 gap-2 max-h-32 overflow-y-auto">
-            {allPlayers.map((player, idx) => {
-              const isHome = homeEvents.some(e => e.player === player);
-              return (
-                <label key={idx} className="flex items-center space-x-2 text-sm">
-                  <input
-                    type="checkbox"
-                    checked={selectedPlayers.has(player)}
-                    onChange={() => togglePlayer(player)}
-                    className="rounded"
-                  />
-                  <span className={isHome ? 'text-blue-600' : 'text-red-600'}>
-                    {player}
-                  </span>
-                </label>
-              );
-            })}
           </div>
         </CardContent>
       </Card>
@@ -931,7 +921,7 @@ export const PressureAnalysisVisualization = ({ pressureData }) => {
         <CardHeader>
           <CardTitle>Player Positions During Pressure Events</CardTitle>
           <CardDescription>
-            Where players were positioned when they applied pressure (click on circles for details)
+            {selectedMatch} - Hover over circles to see player names
           </CardDescription>
         </CardHeader>
         <CardContent className="relative">
@@ -951,17 +941,18 @@ export const PressureAnalysisVisualization = ({ pressureData }) => {
             </g>
             
             {/* Home team player positions during pressure events (Blue) */}
-            {filteredHomeEvents.map((event, idx) => (
+            {homeEvents.map((event, idx) => (
               <g key={`home-${idx}`}>
                 <circle
                   cx={event.playerX}
                   cy={event.playerY}
                   r={2 + event.intensity * 2}
                   fill={getPressureColor(event.intensity, 'home', event.outcome)}
-                  stroke={selectedEvent?.event?.id === event.id ? "#1f2937" : (event.outcome === 'Success' ? "rgba(59, 130, 246, 0.8)" : "rgba(59, 130, 246, 0.4)")}
-                  strokeWidth={selectedEvent?.event?.id === event.id ? "2" : "0.8"}
+                  stroke={currentScenarioIndex === idx ? "#1f2937" : (event.outcome === 'Success' ? "rgba(59, 130, 246, 0.8)" : "rgba(59, 130, 246, 0.4)")}
+                  strokeWidth={currentScenarioIndex === idx ? "2" : "0.8"}
                   className="cursor-pointer"
-                  onClick={() => handleEventClick(event, idx)}
+                  onMouseEnter={() => setHoveredPlayer(event.player)}
+                  onMouseLeave={() => setHoveredPlayer(null)}
                 />
                 <text
                   x={event.playerX}
@@ -978,17 +969,18 @@ export const PressureAnalysisVisualization = ({ pressureData }) => {
             ))}
             
             {/* Away team player positions during pressure events (Red) */}
-            {filteredAwayEvents.map((event, idx) => (
+            {awayEvents.map((event, idx) => (
               <g key={`away-${idx}`}>
                 <circle
                   cx={event.playerX}
                   cy={event.playerY}
                   r={2 + event.intensity * 2}
                   fill={getPressureColor(event.intensity, 'away', event.outcome)}
-                  stroke={selectedEvent?.event?.id === event.id ? "#1f2937" : (event.outcome === 'Success' ? "rgba(239, 68, 68, 0.8)" : "rgba(239, 68, 68, 0.4)")}
-                  strokeWidth={selectedEvent?.event?.id === event.id ? "2" : "0.8"}
+                  stroke={currentScenarioIndex === (idx + homeEvents.length) ? "#1f2937" : (event.outcome === 'Success' ? "rgba(239, 68, 68, 0.8)" : "rgba(239, 68, 68, 0.4)")}
+                  strokeWidth={currentScenarioIndex === (idx + homeEvents.length) ? "2" : "0.8"}
                   className="cursor-pointer"
-                  onClick={() => handleEventClick(event, idx)}
+                  onMouseEnter={() => setHoveredPlayer(event.player)}
+                  onMouseLeave={() => setHoveredPlayer(null)}
                 />
                 <text
                   x={event.playerX}
@@ -1005,74 +997,32 @@ export const PressureAnalysisVisualization = ({ pressureData }) => {
             ))}
           </svg>
           
-          {/* Event Details Panel (stable click-based information) */}
-          {selectedEvent && (
-            <div className="mt-4 p-4 bg-gray-100 rounded-lg border border-gray-300">
-              <div className="flex justify-between items-start mb-2">
-                <h4 className="font-semibold text-gray-800">
-                  Pressure Event Details
-                </h4>
-                <button 
-                  onClick={handleEventClose}
-                  className="text-gray-500 hover:text-gray-700 text-xl"
-                >
-                  ×
-                </button>
-              </div>
-              <div className="grid grid-cols-2 gap-4 text-sm">
-                <div>
-                  <div className="font-medium">Player:</div>
-                  <div className={selectedEvent.event.team === 'home' ? 'text-blue-600' : 'text-red-600'}>
-                    {selectedEvent.event.player}
-                  </div>
-                </div>
-                <div>
-                  <div className="font-medium">Event Type:</div>
-                  <div>{selectedEvent.event.eventType}</div>
-                </div>
-                <div>
-                  <div className="font-medium">Time:</div>
-                  <div>{selectedEvent.event.minute}'</div>
-                </div>
-                <div>
-                  <div className="font-medium">Outcome:</div>
-                  <div className={selectedEvent.event.outcome === 'Success' ? 'text-green-600' : 'text-red-600'}>
-                    {selectedEvent.event.outcome}
-                  </div>
-                </div>
-                <div>
-                  <div className="font-medium">Player Position:</div>
-                  <div>({selectedEvent.event.playerX.toFixed(1)}, {selectedEvent.event.playerY.toFixed(1)})</div>
-                </div>
-                <div>
-                  <div className="font-medium">Team:</div>
-                  <div className={selectedEvent.event.team === 'home' ? 'text-blue-600' : 'text-red-600'}>
-                    {selectedEvent.event.team === 'home' ? 'Home' : 'Away'}
-                  </div>
-                </div>
-              </div>
+          {/* Simple hover tooltip for player names */}
+          {hoveredPlayer && (
+            <div className="absolute top-4 left-4 bg-black text-white px-2 py-1 rounded text-sm">
+              {hoveredPlayer}
             </div>
           )}
-          
-          {/* Team Statistics */}
+
+          {/* Match Statistics */}
           <div className="mt-4 grid grid-cols-2 gap-4">
             <div className="p-3 bg-blue-50 rounded-lg border border-blue-200">
               <h4 className="font-medium text-blue-800 mb-2 flex items-center gap-2">
                 <div className="w-4 h-4 bg-blue-500 rounded-full"></div>
-                Home Team ({filteredHomeEvents.length}/{homeEvents.length} events)
+                {homeEvents[0]?.team || 'Home Team'} ({homeEvents.length} events)
               </h4>
               <div className="space-y-1 text-sm">
                 <div className="flex justify-between">
                   <span>Success Rate:</span>
                   <span className="font-medium">
-                    {filteredHomeEvents.length > 0 ? Math.round((filteredHomeEvents.filter(e => e.outcome === 'Success').length / filteredHomeEvents.length) * 100) : 0}%
+                    {homeEvents.length > 0 ? Math.round((homeEvents.filter(e => e.outcome === 'Success').length / homeEvents.length) * 100) : 0}%
                   </span>
                 </div>
                 <div className="flex justify-between">
                   <span>Most Active Player:</span>
                   <span className="font-medium text-xs">
-                    {filteredHomeEvents.length > 0 ? 
-                      [...filteredHomeEvents.reduce((acc, e) => acc.set(e.player, (acc.get(e.player) || 0) + 1), new Map())]
+                    {homeEvents.length > 0 ? 
+                      [...homeEvents.reduce((acc, e) => acc.set(e.player, (acc.get(e.player) || 0) + 1), new Map())]
                         .sort((a, b) => b[1] - a[1])[0]?.[0] || 'N/A' : 'N/A'}
                   </span>
                 </div>
@@ -1082,20 +1032,20 @@ export const PressureAnalysisVisualization = ({ pressureData }) => {
             <div className="p-3 bg-red-50 rounded-lg border border-red-200">
               <h4 className="font-medium text-red-800 mb-2 flex items-center gap-2">
                 <div className="w-4 h-4 bg-red-500 rounded-full"></div>
-                Away Team ({filteredAwayEvents.length}/{awayEvents.length} events)
+                {awayEvents[0]?.team || 'Away Team'} ({awayEvents.length} events)
               </h4>
               <div className="space-y-1 text-sm">
                 <div className="flex justify-between">
                   <span>Success Rate:</span>
                   <span className="font-medium">
-                    {filteredAwayEvents.length > 0 ? Math.round((filteredAwayEvents.filter(e => e.outcome === 'Success').length / filteredAwayEvents.length) * 100) : 0}%
+                    {awayEvents.length > 0 ? Math.round((awayEvents.filter(e => e.outcome === 'Success').length / awayEvents.length) * 100) : 0}%
                   </span>
                 </div>
                 <div className="flex justify-between">
                   <span>Most Active Player:</span>
                   <span className="font-medium text-xs">
-                    {filteredAwayEvents.length > 0 ? 
-                      [...filteredAwayEvents.reduce((acc, e) => acc.set(e.player, (acc.get(e.player) || 0) + 1), new Map())]
+                    {awayEvents.length > 0 ? 
+                      [...awayEvents.reduce((acc, e) => acc.set(e.player, (acc.get(e.player) || 0) + 1), new Map())]
                         .sort((a, b) => b[1] - a[1])[0]?.[0] || 'N/A' : 'N/A'}
                   </span>
                 </div>
@@ -1105,12 +1055,12 @@ export const PressureAnalysisVisualization = ({ pressureData }) => {
 
           {/* Analysis Summary */}
           <div className="mt-4 p-3 bg-yellow-50 rounded border border-yellow-200">
-            <div className="text-sm font-medium text-yellow-800 mb-1">Player Position Analysis:</div>
+            <div className="text-sm font-medium text-yellow-800 mb-1">Match-Specific Pressure Analysis:</div>
             <div className="text-xs text-yellow-700 space-y-1">
-              <p>• <strong>Visualization shows:</strong> Where players were positioned when they applied pressure</p>
-              <p>• <strong>Click interaction:</strong> Stable interface - click any circle to see event details</p>
-              <p>• <strong>Player filter:</strong> Controls which players' events are visible on the map</p>
-              <p>• <strong>Scenario navigation:</strong> Use menu to cycle through individual pressure events</p>
+              <p>• <strong>Match Focus:</strong> Analysis specific to {selectedMatch}</p>
+              <p>• <strong>Player Positions:</strong> Shows where players were when they applied pressure</p>
+              <p>• <strong>Simple Interaction:</strong> Hover to see player names, navigate scenarios with buttons</p>
+              <p>• <strong>No Filtering:</strong> Shows all pressure events for the selected match</p>
             </div>
           </div>
         </CardContent>
