@@ -757,11 +757,6 @@ export const PressureAnalysisVisualization = ({ pressureData }) => {
     }
   };
 
-  const handleMatchChange = (match) => {
-    setSelectedMatch(match);
-    setCurrentScenarioIndex(0);
-  };
-
   return (
     <div className="space-y-4">
       {/* Reading Instructions */}
