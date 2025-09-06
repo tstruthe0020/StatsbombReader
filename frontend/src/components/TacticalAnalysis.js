@@ -107,5 +107,3 @@ const TacticalAnalysis = () => {
 };
 
 export default TacticalAnalysis;
-
-export default TacticalAnalysis;
