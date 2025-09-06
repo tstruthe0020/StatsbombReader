@@ -251,15 +251,21 @@ async def startup_event():
     """Initialize services on startup."""
     global github_client, db_client, db, spatial_engine, zone_modeler, referee_visualizer, feature_extractor, discipline_analyzer, statsbomb_loader, ANALYTICS_AVAILABLE
     
-    # Initialize GitHub client
+    # Initialize GitHub client and StatsBomb loader
     github_token = os.getenv("GITHUB_TOKEN")
     if not github_token:
         logger.error("GitHub token not found in environment variables")
         raise RuntimeError("GitHub token required - please set GITHUB_TOKEN environment variable")
     
     try:
+        from github import Github
+        from src.io_load import StatsBombLoader
+        
+        github_api = Github(github_token)
         github_client = GitHubAPIClient(github_token)
-        logger.info("GitHub client initialized successfully")
+        statsbomb_loader = StatsBombLoader(github_api)
+        
+        logger.info("✓ GitHub client and StatsBomb loader initialized successfully")
         
         # Initialize spatial analysis engine
         spatial_engine = SpatialAnalysisEngine(github_client)
