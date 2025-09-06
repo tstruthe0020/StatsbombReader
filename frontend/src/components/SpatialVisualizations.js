@@ -119,12 +119,12 @@ export const FormationBiasVisualization = ({ formationData }) => {
     <div className="space-y-6">
       {/* Reading Instructions */}
       <div className="bg-blue-50 p-4 rounded-lg border border-blue-200">
-        <h4 className="font-semibold text-blue-800 mb-2">📖 How to Read Formation Tactical Performance</h4>
+        <h4 className="font-semibold text-blue-800 mb-2">📖 How to Read Formation Performance Analysis</h4>
         <div className="text-sm text-blue-700 space-y-2">
           <p><strong>Per-Game Stats:</strong> Average decisions made by the referee when teams use each formation.</p>
           <p><strong>Foul Heatmap:</strong> Red dots show where fouls typically occur when teams play this formation.</p>
           <p><strong>Decision Types:</strong> Fouls called, cards issued, advantages played, and total games analyzed.</p>
-          <p><strong>Performance Analysis:</strong> Compare statistics across formations to identify tactical patterns in referee decisions.</p>
+          <p><strong>Formation Analysis:</strong> Compare statistics across different formation patterns to identify referee decision patterns.</p>
         </div>
       </div>
 
