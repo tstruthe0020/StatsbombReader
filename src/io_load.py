@@ -240,6 +240,67 @@ class StatsBombLoader:
         
         return df
     
+    def get_team_matches(self, team_name: str, limit: int = 10) -> pd.DataFrame:
+        """
+        Get recent matches for a specific team.
+        
+        Args:
+            team_name: Name of the team
+            limit: Maximum number of matches to return
+            
+        Returns:
+            DataFrame with team matches
+        """
+        try:
+            # Search through cached matches data
+            all_matches = []
+            
+            # Look through available competitions (hardcoded common ones)
+            competitions = [11, 2, 16, 43]  # La Liga, EPL, Champions League, World Cup
+            seasons = [4, 1, 22, 90, 44]  # Common seasons
+            
+            for comp_id in competitions:
+                for season_id in seasons:
+                    try:
+                        matches_df = self.get_matches(comp_id, season_id, use_cache=True)
+                        if not matches_df.empty:
+                            # Filter matches where team is either home or away
+                            team_matches = matches_df[
+                                (matches_df['home_team_name'] == team_name) | 
+                                (matches_df['away_team_name'] == team_name)
+                            ].copy()
+                            
+                            if not team_matches.empty:
+                                # Add which team they were (home/away) and opponent
+                                team_matches['team'] = team_name
+                                team_matches['home_away'] = team_matches.apply(
+                                    lambda row: 'home' if row['home_team_name'] == team_name else 'away', axis=1
+                                )
+                                team_matches['opponent'] = team_matches.apply(
+                                    lambda row: row['away_team_name'] if row['home_team_name'] == team_name else row['home_team_name'], axis=1
+                                )
+                                all_matches.append(team_matches)
+                    except Exception as e:
+                        logger.debug(f"No matches found for competition {comp_id}, season {season_id}: {e}")
+                        continue
+            
+            if all_matches:
+                combined_matches = pd.concat(all_matches, ignore_index=True)
+                # Sort by match_date if available, otherwise by match_id
+                if 'match_date' in combined_matches.columns:
+                    combined_matches = combined_matches.sort_values('match_date', ascending=False)
+                else:
+                    combined_matches = combined_matches.sort_values('match_id', ascending=False)
+                
+                return combined_matches.head(limit)
+            
+            logger.warning(f"No matches found for team {team_name}")
+            return pd.DataFrame()
+            
+        except Exception as e:
+            logger.error(f"Failed to get team matches for {team_name}: {e}")
+            return pd.DataFrame()
+
     def get_lineups(self, match_id: int, use_cache: bool = True) -> pd.DataFrame:
         """
         Load lineup data for a specific match.
