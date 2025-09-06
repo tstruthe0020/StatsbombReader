@@ -590,7 +590,7 @@ const MainDashboard = () => {
               <CardContent>
                 <div className="space-y-2 max-h-64 overflow-y-auto">
                   {Array.from(new Set(selectedMatches.map(match => 
-                    match.referee || 'Unknown Referee'
+                    match.referee?.name || match.referee || 'Unknown Referee'
                   ))).map((refereeName) => (
                     <div key={refereeName} className="flex items-center justify-between p-2 bg-gray-50 rounded">
                       <span className="font-medium text-sm">{refereeName}</span>
