@@ -959,8 +959,8 @@ export const PressureAnalysisVisualization = ({ pressureData }) => {
                   stroke={event.outcome === 'Success' ? "rgba(59, 130, 246, 0.8)" : "rgba(59, 130, 246, 0.4)"}
                   strokeWidth="0.8"
                   className="cursor-pointer"
-                  onMouseEnter={() => setHoveredPlayer(event.player)}
-                  onMouseLeave={() => setHoveredPlayer(null)}
+                  onMouseEnter={() => handlePlayerHover(event)}
+                  onMouseLeave={handlePlayerLeave}
                 />
                 <text
                   x={event.playerX}
