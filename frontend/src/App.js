@@ -43,6 +43,11 @@ function App() {
   const [loading, setLoading] = useState(false);
   const [error, setError] = useState(null);
   
+  // LLM Query states
+  const [queryInput, setQueryInput] = useState('');
+  const [queryHistory, setQueryHistory] = useState([]);
+  const [queryLoading, setQueryLoading] = useState(false);
+  
 
 
   useEffect(() => {
