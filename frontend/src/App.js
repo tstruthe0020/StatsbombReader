@@ -1062,7 +1062,7 @@ const MainDashboard = () => {
           </div>
         )}
       </div>
-    </div>
+    </>
   );
 };
 
