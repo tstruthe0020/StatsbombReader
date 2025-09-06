@@ -311,8 +311,14 @@ function App() {
 const MainDashboard = () => {
   const [competitions, setCompetitions] = useState([]);
   const [selectedCompetition, setSelectedCompetition] = useState(null);
+  const [selectedSeason, setSelectedSeason] = useState(null);
   const [matches, setMatches] = useState([]);
   const [selectedMatch, setSelectedMatch] = useState(null);
+  const [matchFouls, setMatchFouls] = useState(null);
+  const [matchSummary, setMatchSummary] = useState(null);
+  const [refereeDecisions, setRefereeDecisions] = useState(null);
+  const [foulTypesAnalysis, setFoulTypesAnalysis] = useState(null);
+  const [cardStats, setCardStats] = useState(null);
   const [error, setError] = useState(null);
   const [loading, setLoading] = useState(false);
 
@@ -320,6 +326,8 @@ const MainDashboard = () => {
 
   useEffect(() => {
     fetchCompetitions();
+    fetchFoulTypesAnalysis();
+    fetchCardStatistics();
   }, []);
 
   const fetchCompetitions = async () => {
