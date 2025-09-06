@@ -662,7 +662,7 @@ const MainDashboard = () => {
                     return (
                       <div key={match.match_id} className="border rounded-lg p-3">
                         <h4 className="font-semibold text-sm mb-2">
-                          {match.home_team?.home_team_name} vs {match.away_team?.away_team_name}
+                          {match.home_team?.name || match.home_team?.home_team_name} vs {match.away_team?.name || match.away_team?.away_team_name}
                         </h4>
                         {features ? (
                           <div className="grid grid-cols-2 gap-2 text-xs">
