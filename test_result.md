@@ -162,6 +162,63 @@ test_plan:
   test_all: false
   test_priority: "high_first"
 
+backend:
+  - task: "Advanced Analytics Zone Models Status Endpoint"
+    implemented: true
+    working: "NA"
+    file: "/app/backend/server.py"
+    stuck_count: 0
+    priority: "high"
+    needs_retesting: true
+    status_history:
+        - working: "NA"
+          agent: "main"
+          comment: "Added GET /api/analytics/zone-models/status endpoint to return status of zone-wise NB models including availability, total models, zones analyzed, and diagnostics."
+  - task: "Advanced Analytics Available Features Endpoint"
+    implemented: true
+    working: "NA"
+    file: "/app/backend/server.py"
+    stuck_count: 0
+    priority: "high"
+    needs_retesting: true
+    status_history:
+        - working: "NA"
+          agent: "main"
+          comment: "Added GET /api/analytics/available-features endpoint to return comprehensive list of playstyle and discipline features with descriptions including pressing_block, possession_directness, channels_delivery, transitions, shot_buildup, and discipline features."
+  - task: "Advanced Analytics Team Match Features Endpoint"
+    implemented: true
+    working: "NA"
+    file: "/app/backend/server.py"
+    stuck_count: 0
+    priority: "high"
+    needs_retesting: true
+    status_history:
+        - working: "NA"
+          agent: "main"
+          comment: "Added GET /api/analytics/team-match-features/{match_id} endpoint to extract playstyle and discipline features for both teams in a match using PlaystyleFeatureExtractor and DisciplineAnalyzer."
+  - task: "Advanced Analytics Foul Prediction Endpoint"
+    implemented: true
+    working: "NA"
+    file: "/app/backend/server.py"
+    stuck_count: 0
+    priority: "high"
+    needs_retesting: true
+    status_history:
+        - working: "NA"
+          agent: "main"
+          comment: "Added POST /api/analytics/predict-fouls endpoint to predict expected fouls per zone for a team-match scenario using zone models with team features payload including z_directness, z_ppda, referee_name, etc."
+  - task: "Advanced Analytics Referee Slopes Endpoint"
+    implemented: true
+    working: "NA"
+    file: "/app/backend/server.py"
+    stuck_count: 0
+    priority: "high"
+    needs_retesting: true
+    status_history:
+        - working: "NA"
+          agent: "main"
+          comment: "Added GET /api/analytics/zone-models/referee-slopes/{feature} endpoint to get referee-specific slopes for playstyle features like 'directness' with summary statistics and significance testing."
+
 agent_communication:
     - agent: "main"
       message: "Implemented complete LLM integration using emergentintegrations library with GPT-4. Backend endpoint /api/query processes natural language queries with comprehensive soccer data context. Frontend includes AI Chat tab with input interface, sample questions, and query history. Ready for testing to verify end-to-end functionality."
@@ -171,3 +228,5 @@ agent_communication:
       message: "Frontend LLM integration testing completed with FULL SUCCESS. All 8 primary test areas passed: 1) AI Chat tab navigation with MessageCircle icon ✅, 2) Query input interface with proper enable/disable logic ✅, 3) All 6 sample questions functional ✅, 4) LLM query processing via /api/query endpoint ✅, 5) Query history display with timestamps and model badges ✅, 6) Purple/pink gradient UI theme ✅, 7) Integration with existing tabs (Overview, Competitions, Match Analysis) ✅, 8) Error handling and responsive design ✅. Additional features verified: Enter key submission, loading spinners, responsive design across viewports, no console errors. The LLM integration frontend is production-ready and meets all requirements from the review request."
     - agent: "main"
       message: "Fixed critical CardDescription import issue causing Spatial Foul Context visualization to crash. Successfully completed all spatial analysis visualizations with comprehensive descriptions: 1) Formation Bias Analysis - includes field diagrams, bias scoring explanations, color legends for favorable/unfavorable treatment, 2) Referee Positioning - features heatmaps, positioning performance guides, optimal vs actual position analysis, 3) Spatial Foul Context - displays pressure indicators, player density visualization, field context explanations, 4) Pressure Analysis - shows situation maps, pressure categories, and pattern analysis guides. All visualizations now include detailed reading instructions, interactive color keys, and user-friendly interpretive guides making the complex 360° data accessible to users."
+    - agent: "main"
+      message: "Added new advanced analytics endpoints to FastAPI backend: 1) GET /api/analytics/zone-models/status - returns status of zone-wise NB models, 2) GET /api/analytics/available-features - returns comprehensive list of playstyle and discipline features with descriptions, 3) GET /api/analytics/team-match-features/{match_id} - extracts team features for a match, 4) POST /api/analytics/predict-fouls - predicts fouls using team features payload, 5) GET /api/analytics/zone-models/referee-slopes/{feature} - gets referee slopes for features like 'directness'. All endpoints include proper error handling for when analytics modules are not available. Ready for comprehensive testing of both success scenarios and error cases."
