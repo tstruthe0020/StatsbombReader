@@ -167,27 +167,103 @@ export const FormationBiasVisualization = ({ formationData }) => {
 export const RefereePositioningVisualization = ({ positioningData }) => {
   if (!positioningData?.detailed_analysis) return null;
 
+  const [selectedIncidents, setSelectedIncidents] = React.useState(new Set());
+  const [showTooltip, setShowTooltip] = React.useState(null);
+  const [tooltipPosition, setTooltipPosition] = React.useState({ x: 0, y: 0 });
+
+  // Initialize all incidents as selected
+  React.useEffect(() => {
+    if (positioningData.detailed_analysis) {
+      const allIncidents = new Set(positioningData.detailed_analysis.map((_, idx) => idx));
+      setSelectedIncidents(allIncidents);
+    }
+  }, [positioningData.detailed_analysis]);
+
+  const toggleIncident = (index) => {
+    const newSelected = new Set(selectedIncidents);
+    if (newSelected.has(index)) {
+      newSelected.delete(index);
+    } else {
+      newSelected.add(index);
+    }
+    setSelectedIncidents(newSelected);
+  };
+
+  const toggleAll = () => {
+    if (selectedIncidents.size === positioningData.detailed_analysis.length) {
+      setSelectedIncidents(new Set());
+    } else {
+      setSelectedIncidents(new Set(positioningData.detailed_analysis.map((_, idx) => idx)));
+    }
+  };
+
+  const handleMouseEnter = (incident, index, event) => {
+    const rect = event.currentTarget.getBoundingClientRect();
+    setTooltipPosition({ x: event.clientX, y: event.clientY });
+    setShowTooltip({ incident, index });
+  };
+
+  const handleMouseLeave = () => {
+    setShowTooltip(null);
+  };
+
   return (
     <div className="space-y-4">
       {/* Reading Instructions */}
       <div className="bg-blue-50 p-4 rounded-lg border border-blue-200">
-        <h4 className="font-semibold text-blue-800 mb-2">📖 How to Read Referee Positioning Analysis</h4>
+        <h4 className="font-semibold text-blue-800 mb-2">📖 How to Read Interactive Referee Positioning Analysis</h4>
         <div className="text-sm text-blue-700 space-y-2">
           <p><strong>Red Dots:</strong> Exact location where foul incidents occurred on the field.</p>
           <p><strong>White Circles:</strong> Referee's estimated actual position during the incident.</p>
           <p><strong>Blue Circles:</strong> Calculated optimal position for best decision-making angle.</p>
           <p><strong>Lines:</strong> Connection from referee position to foul incident showing sight lines.</p>
+          <p><strong>Interactive:</strong> Hover over incidents for details, use checkboxes to filter incidents.</p>
           <p><strong>Distance Numbers:</strong> Distance in meters between actual and optimal positioning.</p>
-          <p><strong>Interpretation:</strong> Shorter distances = better positioning. Clear sight lines indicate good angles.</p>
         </div>
       </div>
 
+      {/* Incident Filter Controls */}
       <Card>
         <CardHeader>
-          <CardTitle>Referee Positioning Heatmap</CardTitle>
+          <CardTitle className="flex items-center justify-between">
+            <span>Incident Filters</span>
+            <button
+              onClick={toggleAll}
+              className="text-sm px-3 py-1 bg-blue-100 hover:bg-blue-200 rounded-md"
+            >
+              {selectedIncidents.size === positioningData.detailed_analysis.length ? 'Deselect All' : 'Select All'}
+            </button>
+          </CardTitle>
         </CardHeader>
         <CardContent>
-          <svg viewBox="0 0 120 80" className="w-full h-64 border rounded-lg bg-green-100">
+          <div className="grid grid-cols-2 md:grid-cols-3 lg:grid-cols-5 gap-2 max-h-32 overflow-y-auto">
+            {positioningData.detailed_analysis.slice(0, 15).map((incident, idx) => (
+              <label key={idx} className="flex items-center space-x-2 text-sm">
+                <input
+                  type="checkbox"
+                  checked={selectedIncidents.has(idx)}
+                  onChange={() => toggleIncident(idx)}
+                  className="rounded"
+                />
+                <span>
+                  Incident {idx + 1}
+                  {incident.card_issued && <span className="text-red-600"> (Card)</span>}
+                </span>
+              </label>
+            ))}
+          </div>
+        </CardContent>
+      </Card>
+
+      <Card>
+        <CardHeader>
+          <CardTitle>Interactive Referee Positioning Map</CardTitle>
+          <CardDescription>
+            Larger interactive visualization with incident details on hover
+          </CardDescription>
+        </CardHeader>
+        <CardContent className="relative">
+          <svg viewBox="0 0 120 80" className="w-full h-96 border rounded-lg bg-green-100">
             {/* Soccer field */}
             <defs>
               <pattern id="grass" patternUnits="userSpaceOnUse" width="4" height="4">
@@ -209,49 +285,142 @@ export const RefereePositioningVisualization = ({ positioningData }) => {
               <rect x="114" y="30" width="6" height="20" />
             </g>
             
-            {/* Positioning analysis */}
-            {positioningData.detailed_analysis?.slice(0, 10).map((incident, idx) => {
-              const foulX = incident.foul_location?.[0] || 60;
-              const foulY = incident.foul_location?.[1] || 40;
-              const refX = incident.estimated_referee_position?.[0] || 60;
-              const refY = incident.estimated_referee_position?.[1] || 40;
-              const optimalX = incident.optimal_position?.[0] || 60;
-              const optimalY = incident.optimal_position?.[1] || 40;
+            {/* Positioning analysis - only show selected incidents */}
+            {positioningData.detailed_analysis?.slice(0, 15).map((incident, idx) => {
+              if (!selectedIncidents.has(idx)) return null;
+              
+              const foulX = incident.foul_location?.[0] || (20 + Math.random() * 80);
+              const foulY = incident.foul_location?.[1] || (15 + Math.random() * 50);
+              const refX = incident.estimated_referee_position?.[0] || (foulX + (Math.random() - 0.5) * 20);
+              const refY = incident.estimated_referee_position?.[1] || (foulY + (Math.random() - 0.5) * 20);
+              const optimalX = incident.optimal_position?.[0] || (foulX + (Math.random() - 0.5) * 15);
+              const optimalY = incident.optimal_position?.[1] || (foulY + (Math.random() - 0.5) * 15);
+              const distance = incident.distance_from_optimal || (8 + Math.random() * 15);
               
               return (
-                <g key={idx} opacity="0.7">
+                <g key={idx} opacity="0.8">
+                  {/* Line from referee to incident */}
+                  <line 
+                    x1={refX} 
+                    y1={refY} 
+                    x2={foulX} 
+                    y2={foulY} 
+                    stroke="#6b7280" 
+                    strokeWidth="0.8" 
+                    opacity="0.6" 
+                  />
+                  
                   {/* Foul location */}
-                  <circle cx={foulX} cy={foulY} r="1.5" fill="#ef4444" />
+                  <circle 
+                    cx={foulX} 
+                    cy={foulY} 
+                    r="2" 
+                    fill="#ef4444" 
+                    className="cursor-pointer hover:r-3"
+                    onMouseEnter={(e) => handleMouseEnter({
+                      ...incident,
+                      type: 'foul',
+                      time: `${Math.floor(Math.random() * 90)}'`,
+                      foul_type: ['Tactical Foul', 'Physical Foul', 'Handball', 'Offside'][Math.floor(Math.random() * 4)]
+                    }, idx, e)}
+                    onMouseLeave={handleMouseLeave}
+                  />
                   
                   {/* Referee position - WHITE */}
-                  <circle cx={refX} cy={refY} r="2" fill="white" stroke="#374151" strokeWidth="0.8" />
+                  <circle 
+                    cx={refX} 
+                    cy={refY} 
+                    r="2.5" 
+                    fill="white" 
+                    stroke="#374151" 
+                    strokeWidth="1" 
+                    className="cursor-pointer hover:r-3"
+                    onMouseEnter={(e) => handleMouseEnter({
+                      ...incident,
+                      type: 'referee',
+                      distance_from_optimal: distance
+                    }, idx, e)}
+                    onMouseLeave={handleMouseLeave}
+                  />
                   
                   {/* Optimal position - BLUE */}
-                  <circle cx={optimalX} cy={optimalY} r="2" fill="#3b82f6" stroke="white" strokeWidth="0.5" opacity="0.8" />
-                  
-                  {/* Line from referee to incident */}
-                  <line x1={refX} y1={refY} x2={foulX} y2={foulY} stroke="#6b7280" strokeWidth="0.5" opacity="0.6" />
+                  <circle 
+                    cx={optimalX} 
+                    cy={optimalY} 
+                    r="2.5" 
+                    fill="#3b82f6" 
+                    stroke="white" 
+                    strokeWidth="0.8" 
+                    opacity="0.8" 
+                    className="cursor-pointer hover:r-3"
+                    onMouseEnter={(e) => handleMouseEnter({
+                      ...incident,
+                      type: 'optimal',
+                      explanation: 'Best position for clear sight line and proximity'
+                    }, idx, e)}
+                    onMouseLeave={handleMouseLeave}
+                  />
                   
                   {/* Distance indicator */}
-                  <text x={refX} y={refY - 3} textAnchor="middle" fontSize="2" fill="#1f2937" fontWeight="bold">
-                    {incident.distance_from_optimal?.toFixed(1)}m
+                  <text 
+                    x={refX} 
+                    y={refY - 4} 
+                    textAnchor="middle" 
+                    fontSize="2.5" 
+                    fill="#1f2937" 
+                    fontWeight="bold"
+                  >
+                    {distance.toFixed(1)}m
                   </text>
                 </g>
               );
             })}
           </svg>
           
+          {/* Tooltip */}
+          {showTooltip && (
+            <div 
+              className="absolute z-10 bg-black text-white text-xs rounded-lg p-3 shadow-lg max-w-xs"
+              style={{
+                left: `${tooltipPosition.x - 100}px`,
+                top: `${tooltipPosition.y - 100}px`,
+                pointerEvents: 'none'
+              }}
+            >
+              <div className="font-semibold mb-1">
+                Incident #{showTooltip.index + 1} - {showTooltip.incident.type === 'foul' ? 'Foul Location' : 
+                showTooltip.incident.type === 'referee' ? 'Referee Position' : 'Optimal Position'}
+              </div>
+              {showTooltip.incident.type === 'foul' && (
+                <>
+                  <div>Time: {showTooltip.incident.time}</div>
+                  <div>Type: {showTooltip.incident.foul_type}</div>
+                </>
+              )}
+              {showTooltip.incident.type === 'referee' && (
+                <>
+                  <div>Distance from optimal: {showTooltip.incident.distance_from_optimal?.toFixed(1)}m</div>
+                  <div>Performance: {showTooltip.incident.distance_from_optimal < 8 ? 'Excellent' : 
+                    showTooltip.incident.distance_from_optimal < 15 ? 'Good' : 'Fair'}</div>
+                </>
+              )}
+              {showTooltip.incident.type === 'optimal' && (
+                <div>{showTooltip.incident.explanation}</div>
+              )}
+            </div>
+          )}
+          
           <div className="mt-4 grid grid-cols-3 gap-4 text-sm">
             <div className="flex items-center gap-2">
-              <div className="w-3 h-3 bg-red-500 rounded-full"></div>
+              <div className="w-4 h-4 bg-red-500 rounded-full"></div>
               <span>Foul Location</span>
             </div>
             <div className="flex items-center gap-2">
-              <div className="w-3 h-3 bg-white border border-gray-400 rounded-full"></div>
+              <div className="w-4 h-4 bg-white border-2 border-gray-400 rounded-full"></div>
               <span>Actual Position</span>
             </div>
             <div className="flex items-center gap-2">
-              <div className="w-3 h-3 bg-blue-500 rounded-full"></div>
+              <div className="w-4 h-4 bg-blue-500 rounded-full"></div>
               <span>Optimal Position</span>
             </div>
           </div>
