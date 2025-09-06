@@ -1138,14 +1138,14 @@ export const PressureAnalysisVisualization = ({ pressureData }) => {
             </div>
           </div>
 
-          {/* Event Analysis */}
+          {/* Analysis Summary */}
           <div className="mt-4 p-3 bg-yellow-50 rounded border border-yellow-200">
-            <div className="text-sm font-medium text-yellow-800 mb-1">Interactive Event Analysis:</div>
+            <div className="text-sm font-medium text-yellow-800 mb-1">Player Position Analysis:</div>
             <div className="text-xs text-yellow-700 space-y-1">
-              <p>• Filter by specific players to analyze individual pressure contributions</p>
-              <p>• Hover over events for detailed information (player, time, success rate)</p>
-              <p>• Event distribution shows tactical pressing patterns by team</p>
-              <p>• Success rates indicate effectiveness of different players' pressure actions</p>
+              <p>• <strong>Visualization shows:</strong> Where players were positioned when they applied pressure</p>
+              <p>• <strong>Click interaction:</strong> Stable interface - click any circle to see event details</p>
+              <p>• <strong>Player filter:</strong> Controls which players' events are visible on the map</p>
+              <p>• <strong>Scenario navigation:</strong> Use menu to cycle through individual pressure events</p>
             </div>
           </div>
         </CardContent>
