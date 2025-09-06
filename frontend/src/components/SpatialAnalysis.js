@@ -387,6 +387,21 @@ const SpatialAnalysis = () => {
 
     return (
       <div className="space-y-6">
+        {/* Pressure Situations Visualization */}
+        {analysisData.has_360_data && (
+          <Card>
+            <CardHeader>
+              <CardTitle>Pressure Situations Map</CardTitle>
+              <CardDescription>
+                Visual representation of high, medium, and low pressure foul incidents
+              </CardDescription>
+            </CardHeader>
+            <CardContent>
+              <PressureAnalysisVisualization pressureData={analysisData} />
+            </CardContent>
+          </Card>
+        )}
+
         {/* Pressure Distribution */}
         <Card>
           <CardHeader>
