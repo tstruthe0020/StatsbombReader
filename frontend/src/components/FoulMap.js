@@ -5,7 +5,7 @@ import { Badge } from './ui/badge';
 import { Alert, AlertDescription } from './ui/alert';
 import { MapPin, AlertTriangle, Clock, User } from 'lucide-react';
 
-const FoulMap = ({ matchId }) => {
+const FoulMap = ({ matchId, homeTeam, awayTeam }) => {
   const [fouls, setFouls] = useState([]);
   const [loading, setLoading] = useState(false);
   const [error, setError] = useState(null);
