@@ -158,6 +158,111 @@ class RealtimeTacticalAnalyzer:
             logger.error(f"Failed to analyze team {team_name} tactics: {e}")
             return None
     
+    def analyze_match_tactics_detailed(self, events_df: pd.DataFrame, match_info: Dict) -> Optional[Dict]:
+        """
+        Analyze tactical archetypes with detailed categorization breakdown.
+        
+        Args:
+            events_df: Match events DataFrame
+            match_info: Match metadata
+            
+        Returns:
+            Dict with detailed tactical analysis including all categorization stats
+        """
+        try:
+            # Get basic tactical analysis first
+            basic_analysis = self.analyze_match_tactics(events_df, match_info)
+            if not basic_analysis or not basic_analysis.get('success'):
+                return None
+            
+            # Extract team names
+            home_team = match_info.get('home_team_name') or match_info.get('home_team')
+            away_team = match_info.get('away_team_name') or match_info.get('away_team')
+            
+            # Enhance with detailed stats for both teams
+            detailed_teams = []
+            
+            for team_name, opponent_name, home_away in [
+                (home_team, away_team, 'home'),
+                (away_team, home_team, 'away')
+            ]:
+                detailed_team = self._analyze_team_tactics_detailed(
+                    events_df, team_name, opponent_name, home_away, match_info
+                )
+                if detailed_team:
+                    detailed_teams.append(detailed_team)
+            
+            # Build detailed response
+            detailed_analysis = {
+                **basic_analysis,
+                "teams": detailed_teams,
+                "categorization_thresholds": self.config.get('archetype_thresholds', {})
+            }
+            
+            return detailed_analysis
+            
+        except Exception as e:
+            logger.error(f"Failed to analyze detailed match tactics: {e}")
+            return None
+    
+    def _analyze_team_tactics_detailed(self, events_df: pd.DataFrame, team_name: str, 
+                                     opponent_name: str, home_away: str, match_info: Dict) -> Optional[Dict]:
+        """Analyze detailed tactical profile for a single team."""
+        
+        try:
+            # Get basic team analysis
+            basic_team = self._analyze_team_tactics(events_df, team_name, opponent_name, home_away, match_info)
+            if not basic_team:
+                return None
+            
+            # Extract all raw features for detailed display
+            playstyle_features = self.feature_extractor.extract_team_match_features(
+                events_df, team_name, opponent_name
+            )
+            discipline_features = self.discipline_analyzer.extract_team_match_discipline(
+                events_df, team_name, opponent_name
+            )
+            
+            # Combine all detailed stats
+            detailed_stats = {
+                **playstyle_features,
+                **discipline_features
+            }
+            
+            # Extract categorization results
+            team_features = {
+                'team': team_name,
+                'opponent': opponent_name,
+                'home_away': home_away,
+                **detailed_stats
+            }
+            
+            team_df = pd.DataFrame([team_features])
+            tagged_df = attach_style_tags(team_df, self.config)
+            team_row = tagged_df.iloc[0]
+            
+            categorization_breakdown = {
+                "pressing": team_row.get("cat_pressing"),
+                "block": team_row.get("cat_block"),
+                "possession_directness": team_row.get("cat_possess_dir"),
+                "width": team_row.get("cat_width"),
+                "transition": team_row.get("cat_transition"),
+                "overlays": list(team_row.get("cat_overlays", [])) if team_row.get("cat_overlays") is not None else []
+            }
+            
+            # Build enhanced team data
+            detailed_team = {
+                **basic_team,
+                "detailed_stats": detailed_stats,
+                "categorization_breakdown": categorization_breakdown
+            }
+            
+            return detailed_team
+            
+        except Exception as e:
+            logger.error(f"Failed to analyze detailed team {team_name} tactics: {e}")
+            return None
+
     def _analyze_tactical_contrast(self, teams_data: list) -> Dict:
         """Analyze tactical contrast between teams."""
         if len(teams_data) != 2:
