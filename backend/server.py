@@ -249,7 +249,7 @@ class QueryRequest(BaseModel):
 @app.on_event("startup")
 async def startup_event():
     """Initialize services on startup."""
-    global github_client, db_client, db, spatial_engine, zone_modeler, referee_visualizer, feature_extractor, discipline_analyzer
+    global github_client, db_client, db, spatial_engine, zone_modeler, referee_visualizer, feature_extractor, discipline_analyzer, ANALYTICS_AVAILABLE
     
     # Initialize GitHub client
     github_token = os.getenv("GITHUB_TOKEN")
