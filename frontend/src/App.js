@@ -299,8 +299,28 @@ const MainDashboard = () => {
     const [analyticsLoading, setAnalyticsLoading] = useState(false);
     const [selectedMatches, setSelectedMatches] = useState([]);
     const [matchFeatures, setMatchFeatures] = useState({});
-    const [selectedFeature, setSelectedFeature] = useState('cards_per_match');
+    const [selectedFeature, setSelectedFeature] = useState('directness');
     const [refereeSlopes, setRefereeSlopes] = useState(null);
+
+    const handleFeatureChange = (feature) => {
+      setSelectedFeature(feature);
+      fetchRefereeSlopes(feature);
+    };
+
+    const fetchRefereeSlopes = async (feature) => {
+      try {
+        setAnalyticsLoading(true);
+        const response = await axios.get(`${API_BASE_URL}/api/analytics/zone-models/referee-slopes/${feature}`);
+        if (response.data && response.data.success) {
+          setRefereeSlopes(response.data.data);
+        }
+      } catch (err) {
+        console.error('Failed to fetch referee slopes:', err);
+        setRefereeSlopes(null);
+      } finally {
+        setAnalyticsLoading(false);
+      }
+    };
 
     // Load analytics status on component mount
     useEffect(() => {
