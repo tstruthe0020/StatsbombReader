@@ -13,17 +13,20 @@ import { Activity, TrendingUp, Users, AlertTriangle, BarChart3, Target, Clock, M
 import RefereeHeatmap from './components/RefereeHeatmap';
 import SpatialAnalysis from './components/SpatialAnalysis';
 
-// Import referee discipline module
-import { 
-  isRefDisciplineEnabled, 
-  OverviewPage,
-  TeamsPage,
-  TeamDetailPage,
-  RefereesPage,
-  RefDetailPage,
-  LabPage,
-  ReportsPage
-} from './modules/refDiscipline';
+// Import referee discipline module - temporarily disabled for testing
+// import { 
+//   isRefDisciplineEnabled, 
+//   OverviewPage,
+//   TeamsPage,
+//   TeamDetailPage,
+//   RefereesPage,
+//   RefDetailPage,
+//   LabPage,
+//   ReportsPage
+// } from './modules/refDiscipline';
+
+// Temporary mock function for testing
+const isRefDisciplineEnabled = () => true;
 import './App.css';
 
 const API_BASE_URL = process.env.REACT_APP_BACKEND_URL || '';
