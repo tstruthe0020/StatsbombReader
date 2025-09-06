@@ -503,8 +503,8 @@ const MainDashboard = () => {
                       <CardContent className="p-3">
                         <div className="text-center">
                           <p className="font-medium text-sm">
-                            {match.home_team?.home_team_name || 'Home'} vs{' '}
-                            {match.away_team?.away_team_name || 'Away'}
+                            {match.home_team?.name || match.home_team?.home_team_name || 'Home'} vs{' '}
+                            {match.away_team?.name || match.away_team?.away_team_name || 'Away'}
                           </p>
                           <p className="text-xs text-gray-500 mt-1">{match.match_date}</p>
                           <div className="flex justify-center gap-1 mt-1">
