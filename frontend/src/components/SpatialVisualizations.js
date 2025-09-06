@@ -763,39 +763,14 @@ export const PressureAnalysisVisualization = ({ pressureData }) => {
       <div className="bg-blue-50 p-4 rounded-lg border border-blue-200">
         <h4 className="font-semibold text-blue-800 mb-2">📖 How to Read Match Pressure Events</h4>
         <div className="text-sm text-blue-700 space-y-2">
-          <p><strong>What You're Seeing:</strong> Player positions at the moment they applied pressure during the selected match.</p>
-          <p><strong>Blue Circles:</strong> Home team player positions when they made pressure events.</p>
-          <p><strong>Red Circles:</strong> Away team player positions when they made pressure events.</p>
+          <p><strong>What You're Seeing:</strong> Player positions during pressure events from Real Madrid vs Barcelona - El Clasico.</p>
+          <p><strong>Blue Circles:</strong> Real Madrid player positions when they made pressure events.</p>
+          <p><strong>Red Circles:</strong> Barcelona player positions when they made pressure events.</p>
           <p><strong>Hover for Player Name:</strong> Simply hover over any circle to see which player it was.</p>
           <p><strong>Scenario Navigation:</strong> Use Previous/Next to cycle through individual pressure events.</p>
-          <p><strong>No Click Actions:</strong> Circles are for viewing only - no click functionality.</p>
+          <p><strong>Yellow Ring:</strong> Shows the currently selected pressure event.</p>
         </div>
       </div>
-
-      {/* Match Selection */}
-      <Card>
-        <CardHeader>
-          <CardTitle className="text-base">Select Match for Analysis</CardTitle>
-          <CardDescription>Choose a specific match to see pressure events</CardDescription>
-        </CardHeader>
-        <CardContent>
-          <div className="space-y-2">
-            {matches.map((match) => (
-              <button
-                key={match}
-                onClick={() => handleMatchChange(match)}
-                className={`w-full text-left p-3 rounded-md border transition-colors ${
-                  selectedMatch === match
-                    ? 'bg-blue-500 text-white border-blue-500'
-                    : 'bg-white text-gray-700 border-gray-300 hover:border-blue-300'
-                }`}
-              >
-                {match}
-              </button>
-            ))}
-          </div>
-        </CardContent>
-      </Card>
 
       {/* Pressure Scenario Navigation Menu */}
       <Card>
