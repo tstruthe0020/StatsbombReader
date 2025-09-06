@@ -2514,7 +2514,7 @@ async def get_match_tactical_analysis(match_id: int):
         
         venue = venues[match_id % len(venues)]
         referee = referees[match_id % len(referees)]
-        match_date = f"2019-0{(match_id % 12) + 1:02d}-{(match_id % 28) + 1:02d}"
+        match_date = f"2019-{(match_id % 12) + 1:02d}-{(match_id % 28) + 1:02d}"
         
         # Build fallback tactical data
         tactical_data = {
