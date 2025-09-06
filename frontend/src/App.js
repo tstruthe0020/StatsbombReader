@@ -294,23 +294,24 @@ const MainDashboard = () => {
   );
 
   return (
-    <div className="container mx-auto px-4 py-8">
-      {/* Header */}
-      <div className="text-center mb-8">
-        <h1 className="text-4xl font-bold bg-gradient-to-r from-green-600 to-blue-600 bg-clip-text text-transparent mb-4">
-          ⚽ Soccer Foul & Referee Analytics
-        </h1>
-        <p className="text-lg text-gray-600 max-w-2xl mx-auto">
-          Advanced analysis of soccer fouls and referee decisions using StatsBomb open data
-        </p>
-      </div>
+    <>
+      <div className="container mx-auto px-4 py-8">
+        {/* Header */}
+        <div className="text-center mb-8">
+          <h1 className="text-4xl font-bold bg-gradient-to-r from-green-600 to-blue-600 bg-clip-text text-transparent mb-4">
+            ⚽ Soccer Foul & Referee Analytics
+          </h1>
+          <p className="text-lg text-gray-600 max-w-2xl mx-auto">
+            Advanced analysis of soccer fouls and referee decisions using StatsBomb open data
+          </p>
+        </div>
 
-      {error && (
-        <Alert className="mb-6 border-red-200 bg-red-50">
-          <AlertTriangle className="h-4 w-4 text-red-600" />
-          <AlertDescription className="text-red-800">{error}</AlertDescription>
-        </Alert>
-      )}
+        {error && (
+          <Alert className="mb-6 border-red-200 bg-red-50">
+            <AlertTriangle className="h-4 w-4 text-red-600" />
+            <AlertDescription className="text-red-800">{error}</AlertDescription>
+          </Alert>
+        )}
 
       <Tabs defaultValue="overview" className="space-y-6">
         <TabsList className={`grid w-full ${isRefDisciplineEnabled() ? 'grid-cols-9' : 'grid-cols-8'} bg-white shadow-sm`}>
