@@ -671,7 +671,7 @@ const MainDashboard = () => {
                             <div className="col-span-2">
                               <Badge className="text-xs bg-blue-500">Match {match.match_id}</Badge>
                               {match.referee && (
-                                <Badge className="text-xs bg-green-500 ml-1">Ref: {match.referee}</Badge>
+                                <Badge className="text-xs bg-green-500 ml-1">Ref: {match.referee?.name || match.referee}</Badge>
                               )}
                             </div>
                           </div>
