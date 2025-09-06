@@ -357,8 +357,8 @@ const MainDashboard = () => {
 
     const fetchMatchFeatures = async (matchId) => {
       try {
-        const response = await axios.get(`${API_BASE_URL}/api/matches/${matchId}/features`);
-        if (response.data.success) {
+        const response = await axios.get(`${API_BASE_URL}/api/analytics/team-match-features/${matchId}`);
+        if (response.data && response.data.success) {
           setMatchFeatures(prev => ({
             ...prev,
             [matchId]: response.data.data
@@ -366,6 +366,56 @@ const MainDashboard = () => {
         }
       } catch (err) {
         console.error('Failed to fetch match features:', err);
+      }
+    };
+
+    const handleTeamAnalysis = async (teamName) => {
+      try {
+        setAnalyticsLoading(true);
+        console.log('Analyzing team:', teamName);
+        
+        // Get all matches for this team
+        const teamMatches = selectedMatches.filter(m => 
+          (m.home_team?.name || m.home_team?.home_team_name) === teamName || 
+          (m.away_team?.name || m.away_team?.away_team_name) === teamName
+        );
+        
+        // Fetch features for all team matches
+        const promises = teamMatches.map(match => fetchMatchFeatures(match.match_id));
+        await Promise.all(promises);
+        
+        console.log(`Team analysis completed for ${teamName}: ${teamMatches.length} matches analyzed`);
+        alert(`✅ Team Analysis Complete!\n\n${teamName}: ${teamMatches.length} matches analyzed\nCheck the Match Features Analysis section for details.`);
+        
+      } catch (err) {
+        console.error('Team analysis failed:', err);
+        alert('❌ Team analysis failed. Please try again.');
+      } finally {
+        setAnalyticsLoading(false);
+      }
+    };
+
+    const handleRefereeAnalysis = async (refereeName) => {
+      try {
+        setAnalyticsLoading(true);
+        console.log('Analyzing referee bias for:', refereeName);
+        
+        // Get all matches for this referee
+        const refereeMatches = selectedMatches.filter(m => 
+          (m.referee?.name || m.referee || 'Unknown Referee') === refereeName
+        );
+        
+        // Fetch referee slopes for current feature
+        await fetchRefereeSlopes(selectedFeature);
+        
+        console.log(`Referee bias analysis completed for ${refereeName}: ${refereeMatches.length} matches`);
+        alert(`⚖️ Referee Bias Analysis Complete!\n\n${refereeName}: ${refereeMatches.length} matches\nFeature: ${selectedFeature}\nCheck the Referee Effects Analysis section for bias metrics.`);
+        
+      } catch (err) {
+        console.error('Referee analysis failed:', err);
+        alert('❌ Referee analysis failed. Please try again.');
+      } finally {
+        setAnalyticsLoading(false);
       }
     };
 
