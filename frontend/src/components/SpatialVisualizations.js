@@ -964,9 +964,9 @@ export const PressureAnalysisVisualization = ({ pressureData }) => {
 
       <Card>
         <CardHeader>
-          <CardTitle>Interactive Team Pressure Events Map</CardTitle>
+          <CardTitle>Player Positions During Pressure Events</CardTitle>
           <CardDescription>
-            Pressure events from StatsBomb match event data with player filtering
+            Where players were positioned when they applied pressure (click on circles for details)
           </CardDescription>
         </CardHeader>
         <CardContent className="relative">
