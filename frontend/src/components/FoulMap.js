@@ -346,8 +346,10 @@ const FoulMap = ({ matchId, homeTeam, awayTeam }) => {
             <div className="text-xs text-gray-600">Red Cards</div>
           </div>
           <div className="text-center p-2 bg-blue-100 rounded">
-            <div className="font-semibold">{Array.isArray(fouls) ? `${fouls.filter(f => f.team === 'Barcelona').length}/${fouls.filter(f => f.team === 'Deportivo Alavés').length}` : '0/0'}</div>
-            <div className="text-xs text-gray-600">Barca/Alavés</div>
+            <div className="font-semibold">{Array.isArray(fouls) ? `${fouls.filter(f => f.team === homeTeam || f.team.includes(homeTeam?.split(' ')[0] || '')).length}/${fouls.filter(f => f.team === awayTeam || f.team.includes(awayTeam?.split(' ')[0] || '')).length}` : '0/0'}</div>
+            <div className="text-xs text-gray-600">
+              {homeTeam && awayTeam ? `${homeTeam.split(' ')[0]}/${awayTeam.split(' ')[0]}` : 'Home/Away'}
+            </div>
           </div>
         </div>
       </CardContent>
