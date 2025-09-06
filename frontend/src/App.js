@@ -943,8 +943,8 @@ const MainDashboard = () => {
                         <CardContent className="p-4">
                           <div className="text-center">
                             <p className="font-semibold text-sm">
-                              {match.home_team?.home_team_name || 'Home Team'} vs{' '}
-                              {match.away_team?.away_team_name || 'Away Team'}
+                              {match.home_team?.name || match.home_team?.home_team_name || 'Home Team'} vs{' '}
+                              {match.away_team?.name || match.away_team?.away_team_name || 'Away Team'}
                             </p>
                             <p className="text-xs text-gray-500 mt-1">{match.match_date}</p>
                             <Badge variant="secondary" className="text-xs mt-2">
