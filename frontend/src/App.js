@@ -786,6 +786,11 @@ function App() {
             <SpatialAnalysis />
           </TabsContent>
 
+          {/* NEW: Referee-Playstyle Analysis Tab */}
+          <TabsContent value="referee-playstyle" className="space-y-6">
+            <RefereePlaystyleAnalysis />
+          </TabsContent>
+
           {/* NEW: LLM Query Tab */}
           <TabsContent value="llm-query" className="space-y-6">
             <div className="text-center mb-8">
