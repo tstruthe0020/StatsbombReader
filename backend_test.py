@@ -715,6 +715,38 @@ class SoccerAnalyticsAPITester:
         except Exception as e:
             self.log_test(f"Advanced Analytics Referee Slopes (Invalid Feature)", False, str(e))
 
+    def test_referee_heatmap_endpoint(self):
+        """Test referee heatmap endpoint"""
+        try:
+            # Test with a known referee ID
+            referee_id = "ref_001"
+            response = requests.get(f"{self.base_url}/api/analytics/referees/{referee_id}/heatmap", timeout=15)
+            success = response.status_code == 200
+            
+            if success:
+                data = response.json()
+                has_success_key = "success" in data and data["success"]
+                has_data = "data" in data
+                if has_data:
+                    heatmap_data = data["data"]
+                    required_fields = ["referee_id", "referee_name", "total_fouls", "heatmap_zones", "field_dimensions"]
+                    has_required_fields = all(key in heatmap_data for key in required_fields)
+                    has_zones = isinstance(heatmap_data.get("heatmap_zones", []), list) and len(heatmap_data.get("heatmap_zones", [])) > 0
+                    success = has_success_key and has_required_fields and has_zones
+                    details = f"Status: {response.status_code}, Referee: {heatmap_data.get('referee_name', 'N/A')}, Zones: {len(heatmap_data.get('heatmap_zones', []))}"
+                else:
+                    success = False
+                    details = "Missing data field"
+            else:
+                details = f"Status: {response.status_code}, Response: {response.text[:200]}"
+                
+            self.log_test("Referee Heatmap Endpoint", success, details)
+            return success, response.json() if success else {}
+            
+        except Exception as e:
+            self.log_test("Referee Heatmap Endpoint", False, str(e))
+            return False, {}
+
     def run_full_test_suite(self):
         """Run complete test suite"""
         print("🚀 Starting Soccer Analytics API Test Suite")
