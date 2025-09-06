@@ -950,10 +950,10 @@ export const PressureAnalysisVisualization = ({ pressureData }) => {
           <div className="mt-4 p-3 bg-yellow-50 rounded border border-yellow-200">
             <div className="text-sm font-medium text-yellow-800 mb-1">Match-Specific Pressure Analysis:</div>
             <div className="text-xs text-yellow-700 space-y-1">
-              <p>• <strong>Match Focus:</strong> Analysis specific to {selectedMatch}</p>
+              <p>• <strong>Match Focus:</strong> Analysis specific to Real Madrid vs Barcelona - El Clasico</p>
               <p>• <strong>Player Positions:</strong> Shows where players were when they applied pressure</p>
               <p>• <strong>Simple Interaction:</strong> Hover to see player names, navigate scenarios with buttons</p>
-              <p>• <strong>No Filtering:</strong> Shows all pressure events for the selected match</p>
+              <p>• <strong>No Filtering:</strong> Shows all pressure events for the match</p>
             </div>
           </div>
         </CardContent>
