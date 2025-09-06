@@ -598,7 +598,7 @@ function App() {
             </div>
 
             {/* Key Statistics with Detailed Explanations */}
-            <div className="grid grid-cols-1 lg:grid-cols-2 gap-6">
+            <div className="grid grid-cols-1 lg:grid-cols-3 gap-6">
               <Card className="transition-all duration-200 hover:shadow-lg">
                 <CardHeader>
                   <CardTitle className="flex items-center gap-2 text-red-600">
@@ -696,40 +696,6 @@ function App() {
                     <div className="flex justify-between items-center">
                       <span className="text-sm font-medium">Decision Distribution:</span>
                       <Badge className="bg-purple-500">Evenly Spaced</Badge>
-                    </div>
-                  </div>
-                </CardContent>
-              </Card>
-
-              <Card className="transition-all duration-200 hover:shadow-lg">
-                <CardHeader>
-                  <CardTitle className="flex items-center gap-2 text-purple-600">
-                    <Brain className="w-5 h-5" />
-                    Consistency Score: 66.7%
-                  </CardTitle>
-                  <CardDescription>Fairness and bias analysis across teams</CardDescription>
-                </CardHeader>
-                <CardContent className="space-y-4">
-                  <div className="bg-purple-50 p-4 rounded-lg border border-purple-200">
-                    <h4 className="font-semibold text-purple-800 mb-2">📊 How This is Calculated</h4>
-                    <div className="text-sm text-purple-700 space-y-2">
-                      <p><strong>Formula:</strong> 100 - |Home% - Away%| - |Team1% - Team2%| variance</p>
-                      <p><strong>Data Source:</strong> Decision distribution between competing teams</p>
-                      <p><strong>Factors:</strong> Cards, fouls, offsides, penalties by team</p>
-                    </div>
-                  </div>
-                  <div className="space-y-3">
-                    <div className="flex justify-between items-center">
-                      <span className="text-sm font-medium">Home vs Away Bias:</span>
-                      <Badge className="bg-green-500">Minimal (2.1%)</Badge>
-                    </div>
-                    <div className="flex justify-between items-center">
-                      <span className="text-sm font-medium">Card Consistency:</span>
-                      <Badge variant="outline">Good (71.2%)</Badge>
-                    </div>
-                    <div className="flex justify-between items-center">
-                      <span className="text-sm font-medium">Foul Call Balance:</span>
-                      <Badge className="bg-blue-500">Excellent (89.4%)</Badge>
                     </div>
                   </div>
                 </CardContent>
