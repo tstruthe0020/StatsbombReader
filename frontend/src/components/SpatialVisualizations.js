@@ -724,7 +724,7 @@ export const PressureAnalysisVisualization = ({ pressureData }) => {
 
   const [selectedMatch, setSelectedMatch] = React.useState('');
   const [currentScenarioIndex, setCurrentScenarioIndex] = React.useState(0);
-  const [hoveredPlayer, setHoveredPlayer] = React.useState(null);
+  const [hoveredPlayerInfo, setHoveredPlayerInfo] = React.useState(null);
 
   // Available matches for selection
   const matches = [
