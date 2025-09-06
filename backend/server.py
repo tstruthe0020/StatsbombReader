@@ -2324,17 +2324,19 @@ async def get_match_tactical_analysis(match_id: int):
     """Get detailed tactical analysis including lineups, formations, and tactical metrics."""
     try:
         # Try to get real StatsBomb data for this match
-        if github_client:
+        if statsbomb_loader:
             try:
                 logger.info(f"Fetching real tactical data for match {match_id}")
                 
                 # Get real lineups data
-                lineups_data = github_client.get_lineups_data(match_id)
-                logger.info(f"Lineups data: {len(lineups_data) if lineups_data else 0} players")
+                lineups_df = statsbomb_loader.get_lineups(match_id)
+                lineups_data = lineups_df.to_dict('records') if not lineups_df.empty else []
+                logger.info(f"Lineups data: {len(lineups_data)} players")
                 
                 # Get real events data 
-                events_data = github_client.get_events_data(match_id)
-                logger.info(f"Events data: {len(events_data) if events_data else 0} events")
+                events_df = statsbomb_loader.get_events(match_id)
+                events_data = events_df.to_dict('records') if not events_df.empty else []
+                logger.info(f"Events data: {len(events_data)} events")
                 
                 # Extract real match info, teams, formations from StatsBomb data
                 if lineups_data and len(lineups_data) > 0:
