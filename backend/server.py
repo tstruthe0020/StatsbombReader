@@ -301,7 +301,6 @@ async def startup_event():
     except Exception as e:
         logger.warning(f"GitHub client initialization failed - using fallback mode: {e}")
         # Don't raise error, allow server to start without GitHub API
-        global github_client
         github_client = None
     
     # Initialize MongoDB client with proper error handling
