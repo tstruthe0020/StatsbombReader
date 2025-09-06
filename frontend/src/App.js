@@ -12,7 +12,6 @@ import { Separator } from './components/ui/separator';
 import { Activity, TrendingUp, Users, AlertTriangle, BarChart3, Target, Clock, MapPin, Zap, Brain, MessageCircle, Layers } from 'lucide-react';
 import RefereeHeatmap from './components/RefereeHeatmap';
 import SpatialAnalysis from './components/SpatialAnalysis';
-import LLMQuery from './components/LLMQuery';
 
 // Import referee discipline module
 import { 
