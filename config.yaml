@@ -96,3 +96,61 @@ cli:
   batch_size: 10  # matches to process in parallel
   cache_events: true
   verbose: true
+
+# Archetype categorization thresholds
+archetype_thresholds:
+  pressing:
+    very_high:
+      ppda: [0, 8]
+      def_share_att_third: [0.4, 1.0]
+    high:
+      ppda: [8, 12]
+      def_share_att_third: [0.25, 1.0]
+    mid:
+      ppda: [12, 18]
+      def_share_att_third: [0.15, 0.4]
+    low:
+      ppda: [18, 100]
+      def_share_att_third: [0, 0.25]
+  
+  block:
+    high:
+      block_height_x: [70, 120]
+    mid:
+      block_height_x: [45, 70]
+    low:
+      block_height_x: [0, 45]
+  
+  possession_directness:
+    possession_based:
+      possession_share: [0.55, 1.0]
+      directness: [0, 0.4]
+    balanced:
+      possession_share: [0.45, 0.65]
+      directness: [0.3, 0.7]
+    direct:
+      possession_share: [0, 0.55]
+      directness: [0.6, 1.0]
+  
+  width:
+    wing_overload:
+      wing_share: [0.75, 1.0]
+      cross_share: [0.08, 1.0]
+    central_focus:
+      wing_share: [0, 0.5]
+      lane_center_share: [0.5, 1.0]
+    balanced_channels:
+      wing_share: [0.5, 0.75]
+      lane_center_share: [0.3, 0.6]
+  
+  transition:
+    high:
+      counter_rate: [0.15, 1.0]
+    low:
+      counter_rate: [0, 0.15]
+  
+  overlays:
+    cross_heavy:
+      cross_share: [0.12, 1.0]
+    set_piece_focus:
+      fouls_committed: [0, 8]  # Low fouls = disciplined set piece team
