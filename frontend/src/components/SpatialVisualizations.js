@@ -223,6 +223,19 @@ export const RefereePositioningVisualization = ({ positioningData }) => {
         </div>
       </div>
 
+      {/* Optimal Position Calculation Explanation */}
+      <div className="bg-green-50 p-4 rounded-lg border border-green-200">
+        <h4 className="font-semibold text-green-800 mb-2">🧮 How Optimal Position is Calculated</h4>
+        <div className="text-sm text-green-700 space-y-2">
+          <p><strong>Distance Factor:</strong> Ideal distance of 15-20 meters from incident for clear view without interference.</p>
+          <p><strong>Angle Optimization:</strong> Position calculated to minimize player obstruction using line-of-sight geometry.</p>
+          <p><strong>Field Boundaries:</strong> Considers sidelines, goal lines, and penalty area constraints.</p>
+          <p><strong>Player Positions:</strong> Uses StatsBomb data to avoid positioning behind dense player clusters.</p>
+          <p><strong>Mathematical Model:</strong> Combines visibility angles, distance constraints, and field geometry using optimization algorithms.</p>
+          <p><strong>Dynamic Factors:</strong> Accounts for play direction, likely player movements, and referee running paths.</p>
+        </div>
+      </div>
+
       {/* Incident Filter Controls */}
       <Card>
         <CardHeader>
