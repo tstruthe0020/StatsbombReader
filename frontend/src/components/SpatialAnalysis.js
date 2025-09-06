@@ -383,100 +383,22 @@ const SpatialAnalysis = () => {
   };
 
   const renderPressureAnalysis = () => {
-    if (!analysisData?.pressure_distribution) return null;
+    if (!analysisData) return null;
 
     return (
       <div className="space-y-6">
-        {/* Pressure Situations Visualization */}
-        {analysisData.has_360_data && (
-          <Card>
-            <CardHeader>
-              <CardTitle>Pressure Situations Map</CardTitle>
-              <CardDescription>
-                Visual representation of high, medium, and low pressure foul incidents
-              </CardDescription>
-            </CardHeader>
-            <CardContent>
-              <PressureAnalysisVisualization pressureData={analysisData} />
-            </CardContent>
-          </Card>
-        )}
-
-        {/* Pressure Distribution */}
+        {/* Interactive Pressure Events Visualization */}
         <Card>
           <CardHeader>
-            <CardTitle className="flex items-center gap-2">
-              <Target className="w-5 h-5" />
-              Pressure Situation Analysis - Match {analysisData.match_id}
-            </CardTitle>
+            <CardTitle>Interactive Team Pressure Events</CardTitle>
             <CardDescription>
-              {analysisData.has_360_data ? 
-                'Analysis of referee decisions in different pressure situations' :
-                '360° data not available for detailed pressure analysis'
-              }
+              Pressure events from StatsBomb match event data with player filtering
             </CardDescription>
           </CardHeader>
           <CardContent>
-            {analysisData.has_360_data ? (
-              <div className="grid grid-cols-1 md:grid-cols-3 gap-4">
-                {Object.entries(analysisData.pressure_distribution).map(([pressure, data]) => {
-                  const colorScheme = pressure === 'high_pressure' ? 'bg-red-50 border-red-200' :
-                                    pressure === 'medium_pressure' ? 'bg-yellow-50 border-yellow-200' :
-                                    'bg-green-50 border-green-200';
-                  
-                  return (
-                    <div key={pressure} className={`p-4 rounded-lg border ${colorScheme}`}>
-                      <h3 className="font-semibold mb-3 capitalize">
-                        {pressure.replace('_', ' ')}
-                      </h3>
-                      <div className="space-y-2">
-                        <div className="flex justify-between text-sm">
-                          <span>Fouls:</span>
-                          <span className="font-bold">{data.count}</span>
-                        </div>
-                        <div className="flex justify-between text-sm">
-                          <span>Percentage:</span>
-                          <span>{data.percentage}%</span>
-                        </div>
-                        <div className="flex justify-between text-sm">
-                          <span>Card Rate:</span>
-                          <span>{data.cards_rate}%</span>
-                        </div>
-                        <div className="flex justify-between text-sm">
-                          <span>Avg Pressure:</span>
-                          <span>{data.avg_pressure_ratio}x</span>
-                        </div>
-                      </div>
-                    </div>
-                  );
-                })}
-              </div>
-            ) : (
-              <div className="text-center text-gray-500">
-                360° data not available for this match
-              </div>
-            )}
+            <PressureAnalysisVisualization pressureData={analysisData} />
           </CardContent>
         </Card>
-
-        {/* Key Insights */}
-        {analysisData.key_insights && (
-          <Card>
-            <CardHeader>
-              <CardTitle>Pressure Analysis Insights</CardTitle>
-            </CardHeader>
-            <CardContent>
-              <div className="space-y-2">
-                {analysisData.key_insights.map((insight, index) => (
-                  <div key={index} className="flex items-start gap-2">
-                    <AlertTriangle className="w-4 h-4 text-orange-500 mt-0.5" />
-                    <span className="text-sm">{insight}</span>
-                  </div>
-                ))}
-              </div>
-            </CardContent>
-          </Card>
-        )}
       </div>
     );
   };
