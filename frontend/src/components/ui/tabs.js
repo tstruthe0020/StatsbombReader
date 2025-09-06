@@ -4,7 +4,7 @@ const Tabs = ({ value, onValueChange, children, className = '' }) => {
   return (
     <div className={`w-full ${className}`} data-value={value}>
       {React.Children.map(children, child =>
-        React.cloneElement(child, { value, onValueChange })
+        React.isValidElement(child) ? React.cloneElement(child, { tabsValue: value, onTabsValueChange: onValueChange }) : child
       )}
     </div>
   );
