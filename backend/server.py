@@ -2835,24 +2835,74 @@ def get_team_style(team: str, season_id: int, competition_id: int):
 def get_match_team_styles(match_id: int):
     """Get tactical archetypes for both teams in a specific match."""
     try:
-        if MATCH_TAGS_DF is None:
-            return {
-                "success": False,
-                "error": "Match archetype data not available",
-                "match_id": match_id,
-                "teams": []
-            }
+        # First try to get from pre-built archetype data
+        if MATCH_TAGS_DF is not None:
+            match_teams = MATCH_TAGS_DF[MATCH_TAGS_DF["match_id"] == match_id]
+            if not match_teams.empty:
+                # Use pre-built data if available
+                return _build_match_styles_response(match_teams, match_id)
         
-        # Filter for the specific match
-        match_teams = MATCH_TAGS_DF[MATCH_TAGS_DF["match_id"] == match_id]
+        # Fall back to real-time computation if analytics available
+        if ANALYTICS_AVAILABLE and statsbomb_loader:
+            try:
+                logger.info(f"Computing real-time tactical archetypes for match {match_id}")
+                
+                # Get match events and lineups
+                events_df = statsbomb_loader.get_events(match_id)
+                lineups_df = statsbomb_loader.get_lineups(match_id)
+                
+                if events_df.empty or lineups_df.empty:
+                    return {
+                        "success": False,
+                        "error": f"Insufficient data for match {match_id} tactical analysis",
+                        "match_id": match_id,
+                        "teams": []
+                    }
+                
+                # Build match info from lineups
+                teams = list(set([player.get('team_name', '') for player in lineups_df.to_dict('records') if player.get('team_name')]))
+                if len(teams) < 2:
+                    return {
+                        "success": False,
+                        "error": f"Could not identify both teams for match {match_id}",
+                        "match_id": match_id,
+                        "teams": []
+                    }
+                
+                match_info = {
+                    'match_id': match_id,
+                    'home_team_name': teams[0],
+                    'away_team_name': teams[1],
+                    'referee_name': 'Unknown',  # Could extract from events if available
+                    'match_date': '2019-01-01',  # Could extract if available
+                    'competition_id': 0,
+                    'season_id': 0
+                }
+                
+                # Compute real-time tactical archetypes
+                analyzer = get_realtime_analyzer()
+                realtime_analysis = analyzer.analyze_match_tactics(events_df, match_info)
+                
+                if realtime_analysis and realtime_analysis.get('success'):
+                    return realtime_analysis
+                else:
+                    return {
+                        "success": False,
+                        "error": "Real-time tactical analysis failed",
+                        "match_id": match_id,
+                        "teams": []
+                    }
+                    
+            except Exception as e:
+                logger.warning(f"Real-time tactical analysis failed for match {match_id}: {e}")
         
-        if match_teams.empty:
-            return {
-                "success": False,
-                "error": f"No tactical data found for match {match_id}",
-                "match_id": match_id,
-                "teams": []
-            }
+        # Final fallback - no tactical data available
+        return {
+            "success": False,
+            "error": "Tactical archetype data not available - requires StatsBomb data processing",
+            "match_id": match_id,
+            "teams": []
+        }
         
         teams_data = []
         for _, team_row in match_teams.iterrows():
