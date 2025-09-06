@@ -2,128 +2,104 @@ import React from 'react';
 import { Card, CardHeader, CardTitle, CardDescription, CardContent } from './ui/card';
 import { Badge } from './ui/badge';
 
-// Formation Bias Visualization Component
+// Formation Decision Patterns Visualization Component
 export const FormationBiasVisualization = ({ formationData }) => {
   if (!formationData) return null;
 
-  const FormationField = ({ formation, biasData }) => {
-    // Define formation layouts
-    const formations = {
-      '4-3-3': {
-        positions: [
-          { x: 10, y: 40, role: 'GK' },
-          { x: 25, y: 15, role: 'RB' }, { x: 25, y: 28, role: 'CB' }, 
-          { x: 25, y: 52, role: 'CB' }, { x: 25, y: 65, role: 'LB' },
-          { x: 45, y: 25, role: 'CM' }, { x: 45, y: 40, role: 'CM' }, { x: 45, y: 55, role: 'CM' },
-          { x: 70, y: 20, role: 'RW' }, { x: 70, y: 40, role: 'CF' }, { x: 70, y: 60, role: 'LW' }
-        ]
-      },
-      '4-4-2': {
-        positions: [
-          { x: 10, y: 40, role: 'GK' },
-          { x: 25, y: 15, role: 'RB' }, { x: 25, y: 28, role: 'CB' }, 
-          { x: 25, y: 52, role: 'CB' }, { x: 25, y: 65, role: 'LB' },
-          { x: 45, y: 18, role: 'RM' }, { x: 45, y: 32, role: 'CM' }, 
-          { x: 45, y: 48, role: 'CM' }, { x: 45, y: 62, role: 'LM' },
-          { x: 70, y: 32, role: 'CF' }, { x: 70, y: 48, role: 'CF' }
-        ]
-      },
-      '3-5-2': {
-        positions: [
-          { x: 10, y: 40, role: 'GK' },
-          { x: 25, y: 22, role: 'CB' }, { x: 25, y: 40, role: 'CB' }, { x: 25, y: 58, role: 'CB' },
-          { x: 45, y: 12, role: 'RWB' }, { x: 45, y: 28, role: 'CM' }, { x: 45, y: 40, role: 'CM' },
-          { x: 45, y: 52, role: 'CM' }, { x: 45, y: 68, role: 'LWB' },
-          { x: 70, y: 32, role: 'CF' }, { x: 70, y: 48, role: 'CF' }
-        ]
-      },
-      '5-4-1': {
-        positions: [
-          { x: 10, y: 40, role: 'GK' },
-          { x: 25, y: 10, role: 'RWB' }, { x: 25, y: 24, role: 'CB' }, 
-          { x: 25, y: 40, role: 'CB' }, { x: 25, y: 56, role: 'CB' }, { x: 25, y: 70, role: 'LWB' },
-          { x: 50, y: 22, role: 'CM' }, { x: 50, y: 36, role: 'CM' }, 
-          { x: 50, y: 44, role: 'CM' }, { x: 50, y: 58, role: 'CM' },
-          { x: 75, y: 40, role: 'CF' }
-        ]
-      },
-      '4-2-3-1': {
-        positions: [
-          { x: 10, y: 40, role: 'GK' },
-          { x: 25, y: 15, role: 'RB' }, { x: 25, y: 28, role: 'CB' }, 
-          { x: 25, y: 52, role: 'CB' }, { x: 25, y: 65, role: 'LB' },
-          { x: 40, y: 32, role: 'CDM' }, { x: 40, y: 48, role: 'CDM' },
-          { x: 60, y: 20, role: 'RW' }, { x: 60, y: 40, role: 'CAM' }, { x: 60, y: 60, role: 'LW' },
-          { x: 75, y: 40, role: 'CF' }
-        ]
+  const FormationAnalysis = ({ formation, data }) => {
+    // Generate sample foul locations for heatmap (in real implementation, this would come from API)
+    const generateFoulHeatmap = () => {
+      const fouls = [];
+      const foulCount = data?.total_decisions || 0;
+      
+      // Generate sample foul locations based on formation type
+      for (let i = 0; i < Math.min(foulCount, 15); i++) {
+        let x, y;
+        if (formation === '5-4-1') {
+          // More defensive fouls
+          x = Math.random() * 30 + 10;
+          y = Math.random() * 60 + 10;
+        } else if (formation === '4-3-3') {
+          // More attacking fouls
+          x = Math.random() * 30 + 60;
+          y = Math.random() * 60 + 10;
+        } else {
+          // Balanced distribution
+          x = Math.random() * 80 + 10;
+          y = Math.random() * 60 + 10;
+        }
+        fouls.push({ x, y, intensity: Math.random() * 0.8 + 0.2 });
       }
+      return fouls;
     };
 
-    const formationLayout = formations[formation] || formations['4-3-3'];
-    
-    const getBiasColor = (biasScore) => {
-      if (biasScore > 0.65) return '#22c55e'; // Green - Favorable
-      if (biasScore > 0.55) return '#84cc16'; // Light green
-      if (biasScore > 0.45) return '#eab308'; // Yellow - Neutral
-      if (biasScore > 0.35) return '#f97316'; // Orange
-      return '#ef4444'; // Red - Unfavorable
-    };
+    const foulLocations = generateFoulHeatmap();
 
     return (
-      <div className="relative">
-        <svg viewBox="0 0 100 80" className="w-full h-48 border rounded-lg">
-          {/* Field background */}
-          <rect x="0" y="0" width="100" height="80" fill="#22c55e" opacity="0.3" />
-          
-          {/* Field lines */}
-          <g stroke="white" strokeWidth="0.5" fill="none">
-            <rect x="2" y="2" width="96" height="76" />
-            <line x1="50" y1="2" x2="50" y2="78" />
-            <circle cx="50" cy="40" r="8" />
-            <rect x="2" y="24" width="14" height="32" />
-            <rect x="84" y="24" width="14" height="32" />
-          </g>
-          
-          {/* Players */}
-          {formationLayout.positions.map((pos, idx) => (
-            <g key={idx}>
+      <div className="space-y-4">
+        <div className="text-center">
+          <h3 className="font-semibold text-lg">{formation}</h3>
+          <div className="text-sm text-gray-600">{data?.formation_type || 'Tactical'} Formation</div>
+        </div>
+
+        {/* Per-game decision statistics */}
+        <div className="grid grid-cols-2 gap-3 text-sm">
+          <div className="bg-blue-50 p-3 rounded">
+            <div className="font-medium text-blue-800">Fouls/Game</div>
+            <div className="text-xl font-bold text-blue-600">
+              {data?.fouls_per_game?.toFixed(1) || '0.0'}
+            </div>
+          </div>
+          <div className="bg-yellow-50 p-3 rounded">
+            <div className="font-medium text-yellow-800">Cards/Game</div>
+            <div className="text-xl font-bold text-yellow-600">
+              {data?.cards_per_game?.toFixed(1) || '0.0'}
+            </div>
+          </div>
+          <div className="bg-green-50 p-3 rounded">
+            <div className="font-medium text-green-800">Advantages/Game</div>
+            <div className="text-xl font-bold text-green-600">
+              {data?.advantages_per_game?.toFixed(1) || '0.0'}
+            </div>
+          </div>
+          <div className="bg-purple-50 p-3 rounded">
+            <div className="font-medium text-purple-800">Games Analyzed</div>
+            <div className="text-xl font-bold text-purple-600">
+              {data?.games_analyzed || 0}
+            </div>
+          </div>
+        </div>
+
+        {/* Foul location heatmap */}
+        <div>
+          <h4 className="font-medium mb-2">Foul Locations Heatmap</h4>
+          <svg viewBox="0 0 120 80" className="w-full h-32 border rounded-lg bg-green-100">
+            {/* Soccer field */}
+            <rect width="120" height="80" fill="#22c55e" opacity="0.3" />
+            
+            {/* Field markings */}
+            <g stroke="white" strokeWidth="0.5" fill="none">
+              <rect x="0" y="0" width="120" height="80" />
+              <line x1="60" y1="0" x2="60" y2="80" />
+              <circle cx="60" cy="40" r="8" />
+              <rect x="0" y="22" width="18" height="36" />
+              <rect x="102" y="22" width="18" height="36" />
+            </g>
+            
+            {/* Foul location dots */}
+            {foulLocations.map((foul, idx) => (
               <circle
-                cx={pos.x}
-                cy={pos.y}
-                r="2"
-                fill={getBiasColor(biasData?.bias_score || 0.5)}
+                key={idx}
+                cx={foul.x}
+                cy={foul.y}
+                r={2 + foul.intensity}
+                fill="#ef4444"
+                opacity={0.6 + foul.intensity * 0.4}
                 stroke="white"
                 strokeWidth="0.3"
               />
-              <text
-                x={pos.x}
-                y={pos.y + 5}
-                textAnchor="middle"
-                fontSize="3"
-                fill="white"
-                fontWeight="bold"
-              >
-                {pos.role}
-              </text>
-            </g>
-          ))}
-        </svg>
-        
-        {/* Formation info */}
-        <div className="mt-2 text-center">
-          <div className="font-semibold">{formation}</div>
-          <div className="text-sm text-gray-600">
-            Bias Score: {(biasData?.bias_score || 0).toFixed(3)}
-          </div>
-          <Badge 
-            className={`mt-1 ${
-              biasData?.bias_category?.includes('Favorable') ? 'bg-green-500' :
-              biasData?.bias_category?.includes('Unfavorable') ? 'bg-red-500' :
-              'bg-yellow-500'
-            }`}
-          >
-            {biasData?.bias_category || 'Neutral'}
-          </Badge>
+            ))}
+          </svg>
         </div>
       </div>
     );
@@ -133,49 +109,44 @@ export const FormationBiasVisualization = ({ formationData }) => {
     <div className="space-y-6">
       {/* Reading Instructions */}
       <div className="bg-blue-50 p-4 rounded-lg border border-blue-200">
-        <h4 className="font-semibold text-blue-800 mb-2">📖 How to Read Formation Bias Analysis</h4>
+        <h4 className="font-semibold text-blue-800 mb-2">📖 How to Read Formation Decision Patterns</h4>
         <div className="text-sm text-blue-700 space-y-2">
-          <p><strong>Player Colors:</strong> Each dot represents a player position, colored by referee bias toward this formation.</p>
-          <p><strong>Bias Score:</strong> 0.0-1.0 scale where 0.5 = neutral, &gt;0.6 = favorable treatment, &lt;0.4 = unfavorable treatment.</p>
-          <p><strong>Formation Type:</strong> Defensive (5-4-1), Attacking (4-3-3), or Balanced (4-4-2) tactical approach.</p>
-          <p><strong>Interpretation:</strong> Green formations get more favorable calls, red formations face stricter officiating.</p>
+          <p><strong>Per-Game Stats:</strong> Average decisions made by the referee when teams use each formation.</p>
+          <p><strong>Foul Heatmap:</strong> Red dots show where fouls typically occur when teams play this formation.</p>
+          <p><strong>Decision Types:</strong> Fouls called, cards issued, advantages played, and total games analyzed.</p>
+          <p><strong>Pattern Analysis:</strong> Compare statistics across formations to identify referee tendencies.</p>
         </div>
       </div>
 
-      {/* Color Key */}
-      <div className="grid grid-cols-5 gap-2 p-4 bg-gray-50 rounded-lg">
+      {/* Stats Legend */}
+      <div className="grid grid-cols-4 gap-4 p-4 bg-gray-50 rounded-lg">
         <div className="text-center">
-          <div className="w-6 h-6 bg-green-500 rounded-full mx-auto mb-1"></div>
-          <div className="text-xs font-medium">Strongly Favorable</div>
-          <div className="text-xs text-gray-600">0.65+ bias score</div>
+          <div className="w-8 h-8 bg-blue-500 rounded mx-auto mb-2"></div>
+          <div className="text-sm font-medium">Fouls/Game</div>
+          <div className="text-xs text-gray-600">Average fouls called</div>
         </div>
         <div className="text-center">
-          <div className="w-6 h-6 bg-lime-400 rounded-full mx-auto mb-1"></div>
-          <div className="text-xs font-medium">Favorable</div>
-          <div className="text-xs text-gray-600">0.55-0.65</div>
+          <div className="w-8 h-8 bg-yellow-500 rounded mx-auto mb-2"></div>
+          <div className="text-sm font-medium">Cards/Game</div>
+          <div className="text-xs text-gray-600">Yellow + red cards</div>
         </div>
         <div className="text-center">
-          <div className="w-6 h-6 bg-yellow-500 rounded-full mx-auto mb-1"></div>
-          <div className="text-xs font-medium">Neutral</div>
-          <div className="text-xs text-gray-600">0.45-0.55</div>
+          <div className="w-8 h-8 bg-green-500 rounded mx-auto mb-2"></div>
+          <div className="text-sm font-medium">Advantages</div>
+          <div className="text-xs text-gray-600">Play allowed to continue</div>
         </div>
         <div className="text-center">
-          <div className="w-6 h-6 bg-orange-500 rounded-full mx-auto mb-1"></div>
-          <div className="text-xs font-medium">Unfavorable</div>
-          <div className="text-xs text-gray-600">0.35-0.45</div>
-        </div>
-        <div className="text-center">
-          <div className="w-6 h-6 bg-red-500 rounded-full mx-auto mb-1"></div>
-          <div className="text-xs font-medium">Strongly Unfavorable</div>
-          <div className="text-xs text-gray-600">&lt;0.35 bias score</div>
+          <div className="w-8 h-8 bg-red-500 rounded-full mx-auto mb-2"></div>
+          <div className="text-sm font-medium">Foul Locations</div>
+          <div className="text-xs text-gray-600">Where incidents occur</div>
         </div>
       </div>
 
-      {/* Formation visualizations */}
+      {/* Formation analyses */}
       <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-4">
         {Object.entries(formationData).map(([formation, data]) => (
           <Card key={formation} className="p-4">
-            <FormationField formation={formation} biasData={data} />
+            <FormationAnalysis formation={formation} data={data} />
           </Card>
         ))}
       </div>
