@@ -103,12 +103,12 @@ class StatsBombLoader:
             
             # Extract team names
             if 'home_team' in df.columns:
-                df['home_team_name'] = df['home_team'].apply(lambda x: x.get('name') if isinstance(x, dict) else None)
-                df['home_team_id'] = df['home_team'].apply(lambda x: x.get('id') if isinstance(x, dict) else None)
+                df['home_team_name'] = df['home_team'].apply(lambda x: x.get('home_team_name') if isinstance(x, dict) else None)
+                df['home_team_id'] = df['home_team'].apply(lambda x: x.get('home_team_id') if isinstance(x, dict) else None)
             
             if 'away_team' in df.columns:
-                df['away_team_name'] = df['away_team'].apply(lambda x: x.get('name') if isinstance(x, dict) else None)
-                df['away_team_id'] = df['away_team'].apply(lambda x: x.get('id') if isinstance(x, dict) else None)
+                df['away_team_name'] = df['away_team'].apply(lambda x: x.get('away_team_name') if isinstance(x, dict) else None)
+                df['away_team_id'] = df['away_team'].apply(lambda x: x.get('away_team_id') if isinstance(x, dict) else None)
             
             # Add metadata
             df['competition_id'] = competition_id
