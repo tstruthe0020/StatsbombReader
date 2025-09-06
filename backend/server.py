@@ -305,9 +305,10 @@ async def startup_event():
                 ANALYTICS_AVAILABLE = False
         
     except Exception as e:
-        logger.warning(f"GitHub client initialization failed - using fallback mode: {e}")
+        logger.warning(f"GitHub/StatsBomb initialization failed - using fallback mode: {e}")
         # Don't raise error, allow server to start without GitHub API
         github_client = None
+        statsbomb_loader = None
     
     # Initialize MongoDB client with proper error handling
     mongo_url = os.getenv("MONGO_URL")
