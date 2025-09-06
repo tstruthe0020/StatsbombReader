@@ -7,7 +7,6 @@ import {
   Activity, 
   TrendingUp, 
   Users, 
-  AlertTriangle, 
   BarChart3, 
   Target, 
   Clock, 
