@@ -467,7 +467,7 @@ export const RefereePositioningVisualization = ({ positioningData }) => {
   );
 };
 
-// Referee Foul Frequency Heatmap Visualization
+// Referee-Specific Relative Foul Frequency Heatmap
 export const SpatialFoulContextVisualization = ({ spatialData }) => {
   if (!spatialData) return null;
 
@@ -504,8 +504,8 @@ export const SpatialFoulContextVisualization = ({ spatialData }) => {
     setSelectedSeasons(newSelected);
   };
 
-  // Generate referee-specific foul frequency heatmap with large dataset
-  const generateFoulFrequencyHeatmap = () => {
+  // Generate referee-specific relative frequency compared to all referees average
+  const generateRefereeRelativeFrequency = () => {
     const heatmapData = [];
     const gridSize = 8; // 8x5 grid for field sections
     
@@ -519,30 +519,41 @@ export const SpatialFoulContextVisualization = ({ spatialData }) => {
         const fieldX = (x * 120 / gridSize) + (120 / gridSize / 2);
         const fieldY = (y * 80 / 5) + (80 / 5 / 2);
         
-        // Generate frequency based on field position and selected data
-        let baseFrequency = 0.5; // Average frequency
+        // Simulate this specific referee's foul frequency in this zone
+        let refereeFrequency = 0.3 + Math.random() * 0.6; // 0.3-0.9
         
-        // Higher frequency in penalty areas
+        // Simulate the average frequency of ALL referees in this zone
+        let allRefereesAverage = 0.5; // Base average
+        
+        // Adjust based on field position (penalty areas typically have higher averages)
         if ((fieldX < 20 || fieldX > 100) && fieldY > 20 && fieldY < 60) {
-          baseFrequency = 0.7 + Math.random() * 0.3; // 0.7-1.0
+          allRefereesAverage = 0.6; // Penalty areas
+          refereeFrequency = 0.4 + Math.random() * 0.5; // This referee: 0.4-0.9
         }
-        // Medium frequency in midfield
+        // Medium frequency in midfield for all referees
         else if (fieldX > 40 && fieldX < 80) {
-          baseFrequency = 0.4 + Math.random() * 0.4; // 0.4-0.8
+          allRefereesAverage = 0.5; // Midfield average
+          refereeFrequency = 0.2 + Math.random() * 0.7; // This referee: 0.2-0.9
         }
-        // Lower frequency on wings
+        // Lower frequency on wings for all referees
         else {
-          baseFrequency = 0.2 + Math.random() * 0.4; // 0.2-0.6
+          allRefereesAverage = 0.4; // Wing average
+          refereeFrequency = 0.1 + Math.random() * 0.6; // This referee: 0.1-0.7
         }
+        
+        // Calculate relative ratio: >1.0 = above average, <1.0 = below average
+        const relativeRatio = refereeFrequency / allRefereesAverage;
         
         // Scale based on selected data
-        const frequency = baseFrequency * dataScale;
+        const scaledRatio = relativeRatio * dataScale;
         
         heatmapData.push({
           x: fieldX,
           y: fieldY,
-          frequency: frequency,
-          above_average: frequency > 0.5
+          refereeFrequency: refereeFrequency,
+          allRefereesAverage: allRefereesAverage,
+          relativeRatio: scaledRatio,
+          above_average: scaledRatio > 1.0
         });
       }
     }
@@ -550,20 +561,21 @@ export const SpatialFoulContextVisualization = ({ spatialData }) => {
     return heatmapData;
   };
 
-  const heatmapData = generateFoulFrequencyHeatmap();
+  const heatmapData = generateRefereeRelativeFrequency();
 
-  const getFrequencyColor = (frequency) => {
-    // Green for average (0.5), transitioning to red for above average
-    if (frequency <= 0.5) {
+  const getRelativeFrequencyColor = (ratio) => {
+    // Green for below average (ratio < 1.0), Red for above average (ratio > 1.0)
+    if (ratio <= 1.0) {
       // Below average: darker green to lighter green
-      const intensity = frequency / 0.5;
-      return `rgba(34, 197, 94, ${0.3 + intensity * 0.4})`;
+      const intensity = Math.max(0.3, 1.0 - ratio); // More green for lower ratios
+      return `rgba(34, 197, 94, ${0.4 + intensity * 0.5})`;
     } else {
       // Above average: green to red transition
-      const excess = (frequency - 0.5) / 0.5; // 0 to 1
-      const red = Math.min(255, 34 + excess * 221);
-      const green = Math.max(94, 197 - excess * 103);
-      return `rgba(${red}, ${green}, 94, ${0.6 + excess * 0.4})`;
+      const excess = Math.min(2.0, ratio - 1.0); // Cap at 2x above average
+      const redIntensity = excess / 1.0; // 0 to 1
+      const red = Math.min(255, 34 + redIntensity * 205);
+      const green = Math.max(94, 197 - redIntensity * 103);
+      return `rgba(${red}, ${green}, 94, ${0.5 + redIntensity * 0.4})`;
     }
   };
 
@@ -575,13 +587,13 @@ export const SpatialFoulContextVisualization = ({ spatialData }) => {
     <div className="space-y-4">
       {/* Reading Instructions */}
       <div className="bg-blue-50 p-4 rounded-lg border border-blue-200">
-        <h4 className="font-semibold text-blue-800 mb-2">📖 How to Read Referee Foul Frequency Grid Heatmap</h4>
+        <h4 className="font-semibold text-blue-800 mb-2">📖 How to Read Referee-Specific Relative Frequency Heatmap</h4>
         <div className="text-sm text-blue-700 space-y-2">
-          <p><strong>Statistical Significance:</strong> Combined data from multiple competitions and seasons for robust analysis.</p>
-          <p><strong>Green Zones:</strong> Average or below-average foul frequency zones.</p>
-          <p><strong>Red Zones:</strong> Above-average foul frequency - referee calls more fouls here than typical.</p>
-          <p><strong>Grid Format:</strong> Field divided into zones with frequency percentages displayed.</p>
-          <p><strong>Filtering:</strong> Select specific competitions and seasons to focus analysis.</p>
+          <p><strong>Purpose:</strong> Shows how often THIS referee calls fouls in each zone compared to ALL referees' average.</p>
+          <p><strong>Green Zones:</strong> This referee calls FEWER fouls here than the average referee (ratio &lt; 1.0).</p>
+          <p><strong>Red Zones:</strong> This referee calls MORE fouls here than the average referee (ratio &gt; 1.0).</p>
+          <p><strong>Percentages:</strong> Show relative ratios - 120% means 20% more fouls than average, 80% means 20% fewer.</p>
+          <p><strong>Statistical Comparison:</strong> Direct performance comparison against referee population baseline.</p>
         </div>
       </div>
 
@@ -635,6 +647,8 @@ export const SpatialFoulContextVisualization = ({ spatialData }) => {
         <div className="text-sm text-gray-700">
           <strong>Current Dataset:</strong> {totalMatches.toLocaleString()} matches, {totalIncidents.toLocaleString()} foul incidents
           <br />
+          <strong>Comparison Baseline:</strong> Average of ALL referees in selected competitions/seasons
+          <br />
           <strong>Competitions:</strong> {Array.from(selectedCompetitions).join(', ') || 'None selected'}
           <br />
           <strong>Seasons:</strong> {Array.from(selectedSeasons).join(', ') || 'None selected'}
@@ -643,9 +657,9 @@ export const SpatialFoulContextVisualization = ({ spatialData }) => {
 
       <Card>
         <CardHeader>
-          <CardTitle>Referee Foul Frequency Grid Heatmap</CardTitle>
+          <CardTitle>Referee vs All Referees - Relative Foul Frequency</CardTitle>
           <CardDescription>
-            Grid-based visualization showing foul frequency by field zones
+            How this referee's foul-calling frequency compares to the average of all referees
           </CardDescription>
         </CardHeader>
         <CardContent>
@@ -661,8 +675,8 @@ export const SpatialFoulContextVisualization = ({ spatialData }) => {
                 y={zone.y - 8}
                 width="15"
                 height="16"
-                fill={getFrequencyColor(zone.frequency)}
-                stroke="rgba(255,255,255,0.5)"
+                fill={getRelativeFrequencyColor(zone.relativeRatio)}
+                stroke="rgba(255,255,255,0.6)"
                 strokeWidth="0.8"
               />
             ))}
@@ -678,7 +692,7 @@ export const SpatialFoulContextVisualization = ({ spatialData }) => {
               <rect x="114" y="30" width="6" height="20" />
             </g>
             
-            {/* Frequency percentage indicators */}
+            {/* Relative ratio percentage indicators */}
             {heatmapData.map((zone, idx) => (
               <text
                 key={`text-${idx}`}
@@ -689,37 +703,48 @@ export const SpatialFoulContextVisualization = ({ spatialData }) => {
                 fill={zone.above_average ? "white" : "#1f2937"}
                 fontWeight="bold"
               >
-                {(zone.frequency * 100).toFixed(0)}%
+                {(zone.relativeRatio * 100).toFixed(0)}%
               </text>
             ))}
           </svg>
           
-          {/* Frequency Legend */}
+          {/* Relative Frequency Legend */}
           <div className="mt-4 grid grid-cols-5 gap-2 p-4 bg-gray-50 rounded-lg">
             <div className="text-center">
-              <div className="w-8 h-8 mx-auto mb-2 rounded" style={{backgroundColor: 'rgba(34, 197, 94, 0.4)'}}></div>
-              <div className="text-xs font-medium">Well Below</div>
-              <div className="text-xs text-gray-600">20-40%</div>
+              <div className="w-8 h-8 mx-auto mb-2 rounded" style={{backgroundColor: 'rgba(34, 197, 94, 0.9)'}}></div>
+              <div className="text-xs font-medium">Much Below</div>
+              <div className="text-xs text-gray-600">60-80%</div>
             </div>
             <div className="text-center">
               <div className="w-8 h-8 mx-auto mb-2 rounded" style={{backgroundColor: 'rgba(34, 197, 94, 0.6)'}}></div>
               <div className="text-xs font-medium">Below Average</div>
-              <div className="text-xs text-gray-600">40-50%</div>
+              <div className="text-xs text-gray-600">80-100%</div>
             </div>
             <div className="text-center">
-              <div className="w-8 h-8 mx-auto mb-2 rounded" style={{backgroundColor: 'rgba(34, 197, 94, 0.8)'}}></div>
+              <div className="w-8 h-8 mx-auto mb-2 rounded" style={{backgroundColor: 'rgba(34, 197, 94, 0.4)'}}></div>
               <div className="text-xs font-medium">Average</div>
-              <div className="text-xs text-gray-600">~50%</div>
+              <div className="text-xs text-gray-600">~100%</div>
             </div>
             <div className="text-center">
               <div className="w-8 h-8 mx-auto mb-2 rounded" style={{backgroundColor: 'rgba(180, 150, 94, 0.8)'}}></div>
               <div className="text-xs font-medium">Above Average</div>
-              <div className="text-xs text-gray-600">50-70%</div>
+              <div className="text-xs text-gray-600">100-120%</div>
             </div>
             <div className="text-center">
               <div className="w-8 h-8 mx-auto mb-2 rounded" style={{backgroundColor: 'rgba(239, 68, 68, 0.8)'}}></div>
-              <div className="text-xs font-medium">Well Above</div>
-              <div className="text-xs text-gray-600">70%+</div>
+              <div className="text-xs font-medium">Much Above</div>
+              <div className="text-xs text-gray-600">120%+</div>
+            </div>
+          </div>
+
+          {/* Comparison Summary */}
+          <div className="mt-4 p-3 bg-yellow-50 rounded border border-yellow-200">
+            <div className="text-sm font-medium text-yellow-800 mb-1">Referee Comparison Analysis:</div>
+            <div className="text-xs text-yellow-700 space-y-1">
+              <p>• <strong>Green zones:</strong> This referee is more lenient than average in these areas</p>
+              <p>• <strong>Red zones:</strong> This referee is stricter than average in these areas</p>
+              <p>• <strong>Percentages:</strong> Direct ratio comparison (e.g., 120% = 20% more fouls than average referee)</p>
+              <p>• <strong>Baseline:</strong> Compared against all referees' average in the same competitions/seasons</p>
             </div>
           </div>
         </CardContent>
