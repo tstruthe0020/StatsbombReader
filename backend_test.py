@@ -7,6 +7,7 @@ Tests all API endpoints using the public URL from frontend configuration
 import requests
 import sys
 import json
+import time
 from datetime import datetime
 
 class SoccerAnalyticsAPITester:
