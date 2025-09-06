@@ -866,9 +866,9 @@ export const PressureAnalysisVisualization = ({ pressureData }) => {
     }
   };
 
-  const getPressureColor = (intensity, teamType, success) => {
+  const getPressureColor = (intensity, teamType, outcome) => {
     const baseColor = teamType === 'home' ? [59, 130, 246] : [239, 68, 68]; // Blue for home, Red for away
-    const alpha = success ? (0.4 + intensity * 0.5) : 0.3; // Lower opacity for unsuccessful events
+    const alpha = outcome === 'Success' ? (0.4 + intensity * 0.5) : 0.3; // Lower opacity for failed events
     return `rgba(${baseColor[0]}, ${baseColor[1]}, ${baseColor[2]}, ${alpha})`;
   };
 
