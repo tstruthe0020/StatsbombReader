@@ -2218,6 +2218,101 @@ async def extract_team_match_features(match_id: int):
         logger.error(f"Error extracting team features for match {match_id}: {e}")
         raise HTTPException(status_code=500, detail=str(e))
 
+@app.get("/api/matches/{match_id}/tactical-analysis")
+async def get_match_tactical_analysis(match_id: int):
+    """Get detailed tactical analysis including lineups, formations, and tactical metrics."""
+    try:
+        # Mock tactical analysis data - in production this would come from StatsBomb
+        tactical_data = {
+            "match_id": match_id,
+            "match_info": {
+                "home_team": "Barcelona",
+                "away_team": "Real Madrid", 
+                "date": "2019-03-02",
+                "venue": "Santiago Bernabéu",
+                "referee": "Antonio Mateu Lahoz"
+            },
+            "formations": {
+                "home_team": {
+                    "formation": "4-3-3",
+                    "formation_detail": [
+                        {"position": "GK", "player": "Marc-André ter Stegen", "jersey": 1},
+                        {"position": "RB", "player": "Nélson Semedo", "jersey": 2},
+                        {"position": "CB", "player": "Gerard Piqué", "jersey": 3},
+                        {"position": "CB", "player": "Clément Lenglet", "jersey": 15},
+                        {"position": "LB", "player": "Jordi Alba", "jersey": 18},
+                        {"position": "CDM", "player": "Sergio Busquets", "jersey": 5},
+                        {"position": "CM", "player": "Ivan Rakitić", "jersey": 4},
+                        {"position": "CM", "player": "Arthur", "jersey": 8},
+                        {"position": "RW", "player": "Lionel Messi", "jersey": 10},
+                        {"position": "ST", "player": "Luis Suárez", "jersey": 9},
+                        {"position": "LW", "player": "Philippe Coutinho", "jersey": 7}
+                    ]
+                },
+                "away_team": {
+                    "formation": "4-2-3-1",
+                    "formation_detail": [
+                        {"position": "GK", "player": "Keylor Navas", "jersey": 1},
+                        {"position": "RB", "player": "Daniel Carvajal", "jersey": 2},
+                        {"position": "CB", "player": "Raphaël Varane", "jersey": 5},
+                        {"position": "CB", "player": "Sergio Ramos", "jersey": 4},
+                        {"position": "LB", "player": "Marcelo", "jersey": 12},
+                        {"position": "CDM", "player": "Casemiro", "jersey": 14},
+                        {"position": "CDM", "player": "Luka Modrić", "jersey": 10},
+                        {"position": "CAM", "player": "Isco", "jersey": 22},
+                        {"position": "RW", "player": "Lucas Vázquez", "jersey": 17},
+                        {"position": "LW", "player": "Vinícius Júnior", "jersey": 25},
+                        {"position": "ST", "player": "Karim Benzema", "jersey": 9}
+                    ]
+                }
+            },
+            "tactical_metrics": {
+                "home_team": {
+                    "possession": 68.2,
+                    "passes": 524,
+                    "pass_accuracy": 89.1,
+                    "attacks": 142,
+                    "dangerous_attacks": 38,
+                    "shots": 12,
+                    "shots_on_target": 4,
+                    "corners": 7,
+                    "offsides": 3,
+                    "yellow_cards": 2,
+                    "red_cards": 0,
+                    "fouls_committed": 14,
+                    "defensive_actions": 28
+                },
+                "away_team": {
+                    "possession": 31.8,
+                    "passes": 238,
+                    "pass_accuracy": 82.4,
+                    "attacks": 87,
+                    "dangerous_attacks": 22,
+                    "shots": 8,
+                    "shots_on_target": 3,
+                    "corners": 4,
+                    "offsides": 2,
+                    "yellow_cards": 3,
+                    "red_cards": 0,
+                    "fouls_committed": 18,
+                    "defensive_actions": 45
+                }
+            },
+            "key_events": [
+                {"minute": 12, "type": "Goal", "team": "home", "player": "Lionel Messi", "description": "Curled shot from outside the box"},
+                {"minute": 28, "type": "Yellow Card", "team": "away", "player": "Sergio Ramos", "description": "Tactical foul"},
+                {"minute": 45, "type": "Substitution", "team": "away", "player_out": "Isco", "player_in": "Gareth Bale"},
+                {"minute": 67, "type": "Goal", "team": "away", "player": "Karim Benzema", "description": "Header from cross"},
+                {"minute": 89, "type": "Goal", "team": "home", "player": "Luis Suárez", "description": "Close range finish"}
+            ]
+        }
+        
+        return {"success": True, "data": tactical_data}
+        
+    except Exception as e:
+        logger.error(f"Error getting tactical analysis: {e}")
+        raise HTTPException(status_code=500, detail=str(e))
+
 class DatasetBuildRequest(BaseModel):
     """Model for dataset building request."""
     competitions: List[Dict[str, int]]  # [{"competition_id": 11, "season_id": 90}, ...]
