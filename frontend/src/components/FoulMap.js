@@ -246,16 +246,16 @@ const FoulMap = ({ matchId }) => {
             <div className="text-xs text-gray-600">Total Fouls</div>
           </div>
           <div className="text-center p-2 bg-yellow-100 rounded">
-            <div className="font-semibold">{Array.isArray(fouls) ? fouls.filter(f => f.type.toLowerCase().includes('yellow')).length : 0}</div>
+            <div className="font-semibold">{Array.isArray(fouls) ? fouls.filter(f => f.displayType === 'Yellow Card').length : 0}</div>
             <div className="text-xs text-gray-600">Yellow Cards</div>
           </div>
           <div className="text-center p-2 bg-red-100 rounded">
-            <div className="font-semibold">{Array.isArray(fouls) ? fouls.filter(f => f.type.toLowerCase().includes('red')).length : 0}</div>
+            <div className="font-semibold">{Array.isArray(fouls) ? fouls.filter(f => f.displayType === 'Red Card').length : 0}</div>
             <div className="text-xs text-gray-600">Red Cards</div>
           </div>
           <div className="text-center p-2 bg-blue-100 rounded">
-            <div className="font-semibold">{Array.isArray(fouls) ? `${fouls.filter(f => f.team === 'Home Team').length}/${fouls.filter(f => f.team === 'Away Team').length}` : '0/0'}</div>
-            <div className="text-xs text-gray-600">Home/Away</div>
+            <div className="font-semibold">{Array.isArray(fouls) ? `${fouls.filter(f => f.team === 'Barcelona').length}/${fouls.filter(f => f.team === 'Deportivo Alavés').length}` : '0/0'}</div>
+            <div className="text-xs text-gray-600">Barca/Alavés</div>
           </div>
         </div>
       </CardContent>
