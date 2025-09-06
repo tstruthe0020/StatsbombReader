@@ -562,8 +562,8 @@ const MainDashboard = () => {
                       <div className="flex gap-1">
                         <Badge variant="secondary" className="text-xs">
                           {selectedMatches.filter(m => 
-                            m.home_team?.home_team_name === teamName || 
-                            m.away_team?.away_team_name === teamName
+                            (m.home_team?.name || m.home_team?.home_team_name) === teamName || 
+                            (m.away_team?.name || m.away_team?.away_team_name) === teamName
                           ).length} matches
                         </Badge>
                         <Button size="sm" variant="outline" className="text-xs h-6">
