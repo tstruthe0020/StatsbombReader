@@ -985,22 +985,22 @@ export const PressureAnalysisVisualization = ({ pressureData }) => {
               <rect x="114" y="30" width="6" height="20" />
             </g>
             
-            {/* Home team pressure events (Blue) */}
+            {/* Home team player positions during pressure events (Blue) */}
             {filteredHomeEvents.map((event, idx) => (
               <g key={`home-${idx}`}>
                 <circle
-                  cx={event.x}
-                  cy={event.y}
+                  cx={event.playerX}
+                  cy={event.playerY}
                   r={2 + event.intensity * 2}
-                  fill={getPressureColor(event.intensity, 'home', event.success)}
-                  stroke={selectedEvent?.event?.id === event.id ? "#1f2937" : (event.success ? "rgba(59, 130, 246, 0.8)" : "rgba(59, 130, 246, 0.4)")}
+                  fill={getPressureColor(event.intensity, 'home', event.outcome)}
+                  stroke={selectedEvent?.event?.id === event.id ? "#1f2937" : (event.outcome === 'Success' ? "rgba(59, 130, 246, 0.8)" : "rgba(59, 130, 246, 0.4)")}
                   strokeWidth={selectedEvent?.event?.id === event.id ? "2" : "0.8"}
                   className="cursor-pointer"
                   onClick={() => handleEventClick(event, idx)}
                 />
                 <text
-                  x={event.x}
-                  y={event.y + 1}
+                  x={event.playerX}
+                  y={event.playerY + 1}
                   textAnchor="middle"
                   fontSize="1.5"
                   fill="white"
@@ -1012,22 +1012,22 @@ export const PressureAnalysisVisualization = ({ pressureData }) => {
               </g>
             ))}
             
-            {/* Away team pressure events (Red) */}
+            {/* Away team player positions during pressure events (Red) */}
             {filteredAwayEvents.map((event, idx) => (
               <g key={`away-${idx}`}>
                 <circle
-                  cx={event.x}
-                  cy={event.y}
+                  cx={event.playerX}
+                  cy={event.playerY}
                   r={2 + event.intensity * 2}
-                  fill={getPressureColor(event.intensity, 'away', event.success)}
-                  stroke={selectedEvent?.event?.id === event.id ? "#1f2937" : (event.success ? "rgba(239, 68, 68, 0.8)" : "rgba(239, 68, 68, 0.4)")}
+                  fill={getPressureColor(event.intensity, 'away', event.outcome)}
+                  stroke={selectedEvent?.event?.id === event.id ? "#1f2937" : (event.outcome === 'Success' ? "rgba(239, 68, 68, 0.8)" : "rgba(239, 68, 68, 0.4)")}
                   strokeWidth={selectedEvent?.event?.id === event.id ? "2" : "0.8"}
                   className="cursor-pointer"
                   onClick={() => handleEventClick(event, idx)}
                 />
                 <text
-                  x={event.x}
-                  y={event.y + 1}
+                  x={event.playerX}
+                  y={event.playerY + 1}
                   textAnchor="middle"
                   fontSize="1.5"
                   fill="white"
