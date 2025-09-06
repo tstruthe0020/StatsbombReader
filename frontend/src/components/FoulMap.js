@@ -152,7 +152,7 @@ const FoulMap = ({ matchId }) => {
         <div className="mb-4 flex flex-wrap gap-4 text-sm">
           <div className="flex items-center gap-2">
             <div className="w-2 h-2 bg-blue-500 rounded-full"></div>
-            <span>Foul</span>
+            <span>Foul (No Card)</span>
           </div>
           <div className="flex items-center gap-2">
             <div className="w-3 h-3 bg-yellow-500 rounded-full"></div>
@@ -161,10 +161,6 @@ const FoulMap = ({ matchId }) => {
           <div className="flex items-center gap-2">
             <div className="w-4 h-4 bg-red-500 rounded-full"></div>
             <span>Red Card</span>
-          </div>
-          <div className="flex items-center gap-2">
-            <div className="w-2 h-2 bg-orange-500 rounded-full"></div>
-            <span>Dangerous Play</span>
           </div>
         </div>
 
