@@ -847,61 +847,13 @@ const MainDashboard = () => {
           {/* NEW: Referee-Discipline Analysis Tab */}
           {isRefDisciplineEnabled() && 
             <TabsContent value="ref-discipline" className="space-y-6">
-              <div className="text-center space-y-6">
-                <div className="bg-gradient-to-br from-purple-50 to-blue-50 rounded-lg p-8">
-                  <Target className="h-16 w-16 text-purple-600 mx-auto mb-4" />
-                  <h2 className="text-2xl font-bold text-gray-900 mb-2">
-                    Advanced Referee-Discipline Analysis
-                  </h2>
-                  <p className="text-gray-600 mb-6 max-w-2xl mx-auto">
-                    Experience our comprehensive analysis system with zone-wise modeling, 
-                    what-if scenarios, and detailed referee bias detection.
-                  </p>
-                  <div className="space-y-4">
-                    <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-4">
-                      <Card className="cursor-pointer hover:shadow-lg transition-shadow" 
-                            onClick={() => window.open('/analysis/ref-discipline', '_blank')}>
-                        <CardContent className="p-4 text-center">
-                          <BarChart3 className="h-8 w-8 text-blue-600 mx-auto mb-2" />
-                          <div className="font-medium">Overview</div>
-                          <div className="text-sm text-gray-500">System capabilities</div>
-                        </CardContent>
-                      </Card>
-                      <Card className="cursor-pointer hover:shadow-lg transition-shadow"
-                            onClick={() => window.open('/analysis/ref-discipline/teams', '_blank')}>
-                        <CardContent className="p-4 text-center">
-                          <Users className="h-8 w-8 text-green-600 mx-auto mb-2" />
-                          <div className="font-medium">Teams</div>
-                          <div className="text-sm text-gray-500">Browse team analysis</div>
-                        </CardContent>
-                      </Card>
-                      <Card className="cursor-pointer hover:shadow-lg transition-shadow"
-                            onClick={() => window.open('/analysis/ref-discipline/referees', '_blank')}>
-                        <CardContent className="p-4 text-center">
-                          <Target className="h-8 w-8 text-red-600 mx-auto mb-2" />
-                          <div className="font-medium">Referees</div>
-                          <div className="text-sm text-gray-500">Analyze referee bias</div>
-                        </CardContent>
-                      </Card>
-                      <Card className="cursor-pointer hover:shadow-lg transition-shadow"
-                            onClick={() => window.open('/analysis/ref-discipline/lab', '_blank')}>
-                        <CardContent className="p-4 text-center">
-                          <Brain className="h-8 w-8 text-purple-600 mx-auto mb-2" />
-                          <div className="font-medium">Lab</div>
-                          <div className="text-sm text-gray-500">What-if scenarios</div>
-                        </CardContent>
-                      </Card>
-                    </div>
-                    <Button 
-                      size="lg" 
-                      className="bg-gradient-to-r from-purple-600 to-blue-600 hover:from-purple-700 hover:to-blue-700"
-                      onClick={() => window.open('/analysis/ref-discipline', '_blank')}
-                    >
-                      Launch Full Analysis System →
-                    </Button>
-                  </div>
-                </div>
-              </div>
+              <RefereeAnalyticsPanel 
+                competitions={competitions}
+                matches={matches}
+                selectedCompetition={selectedCompetition}
+                onCompetitionSelect={handleCompetitionSelect}
+                API_BASE_URL={API_BASE_URL}
+              />
             </TabsContent>
           }
 
