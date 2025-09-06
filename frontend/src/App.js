@@ -258,7 +258,7 @@ function App() {
         )}
 
         <Tabs defaultValue="overview" className="space-y-6">
-          <TabsList className="grid w-full grid-cols-8 bg-white shadow-sm">
+          <TabsList className="grid w-full grid-cols-9 bg-white shadow-sm">
             <TabsTrigger value="overview" className="flex items-center gap-2">
               <BarChart3 className="w-4 h-4" />
               Overview
@@ -282,6 +282,10 @@ function App() {
             <TabsTrigger value="advanced" className="flex items-center gap-2">
               <Brain className="w-4 h-4" />
               Advanced Analytics
+            </TabsTrigger>
+            <TabsTrigger value="referee-playstyle" className="flex items-center gap-2">
+              <Calculator className="w-4 h-4" />
+              Referee-Playstyle
             </TabsTrigger>
             <TabsTrigger value="spatial" className="flex items-center gap-2">
               <Layers className="w-4 h-4" />
