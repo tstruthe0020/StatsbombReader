@@ -310,7 +310,8 @@ const MainDashboard = () => {
         console.log('Fetching analytics status from:', `${API_BASE_URL}/api/analytics/zone-models/status`);
         const response = await axios.get(`${API_BASE_URL}/api/analytics/zone-models/status`);
         console.log('Analytics status response:', response.data);
-        setAnalyticsStatus(response.data);
+        console.log('Analytics available flag:', response.data.data?.available);
+        setAnalyticsStatus(response.data.data); // Use response.data.data instead of response.data
       } catch (err) {
         console.error('Failed to fetch analytics status:', err);
         setAnalyticsStatus({ error: err.message });
