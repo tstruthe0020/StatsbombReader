@@ -895,71 +895,43 @@ export const PressureAnalysisVisualization = ({ pressureData }) => {
               <rect x="114" y="30" width="6" height="20" />
             </g>
             
-            {/* Home team player positions during pressure events (Blue) */}
-            {homeEvents.map((event, idx) => (
-              <g key={`home-${idx}`}>
+            {/* Static pressure event circles - positions NEVER change */}
+            {allEvents.map((event, idx) => (
+              <g key={`event-${idx}`}>
                 <circle
-                  cx={event.playerX}
-                  cy={event.playerY}
-                  r={2 + event.intensity * 2}
-                  fill={getPressureColor(event.intensity, 'home', event.outcome)}
-                  stroke={event.outcome === 'Success' ? "rgba(59, 130, 246, 0.8)" : "rgba(59, 130, 246, 0.4)"}
-                  strokeWidth="0.8"
+                  cx={event.x}
+                  cy={event.y}
+                  r="3"
+                  fill={event.teamType === 'home' ? '#3b82f6' : '#ef4444'}
+                  fillOpacity={event.outcome === 'Success' ? '0.8' : '0.5'}
+                  stroke="white"
+                  strokeWidth="1"
                   className="cursor-pointer"
-                  onMouseEnter={() => handlePlayerHover(event)}
-                  onMouseLeave={handlePlayerLeave}
+                  onMouseEnter={() => setHoveredPlayer(event)}
+                  onMouseLeave={() => setHoveredPlayer(null)}
                 />
                 <text
-                  x={event.playerX}
-                  y={event.playerY + 1}
+                  x={event.x}
+                  y={event.y + 1}
                   textAnchor="middle"
                   fontSize="1.5"
                   fill="white"
                   fontWeight="bold"
                   className="pointer-events-none"
                 >
-                  {event.eventType[0]}
-                </text>
-              </g>
-            ))}
-            
-            {/* Away team player positions during pressure events (Red) */}
-            {awayEvents.map((event, idx) => (
-              <g key={`away-${idx}`}>
-                <circle
-                  cx={event.playerX}
-                  cy={event.playerY}
-                  r={2 + event.intensity * 2}
-                  fill={getPressureColor(event.intensity, 'away', event.outcome)}
-                  stroke={event.outcome === 'Success' ? "rgba(239, 68, 68, 0.8)" : "rgba(239, 68, 68, 0.4)"}
-                  strokeWidth="0.8"
-                  className="cursor-pointer"
-                  onMouseEnter={() => handlePlayerHover(event)}
-                  onMouseLeave={handlePlayerLeave}
-                />
-                <text
-                  x={event.playerX}
-                  y={event.playerY + 1}
-                  textAnchor="middle"
-                  fontSize="1.5"
-                  fill="white"
-                  fontWeight="bold"
-                  className="pointer-events-none"
-                >
-                  {event.eventType[0]}
+                  {event.type[0]}
                 </text>
               </g>
             ))}
           </svg>
           
-          {/* Enhanced hover tooltip with player details */}
-          {hoveredPlayerInfo && (
-            <div className="absolute top-4 left-4 bg-black text-white px-3 py-2 rounded-lg text-sm shadow-lg">
-              <div className="font-medium">{hoveredPlayerInfo.player}</div>
+          {/* Simple static tooltip */}
+          {hoveredPlayer && (
+            <div className="absolute top-4 left-4 bg-black text-white px-3 py-2 rounded-lg text-sm shadow-lg z-10">
+              <div className="font-medium">{hoveredPlayer.player}</div>
               <div className="text-xs text-gray-300 mt-1">
-                <div>Event: {hoveredPlayerInfo.eventType}</div>
-                <div>Time: {hoveredPlayerInfo.minute}'</div>
-                <div>Outcome: {hoveredPlayerInfo.outcome}</div>
+                <div>{hoveredPlayer.type} - {hoveredPlayer.minute}'</div>
+                <div>Outcome: {hoveredPlayer.outcome}</div>
               </div>
             </div>
           )}
@@ -969,21 +941,14 @@ export const PressureAnalysisVisualization = ({ pressureData }) => {
             <div className="p-3 bg-blue-50 rounded-lg border border-blue-200">
               <h4 className="font-medium text-blue-800 mb-2 flex items-center gap-2">
                 <div className="w-4 h-4 bg-blue-500 rounded-full"></div>
-                {homeEvents[0]?.team || 'Home Team'} ({homeEvents.length} events)
+                {allEvents.find(e => e.teamType === 'home')?.team || 'Home Team'} 
+                ({allEvents.filter(e => e.teamType === 'home').length} events)
               </h4>
               <div className="space-y-1 text-sm">
                 <div className="flex justify-between">
                   <span>Success Rate:</span>
                   <span className="font-medium">
-                    {homeEvents.length > 0 ? Math.round((homeEvents.filter(e => e.outcome === 'Success').length / homeEvents.length) * 100) : 0}%
-                  </span>
-                </div>
-                <div className="flex justify-between">
-                  <span>Most Active Player:</span>
-                  <span className="font-medium text-xs">
-                    {homeEvents.length > 0 ? 
-                      [...homeEvents.reduce((acc, e) => acc.set(e.player, (acc.get(e.player) || 0) + 1), new Map())]
-                        .sort((a, b) => b[1] - a[1])[0]?.[0] || 'N/A' : 'N/A'}
+                    {Math.round((allEvents.filter(e => e.teamType === 'home' && e.outcome === 'Success').length / allEvents.filter(e => e.teamType === 'home').length) * 100)}%
                   </span>
                 </div>
               </div>
@@ -992,21 +957,14 @@ export const PressureAnalysisVisualization = ({ pressureData }) => {
             <div className="p-3 bg-red-50 rounded-lg border border-red-200">
               <h4 className="font-medium text-red-800 mb-2 flex items-center gap-2">
                 <div className="w-4 h-4 bg-red-500 rounded-full"></div>
-                {awayEvents[0]?.team || 'Away Team'} ({awayEvents.length} events)
+                {allEvents.find(e => e.teamType === 'away')?.team || 'Away Team'} 
+                ({allEvents.filter(e => e.teamType === 'away').length} events)
               </h4>
               <div className="space-y-1 text-sm">
                 <div className="flex justify-between">
                   <span>Success Rate:</span>
                   <span className="font-medium">
-                    {awayEvents.length > 0 ? Math.round((awayEvents.filter(e => e.outcome === 'Success').length / awayEvents.length) * 100) : 0}%
-                  </span>
-                </div>
-                <div className="flex justify-between">
-                  <span>Most Active Player:</span>
-                  <span className="font-medium text-xs">
-                    {awayEvents.length > 0 ? 
-                      [...awayEvents.reduce((acc, e) => acc.set(e.player, (acc.get(e.player) || 0) + 1), new Map())]
-                        .sort((a, b) => b[1] - a[1])[0]?.[0] || 'N/A' : 'N/A'}
+                    {Math.round((allEvents.filter(e => e.teamType === 'away' && e.outcome === 'Success').length / allEvents.filter(e => e.teamType === 'away').length) * 100)}%
                   </span>
                 </div>
               </div>
