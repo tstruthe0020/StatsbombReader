@@ -2103,12 +2103,13 @@ async def extract_team_match_features(match_id: int):
         if events_df.empty:
             raise HTTPException(status_code=404, detail="No events found for match")
         
-        # Flatten event data for analysis
-        if hasattr(github_client.loader, '_flatten_event_data'):
-            events_df = github_client.loader._flatten_event_data(events_df)
+        # Get team names from events
+        teams = []
+        for event in events:
+            team_name = event.get('team', {}).get('name')
+            if team_name and team_name not in teams:
+                teams.append(team_name)
         
-        # Get team names
-        teams = events_df['team_name'].unique()
         if len(teams) < 2:
             raise HTTPException(status_code=400, detail="Match must have at least 2 teams")
         
