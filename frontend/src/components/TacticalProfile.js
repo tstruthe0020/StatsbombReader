@@ -27,11 +27,16 @@ const TacticalProfile = ({ homeTeam, awayTeam, matchId }) => {
       if (data.success) {
         setTacticalData(data);
       } else {
-        setError(data.error || 'Failed to load tactical data');
+        // Check if it's a data processing issue vs system error
+        if (data.error && data.error.includes('not available')) {
+          setError('Tactical archetype computation in progress... This may take a moment for complex matches.');
+        } else {
+          setError(data.error || 'Failed to load tactical data');
+        }
       }
     } catch (err) {
-      console.warn('Tactical data not available:', err);
-      setError('Tactical archetype data not available');
+      console.warn('Tactical data request failed:', err);
+      setError('Unable to compute tactical archetypes - please try again');
     } finally {
       setLoading(false);
     }
