@@ -2769,6 +2769,60 @@ def load_archetype_data():
 # Load data on startup
 load_archetype_data()
 
+def _build_match_styles_response(match_teams, match_id):
+    """Build response from pre-built match archetype data."""
+    teams_data = []
+    for _, team_row in match_teams.iterrows():
+        team_data = {
+            "team": team_row.get("team"),
+            "opponent": team_row.get("opponent"),
+            "home_away": team_row.get("home_away"),
+            "style_archetype": team_row.get("style_archetype"),
+            "axis_tags": {
+                "pressing": team_row.get("cat_pressing"),
+                "block": team_row.get("cat_block"),
+                "possession_directness": team_row.get("cat_possess_dir"),
+                "width": team_row.get("cat_width"),
+                "transition": team_row.get("cat_transition"),
+                "overlays": list(team_row.get("cat_overlays", [])) if team_row.get("cat_overlays") is not None else []
+            },
+            "match_metrics": {
+                "ppda": round(float(team_row.get("ppda", 0)), 2),
+                "possession_share": round(float(team_row.get("possession_share", 0)), 3),
+                "directness": round(float(team_row.get("directness", 0)), 3),
+                "wing_share": round(float(team_row.get("wing_share", 0)), 3),
+                "counter_rate": round(float(team_row.get("counter_rate", 0)), 3),
+                "fouls_committed": int(team_row.get("fouls_committed", 0)),
+                "cards": {
+                    "yellows": int(team_row.get("yellows", 0)),
+                    "reds": int(team_row.get("reds", 0))
+                }
+            }
+        }
+        teams_data.append(team_data)
+    
+    # Get match info if available
+    match_info = {}
+    if len(teams_data) > 0:
+        first_team = match_teams.iloc[0]
+        match_info = {
+            "match_date": first_team.get("match_date"),
+            "competition_id": int(first_team.get("competition_id", 0)),
+            "season_id": int(first_team.get("season_id", 0)),
+            "referee_name": first_team.get("referee_name")
+        }
+    
+    return {
+        "success": True,
+        "match_id": match_id,
+        "match_info": match_info,
+        "teams": teams_data,
+        "tactical_summary": {
+            "styles_comparison": [team["style_archetype"] for team in teams_data],
+            "tactical_contrast": analyze_tactical_contrast(teams_data)
+        }
+    }
+
 @app.get("/api/style/team")
 def get_team_style(team: str, season_id: int, competition_id: int):
     """Get tactical archetype and axis tags for a team in a specific season."""
