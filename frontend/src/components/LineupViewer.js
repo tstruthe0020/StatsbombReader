@@ -2,7 +2,7 @@ import React from 'react';
 import { Card, CardContent, CardHeader, CardTitle } from './ui/card';
 import { Badge } from './ui/badge';
 import { Separator } from './ui/separator';
-import { Users, Shield, Target } from 'lucide-react';
+import { Users } from 'lucide-react';
 
 const LineupViewer = ({ formations }) => {
   if (!formations) {
@@ -23,35 +23,90 @@ const LineupViewer = ({ formations }) => {
 
   const { home_team, away_team } = formations;
 
-  const renderTeamLineup = (team, teamName, isHome = true) => {
-    if (!team || !team.formation_detail) return null;
+  // Function to get player positions based on formation
+  const getFormationPositions = (formation, players) => {
+    if (!formation || !players || players.length === 0) return {};
 
-    const formation = team.formation || 'Unknown';
-    const players = team.formation_detail || [];
+    // Position mappings for different formations
+    const formationLayouts = {
+      '4-3-3': {
+        goalkeeper: [{ x: 50, y: 90 }],
+        defense: [{ x: 15, y: 75 }, { x: 35, y: 75 }, { x: 65, y: 75 }, { x: 85, y: 75 }],
+        midfield: [{ x: 25, y: 55 }, { x: 50, y: 55 }, { x: 75, y: 55 }],
+        attack: [{ x: 20, y: 25 }, { x: 50, y: 20 }, { x: 80, y: 25 }]
+      },
+      '4-2-3-1': {
+        goalkeeper: [{ x: 50, y: 90 }],
+        defense: [{ x: 15, y: 75 }, { x: 35, y: 75 }, { x: 65, y: 75 }, { x: 85, y: 75 }],
+        midfield: [{ x: 35, y: 60 }, { x: 65, y: 60 }, { x: 25, y: 40 }, { x: 50, y: 40 }, { x: 75, y: 40 }],
+        attack: [{ x: 50, y: 20 }]
+      },
+      '3-5-2': {
+        goalkeeper: [{ x: 50, y: 90 }],
+        defense: [{ x: 25, y: 75 }, { x: 50, y: 75 }, { x: 75, y: 75 }],
+        midfield: [{ x: 15, y: 55 }, { x: 35, y: 55 }, { x: 50, y: 55 }, { x: 65, y: 55 }, { x: 85, y: 55 }],
+        attack: [{ x: 40, y: 25 }, { x: 60, y: 25 }]
+      },
+      '4-4-2': {
+        goalkeeper: [{ x: 50, y: 90 }],
+        defense: [{ x: 15, y: 75 }, { x: 35, y: 75 }, { x: 65, y: 75 }, { x: 85, y: 75 }],
+        midfield: [{ x: 20, y: 55 }, { x: 40, y: 55 }, { x: 60, y: 55 }, { x: 80, y: 55 }],
+        attack: [{ x: 40, y: 25 }, { x: 60, y: 25 }]
+      }
+    };
 
-    // Group players by position for better display
-    const positionGroups = {
-      'Goalkeeper': [],
-      'Defense': [],
-      'Midfield': [],
-      'Attack': []
+    const layout = formationLayouts[formation] || formationLayouts['4-3-3'];
+    const positionedPlayers = {};
+
+    // Group players by position type
+    const groupedPlayers = {
+      goalkeeper: [],
+      defense: [],
+      midfield: [],
+      attack: []
     };
 
     players.forEach(player => {
       const position = player.position || '';
       if (position.includes('Goalkeeper') || position === 'GK') {
-        positionGroups['Goalkeeper'].push(player);
+        groupedPlayers.goalkeeper.push(player);
       } else if (position.includes('Back') || position.includes('Center Back') || position === 'CB' || position === 'RB' || position === 'LB') {
-        positionGroups['Defense'].push(player);
+        groupedPlayers.defense.push(player);
       } else if (position.includes('Midfield') || position.includes('Mid') || position === 'CDM' || position === 'CM' || position === 'CAM') {
-        positionGroups['Midfield'].push(player);
+        groupedPlayers.midfield.push(player);
       } else if (position.includes('Forward') || position.includes('Wing') || position === 'ST' || position === 'RW' || position === 'LW') {
-        positionGroups['Attack'].push(player);
+        groupedPlayers.attack.push(player);
       } else {
-        // Default to midfield if unsure
-        positionGroups['Midfield'].push(player);
+        groupedPlayers.midfield.push(player);
       }
     });
+
+    // Assign positions
+    Object.keys(layout).forEach(positionGroup => {
+      const positions = layout[positionGroup];
+      const playersInGroup = groupedPlayers[positionGroup] || [];
+      
+      positions.forEach((pos, index) => {
+        if (playersInGroup[index]) {
+          if (!positionedPlayers[positionGroup]) positionedPlayers[positionGroup] = [];
+          positionedPlayers[positionGroup].push({
+            ...playersInGroup[index],
+            x: pos.x,
+            y: pos.y
+          });
+        }
+      });
+    });
+
+    return positionedPlayers;
+  };
+
+  const renderFormation = (team, teamName, isHome = true) => {
+    if (!team || !team.formation_detail) return null;
+
+    const formation = team.formation || 'Unknown';
+    const players = team.formation_detail || [];
+    const positionedPlayers = getFormationPositions(formation, players);
 
     return (
       <div className={`${isHome ? 'bg-blue-50' : 'bg-red-50'} p-4 rounded-lg`}>
@@ -62,45 +117,53 @@ const LineupViewer = ({ formations }) => {
           </Badge>
         </div>
 
-        <div className="space-y-4">
-          {Object.entries(positionGroups).map(([positionGroup, groupPlayers]) => {
-            if (groupPlayers.length === 0) return null;
+        <div className="relative bg-green-400 rounded-lg" style={{ aspectRatio: '3/4', height: '400px' }}>
+          {/* Field markings */}
+          <div className="absolute inset-0">
+            {/* Center line */}
+            <div className="absolute left-0 right-0 top-1/2 h-0.5 bg-white transform -translate-y-0.5"></div>
+            {/* Center circle */}
+            <div className="absolute left-1/2 top-1/2 w-16 h-16 border-2 border-white rounded-full transform -translate-x-1/2 -translate-y-1/2"></div>
             
-            return (
-              <div key={positionGroup}>
-                <h4 className="text-sm font-semibold text-gray-700 mb-2 flex items-center gap-2">
-                  {positionGroup === 'Goalkeeper' && <Shield className="h-4 w-4" />}
-                  {positionGroup === 'Defense' && <Shield className="h-4 w-4" />}
-                  {positionGroup === 'Midfield' && <Users className="h-4 w-4" />}
-                  {positionGroup === 'Attack' && <Target className="h-4 w-4" />}
-                  {positionGroup}
-                </h4>
-                <div className="grid grid-cols-1 md:grid-cols-2 gap-2">
-                  {groupPlayers.map((player, index) => (
-                    <div key={index} className="bg-white p-3 rounded border flex items-center justify-between">
-                      <div>
-                        <div className="font-medium text-gray-900">
-                          {player.player || 'Unknown Player'}
-                        </div>
-                        <div className="text-sm text-gray-600">
-                          {player.position || 'Unknown Position'}
-                        </div>
-                      </div>
-                      <Badge variant="outline" className="text-xs">
-                        #{player.jersey || 'N/A'}
-                      </Badge>
-                    </div>
-                  ))}
+            {/* Goal areas */}
+            <div className="absolute left-1/2 bottom-0 w-16 h-6 border-2 border-white border-b-0 transform -translate-x-1/2"></div>
+            <div className="absolute left-1/2 top-0 w-16 h-6 border-2 border-white border-t-0 transform -translate-x-1/2"></div>
+            
+            {/* Penalty areas */}
+            <div className="absolute left-1/2 bottom-0 w-32 h-12 border-2 border-white border-b-0 transform -translate-x-1/2"></div>
+            <div className="absolute left-1/2 top-0 w-32 h-12 border-2 border-white border-t-0 transform -translate-x-1/2"></div>
+          </div>
+
+          {/* Players */}
+          {Object.entries(positionedPlayers).map(([positionGroup, groupPlayers]) =>
+            groupPlayers.map((player, index) => (
+              <div
+                key={`${positionGroup}-${index}`}
+                className="absolute transform -translate-x-1/2 -translate-y-1/2"
+                style={{
+                  left: `${player.x}%`,
+                  top: `${player.y}%`
+                }}
+              >
+                <div className={`w-8 h-8 rounded-full flex items-center justify-center text-xs font-bold text-white shadow-lg ${
+                  isHome ? 'bg-blue-600' : 'bg-red-600'
+                }`}>
+                  {player.jersey || '?'}
+                </div>
+                <div className="absolute top-10 left-1/2 transform -translate-x-1/2 text-xs font-medium text-gray-800 bg-white/90 px-2 py-1 rounded whitespace-nowrap">
+                  {player.player ? (
+                    player.player.length > 15 
+                      ? player.player.split(' ').slice(-1)[0] // Show last name if too long
+                      : player.player
+                  ) : 'Unknown'}
                 </div>
               </div>
-            );
-          })}
+            ))
+          )}
         </div>
 
-        <div className="mt-4 pt-3 border-t border-gray-200">
-          <p className="text-sm text-gray-600">
-            Total Players: {players.length}
-          </p>
+        <div className="mt-4 text-sm text-gray-600">
+          Total Players: {players.length}
         </div>
       </div>
     );
@@ -115,9 +178,9 @@ const LineupViewer = ({ formations }) => {
         </CardTitle>
       </CardHeader>
       <CardContent className="space-y-6">
-        {renderTeamLineup(home_team, 'Home Team', true)}
+        {renderFormation(home_team, 'Home Team', true)}
         <Separator />
-        {renderTeamLineup(away_team, 'Away Team', false)}
+        {renderFormation(away_team, 'Away Team', false)}
       </CardContent>
     </Card>
   );
