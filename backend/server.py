@@ -248,7 +248,7 @@ class QueryRequest(BaseModel):
 @app.on_event("startup")
 async def startup_event():
     """Initialize services on startup."""
-    global github_client, db_client, db, spatial_engine
+    global github_client, db_client, db, spatial_engine, zone_modeler, referee_visualizer, feature_extractor, discipline_analyzer
     
     # Initialize GitHub client
     github_token = os.getenv("GITHUB_TOKEN")
@@ -263,6 +263,39 @@ async def startup_event():
         # Initialize spatial analysis engine
         spatial_engine = SpatialAnalysisEngine(github_client)
         logger.info("Spatial analysis engine initialized successfully")
+        
+        # Initialize advanced analytics components if available
+        if ANALYTICS_AVAILABLE:
+            try:
+                # Load configuration if it exists
+                config = {}
+                config_path = Path("config.yaml")
+                if config_path.exists():
+                    import yaml
+                    with open(config_path, 'r') as f:
+                        config = yaml.safe_load(f)
+                    logger.info("Configuration loaded for analytics")
+                
+                # Initialize analytics components
+                zone_modeler = ZoneNBModeler(config)
+                referee_visualizer = RefereeVisualizer(config)
+                feature_extractor = PlaystyleFeatureExtractor(config.get('features', {}).get('playstyle', {}))
+                discipline_analyzer = DisciplineAnalyzer(config.get('features', {}).get('discipline', {}))
+                
+                logger.info("✓ Advanced analytics components initialized")
+                
+                # Try to load pre-fitted models if they exist
+                models_dir = Path(config.get('paths', {}).get('models_dir', 'data/models_nb_zone'))
+                if models_dir.exists():
+                    try:
+                        zone_modeler.load_models(models_dir)
+                        logger.info(f"✓ Loaded {len(zone_modeler.fitted_models)} pre-fitted zone models")
+                    except Exception as e:
+                        logger.warning(f"Could not load pre-fitted models: {e}")
+                        
+            except Exception as e:
+                logger.warning(f"Failed to initialize advanced analytics: {e}")
+                ANALYTICS_AVAILABLE = False
         
     except Exception as e:
         logger.error(f"Failed to initialize GitHub client: {e}")
