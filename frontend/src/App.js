@@ -251,64 +251,194 @@ function App() {
   );
 
   return (
-    <div className="min-h-screen bg-gradient-to-br from-green-50 via-white to-blue-50">
-      <div className="container mx-auto px-4 py-8">
-        {/* Header */}
-        <div className="text-center mb-8">
-          <h1 className="text-4xl font-bold bg-gradient-to-r from-green-600 to-blue-600 bg-clip-text text-transparent mb-4">
-            ⚽ Soccer Foul & Referee Analytics
-          </h1>
-          <p className="text-lg text-gray-600 max-w-2xl mx-auto">
-            Advanced analysis of soccer fouls and referee decisions using StatsBomb open data
-          </p>
+    <Router>
+      <div className="min-h-screen bg-gradient-to-br from-green-50 via-white to-blue-50">
+        <Routes>
+          {/* Referee Discipline Analysis Routes (if enabled) */}
+          {isRefDisciplineEnabled() && (
+            <>
+              <Route path="/analysis/ref-discipline" element={
+                <Suspense fallback={<div className="flex items-center justify-center min-h-screen"><div className="text-gray-500">Loading...</div></div>}>
+                  <OverviewPage />
+                </Suspense>
+              } />
+              <Route path="/analysis/ref-discipline/teams" element={
+                <Suspense fallback={<div className="flex items-center justify-center min-h-screen"><div className="text-gray-500">Loading...</div></div>}>
+                  <TeamsPage />
+                </Suspense>
+              } />
+              <Route path="/analysis/ref-discipline/teams/:teamId" element={
+                <Suspense fallback={<div className="flex items-center justify-center min-h-screen"><div className="text-gray-500">Loading...</div></div>}>
+                  <TeamDetailPage />
+                </Suspense>
+              } />
+              <Route path="/analysis/ref-discipline/referees" element={
+                <Suspense fallback={<div className="flex items-center justify-center min-h-screen"><div className="text-gray-500">Loading...</div></div>}>
+                  <RefereesPage />
+                </Suspense>
+              } />
+              <Route path="/analysis/ref-discipline/referees/:refId" element={
+                <Suspense fallback={<div className="flex items-center justify-center min-h-screen"><div className="text-gray-500">Loading...</div></div>}>
+                  <RefDetailPage />
+                </Suspense>
+              } />
+              <Route path="/analysis/ref-discipline/lab" element={
+                <Suspense fallback={<div className="flex items-center justify-center min-h-screen"><div className="text-gray-500">Loading...</div></div>}>
+                  <LabPage />
+                </Suspense>
+              } />
+              <Route path="/analysis/ref-discipline/reports" element={
+                <Suspense fallback={<div className="flex items-center justify-center min-h-screen"><div className="text-gray-500">Loading...</div></div>}>
+                  <ReportsPage />
+                </Suspense>
+              } />
+            </>
+          )}
+          
+          {/* Main Dashboard Route */}
+          <Route path="/" element={<MainDashboard />} />
+          <Route path="*" element={<Navigate to="/" replace />} />
+        </Routes>
+      </div>
+    </Router>
+  );
+};
+
+// Main Dashboard Component (existing tabs interface)
+const MainDashboard = () => {
+  const [competitions, setCompetitions] = useState([]);
+  const [selectedCompetition, setSelectedCompetition] = useState(null);
+  const [matches, setMatches] = useState([]);
+  const [selectedMatch, setSelectedMatch] = useState(null);
+  const [error, setError] = useState(null);
+  const [loading, setLoading] = useState(false);
+
+  const API_BASE_URL = process.env.REACT_APP_BACKEND_URL || '';
+
+  useEffect(() => {
+    fetchCompetitions();
+  }, []);
+
+  const fetchCompetitions = async () => {
+    try {
+      setLoading(true);
+      const response = await axios.get(`${API_BASE_URL}/api/competitions`);
+      if (response.data && response.data.success) {
+        setCompetitions(response.data.data);
+        setError(null);
+      } else {
+        setError('Failed to load competitions');
+      }
+    } catch (err) {
+      setError('Error connecting to server. Please check if the backend is running.');
+      console.error('Error fetching competitions:', err);
+    } finally {
+      setLoading(false);
+    }
+  };
+
+  const fetchMatches = async (competitionId, seasonId) => {
+    try {
+      setLoading(true);
+      const response = await axios.get(`${API_BASE_URL}/api/matches/${competitionId}/${seasonId}`);
+      if (response.data && response.data.success) {
+        setMatches(response.data.data);
+        setError(null);
+      } else {
+        setError('Failed to load matches');
+      }
+    } catch (err) {
+      setError('Error loading matches');
+      console.error('Error fetching matches:', err);
+    } finally {
+      setLoading(false);
+    }
+  };
+
+  // Stats calculation
+  const stats = {
+    totalCompetitions: competitions.length,
+    totalMatches: matches.length,
+    avgFoulsPerMatch: matches.length > 0 ? 
+      matches.reduce((sum, match) => sum + (match.foulEvents?.length || 0), 0) / matches.length : 0,
+    totalReferees: [...new Set(matches.map(m => m.referee?.name).filter(Boolean))].length
+  };
+
+  const StatCard = ({ title, value, color, Icon, subtitle }) => (
+    <Card className={`bg-gradient-to-br from-${color}-50 to-${color}-100 border-${color}-200 hover:shadow-lg transition-shadow`}>
+      <CardContent className="p-6">
+        <div className="flex items-center justify-between">
+          <div>
+            <p className="text-sm font-medium text-gray-600">{title}</p>
+            <p className={`text-3xl font-bold text-${color}-600`}>{value}</p>
+            {subtitle && <p className="text-sm text-gray-500 mt-1">{subtitle}</p>}
+          </div>
+          <Icon className={`w-8 h-8 text-${color}-500`} />
         </div>
+      </CardContent>
+    </Card>
+  );
 
-        {error && (
-          <Alert className="mb-6 border-red-200 bg-red-50">
-            <AlertTriangle className="h-4 w-4 text-red-600" />
-            <AlertDescription className="text-red-800">{error}</AlertDescription>
-          </Alert>
-        )}
+  return (
+    <div className="container mx-auto px-4 py-8">
+      {/* Header */}
+      <div className="text-center mb-8">
+        <h1 className="text-4xl font-bold bg-gradient-to-r from-green-600 to-blue-600 bg-clip-text text-transparent mb-4">
+          ⚽ Soccer Foul & Referee Analytics
+        </h1>
+        <p className="text-lg text-gray-600 max-w-2xl mx-auto">
+          Advanced analysis of soccer fouls and referee decisions using StatsBomb open data
+        </p>
+      </div>
 
-        <Tabs defaultValue="overview" className="space-y-6">
-          <TabsList className="grid w-full grid-cols-9 bg-white shadow-sm">
-            <TabsTrigger value="overview" className="flex items-center gap-2">
-              <BarChart3 className="w-4 h-4" />
-              Overview
+      {error && (
+        <Alert className="mb-6 border-red-200 bg-red-50">
+          <AlertTriangle className="h-4 w-4 text-red-600" />
+          <AlertDescription className="text-red-800">{error}</AlertDescription>
+        </Alert>
+      )}
+
+      <Tabs defaultValue="overview" className="space-y-6">
+        <TabsList className={`grid w-full ${isRefDisciplineEnabled() ? 'grid-cols-9' : 'grid-cols-8'} bg-white shadow-sm`}>
+          <TabsTrigger value="overview" className="flex items-center gap-2">
+            <BarChart3 className="w-4 h-4" />
+            Overview
+          </TabsTrigger>
+          <TabsTrigger value="competitions" className="flex items-center gap-2">
+            <TrendingUp className="w-4 h-4" />
+            Competitions
+          </TabsTrigger>
+          <TabsTrigger value="matches" className="flex items-center gap-2">
+            <Activity className="w-4 h-4" />
+            Match Analysis
+          </TabsTrigger>
+          <TabsTrigger value="analytics" className="flex items-center gap-2">
+            <Users className="w-4 h-4" />
+            Basic Analytics
+          </TabsTrigger>
+          <TabsTrigger value="heatmaps" className="flex items-center gap-2">
+            <Zap className="w-4 h-4" />
+            Referee Heatmaps
+          </TabsTrigger>
+          <TabsTrigger value="advanced" className="flex items-center gap-2">
+            <Brain className="w-4 h-4" />
+            Advanced Analytics
+          </TabsTrigger>
+          {isRefDisciplineEnabled() && (
+            <TabsTrigger value="ref-discipline" className="flex items-center gap-2">
+              <Target className="w-4 h-4" />
+              Ref-Discipline
             </TabsTrigger>
-            <TabsTrigger value="competitions" className="flex items-center gap-2">
-              <TrendingUp className="w-4 h-4" />
-              Competitions
-            </TabsTrigger>
-            <TabsTrigger value="matches" className="flex items-center gap-2">
-              <Activity className="w-4 h-4" />
-              Match Analysis
-            </TabsTrigger>
-            <TabsTrigger value="analytics" className="flex items-center gap-2">
-              <Users className="w-4 h-4" />
-              Basic Analytics
-            </TabsTrigger>
-            <TabsTrigger value="heatmaps" className="flex items-center gap-2">
-              <Zap className="w-4 h-4" />
-              Referee Heatmaps
-            </TabsTrigger>
-            <TabsTrigger value="advanced" className="flex items-center gap-2">
-              <Brain className="w-4 h-4" />
-              Advanced Analytics
-            </TabsTrigger>
-            <TabsTrigger value="referee-playstyle" className="flex items-center gap-2">
-              <Calculator className="w-4 h-4" />
-              Referee-Playstyle
-            </TabsTrigger>
-            <TabsTrigger value="spatial" className="flex items-center gap-2">
-              <Layers className="w-4 h-4" />
-              360° Analysis
-            </TabsTrigger>
-            <TabsTrigger value="llm-query" className="flex items-center gap-2">
-              <MessageCircle className="w-4 h-4" />
-              AI Chat
-            </TabsTrigger>
-          </TabsList>
+          )}
+          <TabsTrigger value="spatial" className="flex items-center gap-2">
+            <Layers className="w-4 h-4" />
+            360° Analysis
+          </TabsTrigger>
+          <TabsTrigger value="llm-query" className="flex items-center gap-2">
+            <MessageCircle className="w-4 h-4" />
+            AI Chat
+          </TabsTrigger>
+        </TabsList>
 
           {/* Overview Tab */}
           <TabsContent value="overview" className="space-y-6">
