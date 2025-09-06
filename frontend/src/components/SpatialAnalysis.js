@@ -39,15 +39,15 @@ const SpatialAnalysis = () => {
   const analysisTypes = [
     { 
       id: 'formation-bias', 
-      label: 'Formation Decision Patterns', 
+      label: 'Formation Tactical Performance', 
       icon: Shield,
       description: 'Per-game decisions & foul locations by formation'
     },
     { 
       id: 'referee-positioning', 
-      label: 'Referee Positioning', 
+      label: 'Interactive Referee Positioning', 
       icon: Crosshair,
-      description: 'Optimal positioning and sight line analysis'
+      description: 'Detailed positioning analysis with filtering'
     },
     { 
       id: 'foul-context', 
@@ -57,9 +57,9 @@ const SpatialAnalysis = () => {
     },
     { 
       id: 'pressure-analysis', 
-      label: 'Team Pressure Zones', 
+      label: 'Team Pressure Events', 
       icon: Target,
-      description: 'Pressure application patterns by team'
+      description: 'Pressure events from match event data'
     }
   ];
 
