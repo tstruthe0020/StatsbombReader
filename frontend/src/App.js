@@ -275,7 +275,7 @@ const MainDashboard = () => {
     totalMatches: matches.length,
     avgFoulsPerMatch: matches.length > 0 ? 
       matches.reduce((sum, match) => sum + (match.foulEvents?.length || 0), 0) / matches.length : 0,
-    totalReferees: [...new Set(matches.map(m => m.referee?.name).filter(Boolean))].length
+    totalReferees: [...new Set(matches.map(m => m.referee?.name || m.referee).filter(Boolean))].length
   };
 
   const StatCard = ({ title, value, color, Icon, subtitle }) => (
