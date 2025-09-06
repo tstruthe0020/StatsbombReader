@@ -31,6 +31,7 @@ try:
     from src.viz_referee import RefereeVisualizer
     from src.features import PlaystyleFeatureExtractor
     from src.discipline import DisciplineAnalyzer
+    from src.realtime_archetype import get_realtime_analyzer
     ANALYTICS_AVAILABLE = True
     logger.info("✓ Advanced analytics modules loaded successfully")
 except ImportError as e:
