@@ -566,7 +566,7 @@ const MainDashboard = () => {
                     onClick={handleSelectAllMatches}
                     disabled={selectedMatches.length === matches.length}
                   >
-                    Select All
+                    Select All ({matches.length})
                   </Button>
                   <Button 
                     size="sm" 
