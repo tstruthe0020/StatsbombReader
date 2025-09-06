@@ -470,6 +470,8 @@ async def health_check():
 async def get_competitions():
     """Get all available competitions."""
     try:
+        if github_client is None:
+            raise Exception("GitHub client not available")
         competitions = github_client.get_competitions_data()
         return {"success": True, "data": competitions}
     except Exception as e:
