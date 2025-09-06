@@ -2731,6 +2731,280 @@ async def get_available_features():
         }
     }
 
+# ============================================================================
+# TACTICAL ARCHETYPE API ENDPOINTS
+# ============================================================================
+
+# Load tactical archetype data once at startup
+SEASON_TAGS_DF = None
+MATCH_TAGS_DF = None
+
+def load_archetype_data():
+    """Load tactical archetype data from parquet files."""
+    global SEASON_TAGS_DF, MATCH_TAGS_DF
+    
+    data_dir = Path("data")
+    season_file = data_dir / "team_season_features_with_tags.parquet"
+    match_file = data_dir / "match_team_features_with_tags.parquet"
+    
+    try:
+        if season_file.exists():
+            SEASON_TAGS_DF = pd.read_parquet(season_file)
+            logger.info(f"Loaded season archetype data: {len(SEASON_TAGS_DF)} records")
+        else:
+            logger.warning(f"Season archetype file not found: {season_file}")
+            
+        if match_file.exists():
+            MATCH_TAGS_DF = pd.read_parquet(match_file)
+            logger.info(f"Loaded match archetype data: {len(MATCH_TAGS_DF)} records")
+        else:
+            logger.warning(f"Match archetype file not found: {match_file}")
+            
+    except Exception as e:
+        logger.error(f"Failed to load archetype data: {e}")
+
+# Load data on startup
+load_archetype_data()
+
+@app.get("/api/style/team")
+def get_team_style(team: str, season_id: int, competition_id: int):
+    """Get tactical archetype and axis tags for a team in a specific season."""
+    try:
+        if SEASON_TAGS_DF is None:
+            return {
+                "success": False,
+                "error": "Tactical archetype data not available",
+                "team": team,
+                "season_id": season_id,
+                "competition_id": competition_id,
+                "style_archetype": None
+            }
+        
+        # Filter for the specific team/season/competition
+        filtered_df = SEASON_TAGS_DF[
+            (SEASON_TAGS_DF["team"] == team) &
+            (SEASON_TAGS_DF["season_id"] == season_id) &
+            (SEASON_TAGS_DF["competition_id"] == competition_id)
+        ]
+        
+        if filtered_df.empty:
+            return {
+                "success": False,
+                "error": f"No data found for {team} in season {season_id}, competition {competition_id}",
+                "team": team,
+                "season_id": season_id,
+                "competition_id": competition_id,
+                "style_archetype": None
+            }
+        
+        row = filtered_df.iloc[0]
+        
+        return {
+            "success": True,
+            "team": team,
+            "season_id": season_id,
+            "competition_id": competition_id,
+            "style_archetype": row.get("style_archetype"),
+            "matches_played": int(row.get("matches_played", 0)),
+            "axis_tags": {
+                "pressing": row.get("cat_pressing"),
+                "block": row.get("cat_block"),
+                "possession_directness": row.get("cat_possess_dir"),
+                "width": row.get("cat_width"),
+                "transition": row.get("cat_transition"),
+                "overlays": row.get("cat_overlays", [])
+            },
+            "key_metrics": {
+                "ppda": round(float(row.get("ppda", 0)), 2),
+                "possession_share": round(float(row.get("possession_share", 0)), 3),
+                "directness": round(float(row.get("directness", 0)), 3),
+                "wing_share": round(float(row.get("wing_share", 0)), 3),
+                "counter_rate": round(float(row.get("counter_rate", 0)), 3),
+                "fouls_per_game": round(float(row.get("fouls_committed", 0)) / max(row.get("matches_played", 1), 1), 1)
+            }
+        }
+        
+    except Exception as e:
+        logger.error(f"Error getting team style: {e}")
+        raise HTTPException(status_code=500, detail=f"Failed to get team style: {str(e)}")
+
+@app.get("/api/style/match/{match_id}")
+def get_match_team_styles(match_id: int):
+    """Get tactical archetypes for both teams in a specific match."""
+    try:
+        if MATCH_TAGS_DF is None:
+            return {
+                "success": False,
+                "error": "Match archetype data not available",
+                "match_id": match_id,
+                "teams": []
+            }
+        
+        # Filter for the specific match
+        match_teams = MATCH_TAGS_DF[MATCH_TAGS_DF["match_id"] == match_id]
+        
+        if match_teams.empty:
+            return {
+                "success": False,
+                "error": f"No tactical data found for match {match_id}",
+                "match_id": match_id,
+                "teams": []
+            }
+        
+        teams_data = []
+        for _, team_row in match_teams.iterrows():
+            team_data = {
+                "team": team_row.get("team"),
+                "opponent": team_row.get("opponent"),
+                "home_away": team_row.get("home_away"),
+                "style_archetype": team_row.get("style_archetype"),
+                "axis_tags": {
+                    "pressing": team_row.get("cat_pressing"),
+                    "block": team_row.get("cat_block"),
+                    "possession_directness": team_row.get("cat_possess_dir"),
+                    "width": team_row.get("cat_width"),
+                    "transition": team_row.get("cat_transition"),
+                    "overlays": team_row.get("cat_overlays", [])
+                },
+                "match_metrics": {
+                    "ppda": round(float(team_row.get("ppda", 0)), 2),
+                    "possession_share": round(float(team_row.get("possession_share", 0)), 3),
+                    "directness": round(float(team_row.get("directness", 0)), 3),
+                    "wing_share": round(float(team_row.get("wing_share", 0)), 3),
+                    "counter_rate": round(float(team_row.get("counter_rate", 0)), 3),
+                    "fouls_committed": int(team_row.get("fouls_committed", 0)),
+                    "cards": {
+                        "yellows": int(team_row.get("yellows", 0)),
+                        "reds": int(team_row.get("reds", 0))
+                    }
+                }
+            }
+            teams_data.append(team_data)
+        
+        # Get match info if available
+        match_info = {}
+        if len(teams_data) > 0:
+            first_team = match_teams.iloc[0]
+            match_info = {
+                "match_date": first_team.get("match_date"),
+                "competition_id": int(first_team.get("competition_id", 0)),
+                "season_id": int(first_team.get("season_id", 0)),
+                "referee_name": first_team.get("referee_name")
+            }
+        
+        return {
+            "success": True,
+            "match_id": match_id,
+            "match_info": match_info,
+            "teams": teams_data,
+            "tactical_summary": {
+                "styles_comparison": [team["style_archetype"] for team in teams_data],
+                "tactical_contrast": analyze_tactical_contrast(teams_data)
+            }
+        }
+        
+    except Exception as e:
+        logger.error(f"Error getting match team styles: {e}")
+        raise HTTPException(status_code=500, detail=f"Failed to get match team styles: {str(e)}")
+
+@app.get("/api/style/competition/{competition_id}/season/{season_id}")
+def get_competition_style_distribution(competition_id: int, season_id: int):
+    """Get tactical archetype distribution for a competition/season."""
+    try:
+        if SEASON_TAGS_DF is None:
+            return {
+                "success": False,
+                "error": "Season archetype data not available",
+                "competition_id": competition_id,
+                "season_id": season_id
+            }
+        
+        # Filter for the specific competition/season
+        season_teams = SEASON_TAGS_DF[
+            (SEASON_TAGS_DF["competition_id"] == competition_id) &
+            (SEASON_TAGS_DF["season_id"] == season_id)
+        ]
+        
+        if season_teams.empty:
+            return {
+                "success": False,
+                "error": f"No data found for competition {competition_id}, season {season_id}",
+                "competition_id": competition_id,
+                "season_id": season_id
+            }
+        
+        # Calculate archetype distribution
+        archetype_counts = season_teams["style_archetype"].value_counts().to_dict()
+        
+        # Calculate axis tag distributions
+        axis_distributions = {
+            "pressing": season_teams["cat_pressing"].value_counts().to_dict(),
+            "block": season_teams["cat_block"].value_counts().to_dict(),
+            "possession_directness": season_teams["cat_possess_dir"].value_counts().to_dict(),
+            "width": season_teams["cat_width"].value_counts().to_dict(),
+            "transition": season_teams["cat_transition"].value_counts().to_dict()
+        }
+        
+        return {
+            "success": True,
+            "competition_id": competition_id,
+            "season_id": season_id,
+            "total_teams": len(season_teams),
+            "archetype_distribution": archetype_counts,
+            "axis_distributions": axis_distributions,
+            "teams": [
+                {
+                    "team": row["team"],
+                    "style_archetype": row["style_archetype"],
+                    "matches_played": int(row["matches_played"])
+                }
+                for _, row in season_teams.iterrows()
+            ]
+        }
+        
+    except Exception as e:
+        logger.error(f"Error getting competition style distribution: {e}")
+        raise HTTPException(status_code=500, detail=f"Failed to get competition style distribution: {str(e)}")
+
+def analyze_tactical_contrast(teams_data: List[Dict]) -> Dict:
+    """Analyze tactical contrast between teams in a match."""
+    if len(teams_data) != 2:
+        return {"contrast": "unknown", "description": "Insufficient team data"}
+    
+    team1, team2 = teams_data[0], teams_data[1]
+    
+    # Compare key tactical dimensions
+    contrasts = []
+    
+    # Pressing contrast
+    press1 = team1["axis_tags"]["pressing"]
+    press2 = team2["axis_tags"]["pressing"]
+    if press1 != press2:
+        contrasts.append(f"{press1} vs {press2}")
+    
+    # Possession style contrast
+    poss1 = team1["axis_tags"]["possession_directness"]
+    poss2 = team2["axis_tags"]["possession_directness"]
+    if poss1 != poss2:
+        contrasts.append(f"{poss1} vs {poss2}")
+    
+    # Generate summary
+    if not contrasts:
+        contrast_level = "low"
+        description = "Similar tactical approaches"
+    elif len(contrasts) == 1:
+        contrast_level = "moderate"
+        description = f"Key difference: {contrasts[0]}"
+    else:
+        contrast_level = "high"
+        description = f"Multiple contrasts: {', '.join(contrasts)}"
+    
+    return {
+        "contrast_level": contrast_level,
+        "description": description,
+        "tactical_differences": contrasts
+    }
+
 if __name__ == "__main__":
     import uvicorn
     uvicorn.run(app, host="0.0.0.0", port=8001)
