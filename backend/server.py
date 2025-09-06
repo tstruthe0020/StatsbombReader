@@ -45,6 +45,7 @@ from scipy import stats
 if ANALYTICS_AVAILABLE:
     import statsmodels.api as sm
     from sklearn.preprocessing import StandardScaler
+    import pandas as pd
 
 # Environment validation
 def validate_environment():
