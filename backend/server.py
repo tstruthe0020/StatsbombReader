@@ -299,8 +299,10 @@ async def startup_event():
                 ANALYTICS_AVAILABLE = False
         
     except Exception as e:
-        logger.error(f"Failed to initialize GitHub client: {e}")
-        raise RuntimeError(f"GitHub client initialization failed: {e}")
+        logger.warning(f"GitHub client initialization failed - using fallback mode: {e}")
+        # Don't raise error, allow server to start without GitHub API
+        global github_client
+        github_client = None
     
     # Initialize MongoDB client with proper error handling
     mongo_url = os.getenv("MONGO_URL")
