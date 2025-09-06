@@ -13,6 +13,18 @@ import { Activity, TrendingUp, Users, AlertTriangle, BarChart3, Target, Clock, M
 import RefereeHeatmap from './components/RefereeHeatmap';
 import SpatialAnalysis from './components/SpatialAnalysis';
 import LLMQuery from './components/LLMQuery';
+
+// Import referee discipline module
+import { 
+  isRefDisciplineEnabled, 
+  OverviewPage,
+  TeamsPage,
+  TeamDetailPage,
+  RefereesPage,
+  RefDetailPage,
+  LabPage,
+  ReportsPage
+} from './modules/refDiscipline';
 import './App.css';
 
 const API_BASE_URL = process.env.REACT_APP_BACKEND_URL || '';
