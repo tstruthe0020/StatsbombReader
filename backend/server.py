@@ -3023,6 +3023,198 @@ def get_competition_style_distribution(competition_id: int, season_id: int):
         logger.error(f"Error getting competition style distribution: {e}")
         raise HTTPException(status_code=500, detail=f"Failed to get competition style distribution: {str(e)}")
 
+@app.get("/api/tactical/match/{match_id}/detailed")
+def get_detailed_match_breakdown(match_id: int):
+    """Get detailed tactical breakdown for a specific match including all categorization stats."""
+    try:
+        # First try to get from real-time computation if analytics available
+        if ANALYTICS_AVAILABLE and statsbomb_loader:
+            try:
+                logger.info(f"Computing detailed tactical breakdown for match {match_id}")
+                
+                # Get match events and lineups
+                events_df = statsbomb_loader.get_events(match_id)
+                lineups_df = statsbomb_loader.get_lineups(match_id)
+                
+                if events_df.empty or lineups_df.empty:
+                    return {
+                        "success": False,
+                        "error": f"Insufficient data for match {match_id} detailed analysis",
+                        "match_id": match_id
+                    }
+                
+                # Build match info from lineups
+                teams = list(set([player.get('team_name', '') for player in lineups_df.to_dict('records') if player.get('team_name')]))
+                if len(teams) < 2:
+                    return {
+                        "success": False,
+                        "error": f"Could not identify both teams for match {match_id}",
+                        "match_id": match_id
+                    }
+                
+                match_info = {
+                    'match_id': match_id,
+                    'home_team_name': teams[0],
+                    'away_team_name': teams[1],
+                    'home_team': teams[0],
+                    'away_team': teams[1],
+                    'referee_name': 'Unknown',
+                    'match_date': '2019-01-01',
+                    'competition_id': 0,
+                    'season_id': 0
+                }
+                
+                # Compute detailed tactical analysis
+                analyzer = get_realtime_analyzer()
+                detailed_analysis = analyzer.analyze_match_tactics_detailed(events_df, match_info)
+                
+                if detailed_analysis and detailed_analysis.get('success'):
+                    return detailed_analysis
+                else:
+                    return {
+                        "success": False,
+                        "error": "Detailed tactical analysis failed",
+                        "match_id": match_id
+                    }
+                    
+            except Exception as e:
+                logger.warning(f"Detailed tactical analysis failed for match {match_id}: {e}")
+        
+        # Fallback - no detailed analysis available
+        return {
+            "success": False,
+            "error": "Detailed tactical analysis not available - requires StatsBomb data processing",
+            "match_id": match_id
+        }
+        
+    except Exception as e:
+        logger.error(f"Error getting detailed match breakdown: {e}")
+        raise HTTPException(status_code=500, detail=f"Failed to get detailed match breakdown: {str(e)}")
+
+@app.get("/api/tactical/team/{team_name}/analysis")
+def get_team_tactical_analysis(team_name: str):
+    """Get comprehensive tactical analysis for a team including recent matches and consistency."""
+    try:
+        if not ANALYTICS_AVAILABLE or not statsbomb_loader:
+            return {
+                "success": False,
+                "error": "Team tactical analysis not available - requires StatsBomb data processing",
+                "team_name": team_name
+            }
+        
+        try:
+            logger.info(f"Computing team tactical analysis for {team_name}")
+            
+            # Get available matches for the team
+            matches_df = statsbomb_loader.get_team_matches(team_name)
+            
+            if matches_df.empty:
+                return {
+                    "success": False,
+                    "error": f"No matches found for team {team_name}",
+                    "team_name": team_name
+                }
+            
+            # Analyze recent matches (last 5)
+            recent_matches = matches_df.head(5)
+            team_analysis = {
+                "success": True,
+                "team_name": team_name,
+                "total_matches": len(matches_df),
+                "recent_matches": [],
+                "consistency": {},
+                "adaptability": {},
+                "date_range": {
+                    "start": matches_df['match_date'].min() if 'match_date' in matches_df.columns else 'Unknown',
+                    "end": matches_df['match_date'].max() if 'match_date' in matches_df.columns else 'Unknown'
+                }
+            }
+            
+            # Analyze each recent match
+            analyzer = get_realtime_analyzer()
+            analyzed_matches = []
+            archetypes = []
+            
+            for _, match_row in recent_matches.iterrows():
+                match_id = match_row.get('match_id')
+                try:
+                    events_df = statsbomb_loader.get_events(match_id)
+                    if not events_df.empty:
+                        match_info = {
+                            'match_id': match_id,
+                            'home_team_name': match_row.get('home_team', team_name),
+                            'away_team_name': match_row.get('away_team', 'Unknown'),
+                            'match_date': match_row.get('match_date', 'Unknown')
+                        }
+                        
+                        tactical_data = analyzer.analyze_match_tactics(events_df, match_info)
+                        if tactical_data and tactical_data.get('success'):
+                            team_data = next((t for t in tactical_data['teams'] if t['team'] == team_name), None)
+                            if team_data:
+                                analyzed_matches.append({
+                                    "match_id": match_id,
+                                    "opponent": team_data['opponent'],
+                                    "home_away": team_data['home_away'],
+                                    "match_date": match_info['match_date'],
+                                    "style_archetype": team_data['style_archetype'],
+                                    **team_data['match_metrics']
+                                })
+                                archetypes.append(team_data['style_archetype'])
+                except Exception as e:
+                    logger.warning(f"Failed to analyze match {match_id}: {e}")
+                    continue
+            
+            team_analysis["recent_matches"] = analyzed_matches
+            
+            # Calculate consistency metrics
+            if archetypes:
+                from collections import Counter
+                archetype_counts = Counter(archetypes)
+                primary_archetype = archetype_counts.most_common(1)[0]
+                
+                team_analysis["consistency"] = {
+                    "primary_archetype": primary_archetype[0],
+                    "primary_archetype_count": primary_archetype[1],
+                    "total_matches": len(archetypes),
+                    "archetype_consistency": primary_archetype[1] / len(archetypes),
+                    "avg_possession": sum(m.get('possession_share', 0) for m in analyzed_matches) / len(analyzed_matches) if analyzed_matches else 0,
+                    "avg_ppda": sum(m.get('ppda', 0) for m in analyzed_matches) / len(analyzed_matches) if analyzed_matches else 0,
+                    "avg_directness": sum(m.get('directness', 0) for m in analyzed_matches) / len(analyzed_matches) if analyzed_matches else 0,
+                    "avg_wing_share": sum(m.get('wing_share', 0) for m in analyzed_matches) / len(analyzed_matches) if analyzed_matches else 0,
+                    "avg_block_height": sum(m.get('block_height_x', 0) for m in analyzed_matches) / len(analyzed_matches) if analyzed_matches else 0,
+                    "avg_fouls": sum(m.get('fouls_committed', 0) for m in analyzed_matches) / len(analyzed_matches) if analyzed_matches else 0,
+                    "trends": {
+                        "possession": 0,  # Would calculate trend over time
+                        "pressing": 0,
+                        "directness": 0
+                    }
+                }
+                
+                # Calculate adaptability
+                home_matches = [m for m in analyzed_matches if m['home_away'] == 'home']
+                away_matches = [m for m in analyzed_matches if m['home_away'] == 'away']
+                
+                team_analysis["adaptability"] = {
+                    "home_style": home_matches[0]['style_archetype'] if home_matches else None,
+                    "away_style": away_matches[0]['style_archetype'] if away_matches else None,
+                    "adaptability_score": len(set(archetypes)) / len(archetypes) if archetypes else 0,
+                    "style_distribution": dict(archetype_counts)
+                }
+            
+            return team_analysis
+            
+        except Exception as e:
+            logger.warning(f"Team tactical analysis failed for {team_name}: {e}")
+            return {
+                "success": False,
+                "error": f"Team analysis computation failed: {str(e)}",
+                "team_name": team_name
+            }
+        
+    except Exception as e:
+        logger.error(f"Error getting team tactical analysis: {e}")
+        raise HTTPException(status_code=500, detail=f"Failed to get team tactical analysis: {str(e)}")
+
 def analyze_tactical_contrast(teams_data: List[Dict]) -> Dict:
     """Analyze tactical contrast between teams in a match."""
     if len(teams_data) != 2:
