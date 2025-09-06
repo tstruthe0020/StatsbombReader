@@ -520,6 +520,8 @@ async def get_competitions():
 async def get_matches(competition_id: int, season_id: int):
     """Get matches for specific competition and season."""
     try:
+        if github_client is None:
+            raise Exception("GitHub client not available")
         matches = github_client.get_matches_data(competition_id, season_id)
         return {"success": True, "data": matches}
     except Exception as e:
