@@ -928,7 +928,7 @@ export const PressureAnalysisVisualization = ({ pressureData }) => {
       <Card>
         <CardHeader>
           <CardTitle className="flex items-center justify-between">
-            <span>Player Filters</span>
+            <span>Player Filters (What This Does)</span>
             <button
               onClick={toggleAllPlayers}
               className="text-sm px-3 py-1 bg-blue-100 hover:bg-blue-200 rounded-md"
@@ -936,6 +936,9 @@ export const PressureAnalysisVisualization = ({ pressureData }) => {
               {selectedPlayers.size === allPlayers.length ? 'Deselect All' : 'Select All'}
             </button>
           </CardTitle>
+          <CardDescription>
+            Filter controls which players' pressure events are shown on the map. Unchecking a player hides their pressure events.
+          </CardDescription>
         </CardHeader>
         <CardContent>
           <div className="grid grid-cols-2 md:grid-cols-3 lg:grid-cols-4 gap-2 max-h-32 overflow-y-auto">
