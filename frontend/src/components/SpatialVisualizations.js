@@ -761,17 +761,17 @@ export const PressureAnalysisVisualization = ({ pressureData }) => {
   const [selectedEvent, setSelectedEvent] = React.useState(null);
   const [currentScenarioIndex, setCurrentScenarioIndex] = React.useState(0);
 
-  // Generate pressure events from match event data (simulated)
+  // Generate pressure events showing PLAYER POSITIONS during pressure events
   const generatePressureEventsFromEventData = () => {
     const homeEvents = [];
     const awayEvents = [];
     
-    // Simulate pressure events extracted from event data like tackles, interceptions, pressures
+    // Simulate pressure events extracted from event data
     const pressureEventTypes = ['Tackle', 'Interception', 'Pressure', 'Block', 'Challenge'];
     const homePlayerNames = ['Sergio Ramos', 'Luka Modric', 'Casemiro', 'Toni Kroos', 'Marcelo', 'Varane', 'Benzema'];
     const awayPlayerNames = ['Messi', 'Piqué', 'Busquets', 'Alba', 'Griezmann', 'De Jong', 'Ter Stegen'];
     
-    // Home team events (more defensive)
+    // Home team events (player positions when they made pressure)
     for (let i = 0; i < 18; i++) {
       const eventType = pressureEventTypes[Math.floor(Math.random() * pressureEventTypes.length)];
       const minute = Math.floor(Math.random() * 90) + 1;
@@ -779,17 +779,18 @@ export const PressureAnalysisVisualization = ({ pressureData }) => {
       
       homeEvents.push({
         id: `home-${i}`,
-        x: Math.random() * 50 + 10, // More on defensive side
-        y: Math.random() * 60 + 10,
+        // PLAYER POSITION at the time they made the pressure (not event location)
+        playerX: Math.random() * 50 + 10, // Player was positioned on defensive side
+        playerY: Math.random() * 60 + 10,
         minute,
         eventType,
         player,
-        intensity: Math.random() * 0.8 + 0.2,
-        success: Math.random() > 0.3 // 70% success rate
+        outcome: Math.random() > 0.3 ? 'Success' : 'Failed', // 70% success rate
+        intensity: Math.random() * 0.8 + 0.2
       });
     }
     
-    // Away team events (more attacking)
+    // Away team events (player positions when they made pressure)
     for (let i = 0; i < 15; i++) {
       const eventType = pressureEventTypes[Math.floor(Math.random() * pressureEventTypes.length)];
       const minute = Math.floor(Math.random() * 90) + 1;
@@ -797,13 +798,14 @@ export const PressureAnalysisVisualization = ({ pressureData }) => {
       
       awayEvents.push({
         id: `away-${i}`,
-        x: Math.random() * 50 + 60, // More on attacking side
-        y: Math.random() * 60 + 10,
+        // PLAYER POSITION at the time they made the pressure (not event location)
+        playerX: Math.random() * 50 + 60, // Player was positioned on attacking side
+        playerY: Math.random() * 60 + 10,
         minute,
         eventType,
         player,
-        intensity: Math.random() * 0.7 + 0.3,
-        success: Math.random() > 0.25 // 75% success rate
+        outcome: Math.random() > 0.25 ? 'Success' : 'Failed', // 75% success rate
+        intensity: Math.random() * 0.7 + 0.3
       });
     }
     
