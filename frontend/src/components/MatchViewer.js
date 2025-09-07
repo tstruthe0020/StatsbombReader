@@ -255,7 +255,7 @@ const MatchViewer = () => {
               <CardTitle className="text-2xl">
                 {matchDetails.match_info.home_team} vs {matchDetails.match_info.away_team}
               </CardTitle>
-              <CardDescription className="flex items-center gap-4">
+              <CardDescription className="flex flex-wrap items-center gap-4">
                 <span className="flex items-center gap-1">
                   <Calendar className="h-4 w-4" />
                   {matchDetails.match_info.date}
@@ -264,9 +264,10 @@ const MatchViewer = () => {
                   <MapPin className="h-4 w-4" />
                   {matchDetails.match_info.venue}
                 </span>
-                <span className="flex items-center gap-1">
-                  <Users className="h-4 w-4" />
-                  Referee: {matchDetails.match_info.referee}
+                <span className="flex items-center gap-1 bg-gray-100 px-2 py-1 rounded-md">
+                  <Users className="h-4 w-4 text-blue-600" />
+                  <span className="text-sm font-medium">Referee:</span>
+                  <span className="text-sm font-semibold text-blue-700">{matchDetails.match_info.referee}</span>
                 </span>
               </CardDescription>
             </CardHeader>
