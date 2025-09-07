@@ -201,19 +201,59 @@ const TeamBreakdown = () => {
 
   return (
     <div className="space-y-6">
-      {/* Search Interface */}
-      <div className="flex gap-2">
-        <Input
-          placeholder="Enter Team Name (e.g., Real Madrid, Barcelona)"
-          value={teamName}
-          onChange={(e) => setTeamName(e.target.value)}
-          onKeyPress={(e) => e.key === 'Enter' && searchTeam()}
-        />
-        <Button onClick={searchTeam} disabled={loading}>
-          <Search className="h-4 w-4 mr-2" />
-          {loading ? 'Analyzing...' : 'Analyze Team'}
-        </Button>
-      </div>
+      {/* Team Selection Interface */}
+      <Card>
+        <CardHeader>
+          <CardTitle className="flex items-center gap-2">
+            <Users className="h-5 w-5" />
+            Select Team for Analysis
+          </CardTitle>
+          <p className="text-sm text-gray-600">
+            Choose a team from the available StatsBomb data to analyze tactical consistency and recent performance
+          </p>
+        </CardHeader>
+        <CardContent>
+          <div className="flex gap-3">
+            <div className="flex-1">
+              <Select 
+                value={teamName} 
+                onValueChange={setTeamName}
+                disabled={teamsLoading}
+              >
+                <SelectTrigger className="w-full">
+                  <SelectValue placeholder={
+                    teamsLoading 
+                      ? "Loading teams..." 
+                      : availableTeams.length > 0 
+                        ? "Select a team..." 
+                        : "No teams available"
+                  } />
+                </SelectTrigger>
+                <SelectContent className="max-h-60">
+                  {availableTeams.map((team) => (
+                    <SelectItem key={team} value={team}>
+                      {team}
+                    </SelectItem>
+                  ))}
+                </SelectContent>
+              </Select>
+              {availableTeams.length > 0 && (
+                <p className="text-xs text-gray-500 mt-1">
+                  {availableTeams.length} teams available from StatsBomb data
+                </p>
+              )}
+            </div>
+            <Button 
+              onClick={searchTeam} 
+              disabled={loading || !teamName || teamsLoading}
+              className="px-6"
+            >
+              <Search className="h-4 w-4 mr-2" />
+              {loading ? 'Analyzing...' : 'Analyze Team'}
+            </Button>
+          </div>
+        </CardContent>
+      </Card>
 
       {/* Error State */}
       {error && (
