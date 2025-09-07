@@ -219,23 +219,20 @@ const TeamBreakdown = () => {
                 value={teamName} 
                 onValueChange={setTeamName}
                 disabled={teamsLoading}
+                className="w-full"
               >
-                <SelectTrigger className="w-full">
-                  <SelectValue placeholder={
-                    teamsLoading 
-                      ? "Loading teams..." 
-                      : availableTeams.length > 0 
-                        ? "Select a team..." 
-                        : "No teams available"
-                  } />
-                </SelectTrigger>
-                <SelectContent className="max-h-60">
-                  {availableTeams.map((team) => (
-                    <SelectItem key={team} value={team}>
-                      {team}
-                    </SelectItem>
-                  ))}
-                </SelectContent>
+                <option value="" disabled>
+                  {teamsLoading 
+                    ? "Loading teams..." 
+                    : availableTeams.length > 0 
+                      ? "Select a team..." 
+                      : "No teams available"}
+                </option>
+                {availableTeams.map((team) => (
+                  <option key={team} value={team}>
+                    {team}
+                  </option>
+                ))}
               </Select>
               {availableTeams.length > 0 && (
                 <p className="text-xs text-gray-500 mt-1">
