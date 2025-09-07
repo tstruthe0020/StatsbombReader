@@ -2444,22 +2444,42 @@ async def get_match_tactical_analysis(match_id: int):
                     
                     # Try to get match metadata from cached matches data
                     try:
+                        from pathlib import Path
                         import glob
-                        cache_files = glob.glob("data/cache/matches_*.parquet")
+                        
+                        app_root = Path(__file__).parent.parent
+                        cache_pattern = str(app_root / "data" / "cache" / "matches_*.parquet")
+                        cache_files = glob.glob(cache_pattern)
+                        
                         if cache_files:
-                            import pandas as pd
                             for cache_file in cache_files:
                                 matches_df = pd.read_parquet(cache_file)
                                 match_row = matches_df[matches_df['match_id'] == match_id]
                                 if not match_row.empty:
                                     match_info_row = match_row.iloc[0]
-                                    match_date = match_info_row.get('match_date', match_date)
-                                    venue = match_info_row.get('stadium', {}).get('name', venue) if isinstance(match_info_row.get('stadium'), dict) else venue
-                                    referee = match_info_row.get('referee_name', referee)
-                                    logger.info(f"Extracted match info: date={match_date}, venue={venue}, referee={referee}")
+                                    
+                                    # Extract match date
+                                    if 'match_date' in match_info_row and pd.notna(match_info_row['match_date']):
+                                        match_date = str(match_info_row['match_date'])
+                                    
+                                    # Extract stadium
+                                    stadium_info = match_info_row.get('stadium')
+                                    if isinstance(stadium_info, dict) and 'name' in stadium_info:
+                                        venue = stadium_info['name']
+                                    elif stadium_info and pd.notna(stadium_info):
+                                        venue = str(stadium_info)
+                                    
+                                    # Extract referee
+                                    if 'referee_name' in match_info_row and pd.notna(match_info_row['referee_name']):
+                                        referee = str(match_info_row['referee_name'])
+                                    
+                                    logger.info(f"Extracted match info for {match_id}: date={match_date}, venue={venue}, referee={referee}")
                                     break
+                        else:
+                            logger.info("No cached matches data found")
+                            
                     except Exception as e:
-                        logger.warning(f"Could not extract match metadata: {e}")
+                        logger.warning(f"Could not extract match metadata for {match_id}: {e}")
                     
                     # Build real tactical data
                     tactical_data = {
