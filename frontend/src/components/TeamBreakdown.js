@@ -7,9 +7,36 @@ import { Search, TrendingUp, Calendar, BarChart3, Target, Users, ChevronDown } f
 
 const TeamBreakdown = () => {
   const [teamName, setTeamName] = useState('');
+  const [availableTeams, setAvailableTeams] = useState([]);
   const [teamData, setTeamData] = useState(null);
   const [loading, setLoading] = useState(false);
+  const [teamsLoading, setTeamsLoading] = useState(false);
   const [error, setError] = useState(null);
+
+  useEffect(() => {
+    fetchAvailableTeams();
+  }, []);
+
+  const fetchAvailableTeams = async () => {
+    setTeamsLoading(true);
+    try {
+      const backendUrl = process.env.REACT_APP_BACKEND_URL || 'http://localhost:8001';
+      const response = await fetch(`${backendUrl}/api/tactical/teams/available`);
+      const data = await response.json();
+      
+      if (data.success) {
+        setAvailableTeams(data.teams);
+      } else {
+        console.warn('Failed to load available teams:', data.error);
+        setAvailableTeams([]);
+      }
+    } catch (err) {
+      console.warn('Error fetching available teams:', err);
+      setAvailableTeams([]);
+    } finally {
+      setTeamsLoading(false);
+    }
+  };
 
   const searchTeam = async () => {
     if (!teamName.trim()) return;
