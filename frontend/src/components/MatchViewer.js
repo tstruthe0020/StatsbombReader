@@ -233,12 +233,20 @@ const MatchViewer = () => {
                       {match.home_score} - {match.away_score}
                     </Badge>
                   )}
-                  {match.stadium && (
-                    <div className="text-xs text-gray-500 mt-1 flex items-center gap-1">
-                      <MapPin className="h-3 w-3" />
-                      {match.stadium.name}
-                    </div>
-                  )}
+                  <div className="mt-2 space-y-1">
+                    {match.stadium && (
+                      <div className="text-xs text-gray-500 flex items-center gap-1">
+                        <MapPin className="h-3 w-3" />
+                        {match.stadium.name}
+                      </div>
+                    )}
+                    {match.referee_name && (
+                      <div className="text-xs text-blue-600 flex items-center gap-1">
+                        <Users className="h-3 w-3" />
+                        <span className="font-medium">Referee: {match.referee_name}</span>
+                      </div>
+                    )}
+                  </div>
                 </div>
               ))}
             </div>
