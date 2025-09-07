@@ -3135,6 +3135,56 @@ def get_detailed_match_breakdown(match_id: int):
         logger.error(f"Error getting detailed match breakdown: {e}")
         raise HTTPException(status_code=500, detail=f"Failed to get detailed match breakdown: {str(e)}")
 
+@app.get("/api/tactical/teams/available")
+def get_available_teams():
+    """Get list of available teams from cached match data."""
+    try:
+        from pathlib import Path
+        import glob
+        
+        app_root = Path(__file__).parent.parent
+        cache_pattern = str(app_root / "data" / "cache" / "matches_*.parquet")
+        cache_files = glob.glob(cache_pattern)
+        
+        all_teams = set()
+        
+        if cache_files:
+            for cache_file in cache_files:
+                try:
+                    matches_df = pd.read_parquet(cache_file)
+                    
+                    # Get home team names
+                    home_teams = matches_df['home_team_name'].dropna().unique()
+                    all_teams.update(home_teams)
+                    
+                    # Get away team names
+                    away_teams = matches_df['away_team_name'].dropna().unique()
+                    all_teams.update(away_teams)
+                    
+                except Exception as e:
+                    logger.warning(f"Error reading cache file {cache_file}: {e}")
+                    continue
+        
+        # Convert to sorted list
+        teams_list = sorted(list(all_teams))
+        
+        logger.info(f"Found {len(teams_list)} available teams")
+        
+        return {
+            "success": True,
+            "teams": teams_list,
+            "total_teams": len(teams_list)
+        }
+        
+    except Exception as e:
+        logger.error(f"Error getting available teams: {e}")
+        return {
+            "success": False,
+            "error": f"Failed to get available teams: {str(e)}",
+            "teams": [],
+            "total_teams": 0
+        }
+
 @app.get("/api/tactical/team/{team_name}/analysis")
 def get_team_tactical_analysis(team_name: str):
     """Get comprehensive tactical analysis for a team including recent matches and consistency."""
