@@ -2437,15 +2437,39 @@ async def get_match_tactical_analysis(match_id: int):
                     home_possession = round((home_stats["passes"] / total_passes * 100) if total_passes > 0 else 50.0, 1)
                     away_possession = round(100 - home_possession, 1)
                     
+                    # Extract additional match information
+                    match_date = "2019-01-01"
+                    venue = "Stadium"
+                    referee = "Unknown Referee"
+                    
+                    # Try to get match metadata from cached matches data
+                    try:
+                        import glob
+                        cache_files = glob.glob("data/cache/matches_*.parquet")
+                        if cache_files:
+                            import pandas as pd
+                            for cache_file in cache_files:
+                                matches_df = pd.read_parquet(cache_file)
+                                match_row = matches_df[matches_df['match_id'] == match_id]
+                                if not match_row.empty:
+                                    match_info_row = match_row.iloc[0]
+                                    match_date = match_info_row.get('match_date', match_date)
+                                    venue = match_info_row.get('stadium', {}).get('name', venue) if isinstance(match_info_row.get('stadium'), dict) else venue
+                                    referee = match_info_row.get('referee_name', referee)
+                                    logger.info(f"Extracted match info: date={match_date}, venue={venue}, referee={referee}")
+                                    break
+                    except Exception as e:
+                        logger.warning(f"Could not extract match metadata: {e}")
+                    
                     # Build real tactical data
                     tactical_data = {
                         "match_id": match_id,
                         "match_info": {
                             "home_team": home_team,
                             "away_team": away_team,
-                            "date": "2019-01-01",  # Could extract from match data if available
-                            "venue": "Stadium",    # Could extract from match data if available
-                            "referee": "Real Referee"  # Could extract from match data if available
+                            "date": match_date,
+                            "venue": venue,
+                            "referee": referee
                         },
                         "formations": {
                             "home_team": {
