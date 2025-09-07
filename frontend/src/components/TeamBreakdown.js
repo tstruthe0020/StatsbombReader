@@ -2,8 +2,8 @@ import React, { useState, useEffect } from 'react';
 import { Card, CardContent, CardHeader, CardTitle } from './ui/card';
 import { Badge } from './ui/badge';
 import { Button } from './ui/button';
-import { Input } from './ui/input';
-import { Search, TrendingUp, Calendar, BarChart3, Target, Users } from 'lucide-react';
+import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from './ui/select';
+import { Search, TrendingUp, Calendar, BarChart3, Target, Users, ChevronDown } from 'lucide-react';
 
 const TeamBreakdown = () => {
   const [teamName, setTeamName] = useState('');
