@@ -227,23 +227,52 @@ def categorize_transition(row: pd.Series, thresholds: Dict) -> str:
         return 'Low Transition'
 
 def categorize_overlays(row: pd.Series, thresholds: Dict) -> List[str]:
-    """Categorize overlay tactical characteristics."""
-    overlay_thresholds = thresholds.get('overlays', {})
+    """Categorize overlay tactical characteristics using research-based thresholds."""
     overlays = []
     
+    # Get relevant metrics
     cross_share = row.get('cross_share', 0.05)
     fouls_committed = row.get('fouls_committed', 15)
+    foul_share_att_third = row.get('foul_share_att_third', 0)
+    lane_center_share = row.get('lane_center_share', 0.33)
+    foul_share_def_third = row.get('foul_share_def_third', 0.33)
+    # Note: shots_outside_box_share would require additional feature extraction
     
-    # Cross-Heavy overlay
-    cross_criteria = overlay_thresholds.get('cross_heavy', {})
-    cross_range = cross_criteria.get('cross_share', [0, 1])
-    if cross_range[0] <= cross_share <= cross_range[1]:
+    # Handle None values
+    if cross_share is None or pd.isna(cross_share):
+        cross_share = 0.05
+    if fouls_committed is None or pd.isna(fouls_committed):
+        fouls_committed = 15
+    if foul_share_att_third is None or pd.isna(foul_share_att_third):
+        foul_share_att_third = 0
+    if lane_center_share is None or pd.isna(lane_center_share):
+        lane_center_share = 0.33
+    if foul_share_def_third is None or pd.isna(foul_share_def_third):
+        foul_share_def_third = 0.33
+    
+    # Cross-Heavy overlay (updated threshold from research)
+    if cross_share >= 0.05:
         overlays.append('Cross-Heavy')
     
-    # Set-Piece Focus overlay (low fouls = disciplined)
-    setpiece_criteria = overlay_thresholds.get('set_piece_focus', {})
-    foul_range = setpiece_criteria.get('fouls_committed', [0, 100])
-    if foul_range[0] <= fouls_committed <= foul_range[1]:
+    # Set-Piece Focus overlay (updated threshold from research)
+    if fouls_committed <= 9:
         overlays.append('Set-Piece Focus')
+    
+    # High Press Tactical Stops overlay (NEW)
+    if foul_share_att_third >= 0.10:
+        overlays.append('High Press Tactical Stops')
+    
+    # Central Leaning overlay (NEW)
+    if lane_center_share >= 0.30:
+        overlays.append('Central Leaning')
+    
+    # Sustained Low Block overlay (NEW)
+    if foul_share_def_third >= 0.55:
+        overlays.append('Sustained Low Block')
+    
+    # Long-Shot Heavy overlay (NEW) - would require additional shot location data
+    # shots_outside_box_share = row.get('shots_outside_box_share', 0)
+    # if shots_outside_box_share >= 0.50:
+    #     overlays.append('Long-Shot Heavy')
     
     return overlays
