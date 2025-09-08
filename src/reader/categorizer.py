@@ -146,9 +146,7 @@ def categorize_block(row: pd.Series, thresholds: Dict) -> str:
         return 'Low Block'
 
 def categorize_possession_directness(row: pd.Series, thresholds: Dict) -> str:
-    """Categorize possession style and directness."""
-    poss_thresholds = thresholds.get('possession_directness', {})
-    
+    """Categorize possession style and directness using research-based thresholds."""
     possession = row.get('possession_share', 0.5)
     directness = row.get('directness', 0.5)
     
@@ -158,19 +156,35 @@ def categorize_possession_directness(row: pd.Series, thresholds: Dict) -> str:
     if directness is None or pd.isna(directness):
         directness = 0.5
     
-    for category, criteria in poss_thresholds.items():
-        poss_range = criteria.get('possession_share', [0, 1])
-        dir_range = criteria.get('directness', [0, 1])
-        
-        if (poss_range[0] <= possession <= poss_range[1] and 
-            dir_range[0] <= directness <= dir_range[1]):
-            return {
-                'possession_based': 'Possession-Based',
-                'balanced': 'Balanced',
-                'direct': 'Direct'
-            }.get(category, 'Balanced')
+    # Primary classification based on possession share
+    if possession >= 0.55:
+        possession_category = 'possession_based'
+    elif possession >= 0.45:
+        possession_category = 'balanced'
+    else:
+        possession_category = 'direct'
     
-    return 'Balanced'
+    # Secondary check with directness for validation
+    if directness >= 0.60:
+        directness_category = 'direct'
+    elif directness >= 0.40:
+        directness_category = 'balanced'
+    else:
+        directness_category = 'possession_based'
+    
+    # Combine both - possession share takes priority but directness can override extreme cases
+    if possession_category == 'possession_based' and directness_category == 'direct':
+        final_category = 'balanced'  # High possession but very direct = balanced
+    elif possession_category == 'direct' and directness_category == 'possession_based':
+        final_category = 'balanced'  # Low possession but not direct = balanced
+    else:
+        final_category = possession_category
+    
+    return {
+        'possession_based': 'Possession-Based',
+        'balanced': 'Balanced',
+        'direct': 'Direct'
+    }.get(final_category, 'Balanced')
 
 def categorize_width(row: pd.Series, thresholds: Dict) -> str:
     """Categorize width usage and channel preference."""
