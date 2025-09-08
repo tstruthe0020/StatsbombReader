@@ -130,26 +130,20 @@ def categorize_pressing(row: pd.Series, thresholds: Dict) -> str:
     }.get(final_category, 'Mid Press')
 
 def categorize_block(row: pd.Series, thresholds: Dict) -> str:
-    """Categorize defensive block height."""
-    block_thresholds = thresholds.get('block', {})
-    
+    """Categorize defensive block height using research-based thresholds."""
     block_height = row.get('block_height_x', 60)
     
     # Handle None values
     if block_height is None or pd.isna(block_height):
         block_height = 60  # Default mid-field
     
-    for category, criteria in block_thresholds.items():
-        height_range = criteria.get('block_height_x', [0, 120])
-        
-        if height_range[0] <= block_height <= height_range[1]:
-            return {
-                'high': 'High Block',
-                'mid': 'Mid Block', 
-                'low': 'Low Block'
-            }.get(category, 'Mid Block')
-    
-    return 'Mid Block'
+    # Research-based exclusive bounds
+    if block_height >= 70:
+        return 'High Block'
+    elif block_height >= 45:
+        return 'Mid Block'
+    else:
+        return 'Low Block'
 
 def categorize_possession_directness(row: pd.Series, thresholds: Dict) -> str:
     """Categorize possession style and directness."""
