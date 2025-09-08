@@ -2,12 +2,15 @@ import React, { useState, useEffect } from 'react';
 import { Card, CardContent, CardHeader, CardTitle } from './ui/card';
 import { Badge } from './ui/badge';
 import { Button } from './ui/button';
-import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from './ui/select';
-import { Search, TrendingUp, Calendar, BarChart3, Target, Users, ChevronDown } from 'lucide-react';
+import { Select } from './ui/select';
+import { Search, TrendingUp, Calendar, BarChart3, Target, Users, ChevronDown, Filter } from 'lucide-react';
 
 const TeamBreakdown = () => {
   const [teamName, setTeamName] = useState('');
   const [availableTeams, setAvailableTeams] = useState([]);
+  const [selectedCompetitions, setSelectedCompetitions] = useState([]);
+  const [selectedSeasons, setSelectedSeasons] = useState([]);
+  const [availableCompetitions, setAvailableCompetitions] = useState([]);
   const [teamData, setTeamData] = useState(null);
   const [loading, setLoading] = useState(false);
   const [teamsLoading, setTeamsLoading] = useState(false);
@@ -15,6 +18,7 @@ const TeamBreakdown = () => {
 
   useEffect(() => {
     fetchAvailableTeams();
+    fetchAvailableCompetitions();
   }, []);
 
   const fetchAvailableTeams = async () => {
@@ -38,6 +42,20 @@ const TeamBreakdown = () => {
     }
   };
 
+  const fetchAvailableCompetitions = async () => {
+    try {
+      const backendUrl = process.env.REACT_APP_BACKEND_URL || 'http://localhost:8001';
+      const response = await fetch(`${backendUrl}/api/competitions`);
+      const data = await response.json();
+      
+      if (data.success) {
+        setAvailableCompetitions(data.data);
+      }
+    } catch (err) {
+      console.warn('Error fetching competitions:', err);
+    }
+  };
+
   const searchTeam = async () => {
     if (!teamName.trim()) return;
     
@@ -46,7 +64,20 @@ const TeamBreakdown = () => {
     
     try {
       const backendUrl = process.env.REACT_APP_BACKEND_URL || 'http://localhost:8001';
-      const response = await fetch(`${backendUrl}/api/tactical/team/${encodeURIComponent(teamName)}/analysis`);
+      
+      // Build query parameters
+      const params = new URLSearchParams();
+      if (selectedCompetitions.length > 0) {
+        params.append('competition_ids', selectedCompetitions.join(','));
+      }
+      if (selectedSeasons.length > 0) {
+        params.append('season_ids', selectedSeasons.join(','));
+      }
+      
+      const queryString = params.toString();
+      const url = `${backendUrl}/api/tactical/team/${encodeURIComponent(teamName)}/analysis${queryString ? '?' + queryString : ''}`;
+      
+      const response = await fetch(url);
       const data = await response.json();
       
       if (data.success) {
@@ -71,12 +102,6 @@ const TeamBreakdown = () => {
     if (archetype.includes('Direct')) return 'bg-purple-100 text-purple-800';
     
     return 'bg-gray-100 text-gray-700';
-  };
-
-  const getTrendIcon = (trend) => {
-    if (trend > 0.1) return '📈';
-    if (trend < -0.1) return '📉';
-    return '➡️';
   };
 
   const renderRecentMatches = (matches) => {
@@ -124,75 +149,168 @@ const TeamBreakdown = () => {
     );
   };
 
-  const renderTacticalConsistency = (consistency) => {
+  const renderAverageTacticalProfile = (profile) => {
+    if (!profile) return null;
+
+    return (
+      <div className="space-y-6">
+        {/* Average Archetype */}
+        <div className="text-center">
+          <div className={`inline-block px-4 py-2 rounded-full text-lg font-bold ${getArchetypeColor(profile.style_archetype)}`}>
+            {profile.style_archetype || 'Unknown Style'}
+          </div>
+          <p className="text-sm text-gray-600 mt-2">
+            Average tactical profile across {teamData.analysis_period.total_matches} matches
+          </p>
+        </div>
+
+        {/* Tactical Dimensions */}
+        <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-4">
+          <Card className="p-4">
+            <h4 className="font-medium mb-3 flex items-center gap-2">
+              <TrendingUp className="h-4 w-4 text-red-500" />
+              Pressing Style
+            </h4>
+            <div className="space-y-2 text-sm">
+              <div className="flex justify-between">
+                <span>Classification:</span>
+                <Badge className="bg-red-100 text-red-800">
+                  {profile.axis_tags?.pressing || 'N/A'}
+                </Badge>
+              </div>
+              <div className="flex justify-between">
+                <span>Avg PPDA:</span>
+                <span className="font-mono">{profile.key_metrics?.ppda || 'N/A'}</span>
+              </div>
+            </div>
+          </Card>
+
+          <Card className="p-4">
+            <h4 className="font-medium mb-3 flex items-center gap-2">
+              <Target className="h-4 w-4 text-blue-500" />
+              Possession Style
+            </h4>
+            <div className="space-y-2 text-sm">
+              <div className="flex justify-between">
+                <span>Classification:</span>
+                <Badge className="bg-blue-100 text-blue-800">
+                  {profile.axis_tags?.possession_directness || 'N/A'}
+                </Badge>
+              </div>
+              <div className="flex justify-between">
+                <span>Avg Possession:</span>
+                <span className="font-mono">{((profile.key_metrics?.possession_share || 0) * 100).toFixed(1)}%</span>
+              </div>
+              <div className="flex justify-between">
+                <span>Directness:</span>
+                <span className="font-mono">{profile.key_metrics?.directness || 'N/A'}</span>
+              </div>
+            </div>
+          </Card>
+
+          <Card className="p-4">
+            <h4 className="font-medium mb-3 flex items-center gap-2">
+              <BarChart3 className="h-4 w-4 text-green-500" />
+              Width & Transitions
+            </h4>
+            <div className="space-y-2 text-sm">
+              <div className="flex justify-between">
+                <span>Width Usage:</span>
+                <Badge className="bg-green-100 text-green-800">
+                  {profile.axis_tags?.width || 'N/A'}
+                </Badge>
+              </div>
+              <div className="flex justify-between">
+                <span>Wing Share:</span>
+                <span className="font-mono">{((profile.key_metrics?.wing_share || 0) * 100).toFixed(1)}%</span>
+              </div>
+              <div className="flex justify-between">
+                <span>Transitions:</span>
+                <Badge className="bg-purple-100 text-purple-800">
+                  {profile.axis_tags?.transition || 'N/A'}
+                </Badge>
+              </div>
+            </div>
+          </Card>
+        </div>
+
+        {/* Key Metrics Summary */}
+        <Card className="p-4">
+          <h4 className="font-medium mb-3">Average Performance Metrics</h4>
+          <div className="grid grid-cols-2 md:grid-cols-4 gap-4 text-sm">
+            <div className="text-center">
+              <div className="text-2xl font-bold text-blue-600">{profile.key_metrics?.ppda || 'N/A'}</div>
+              <div className="text-gray-500">PPDA</div>
+            </div>
+            <div className="text-center">
+              <div className="text-2xl font-bold text-green-600">
+                {((profile.key_metrics?.possession_share || 0) * 100).toFixed(1)}%
+              </div>
+              <div className="text-gray-500">Possession</div>
+            </div>
+            <div className="text-center">
+              <div className="text-2xl font-bold text-orange-600">{profile.key_metrics?.fouls_per_game || 'N/A'}</div>
+              <div className="text-gray-500">Fouls/Game</div>
+            </div>
+            <div className="text-center">
+              <div className="text-2xl font-bold text-red-600">{profile.key_metrics?.cards_per_game || 'N/A'}</div>
+              <div className="text-gray-500">Cards/Game</div>
+            </div>
+          </div>
+        </Card>
+
+        {/* Tactical Overlays */}
+        {profile.axis_tags?.overlays && profile.axis_tags.overlays.length > 0 && (
+          <Card className="p-4">
+            <h4 className="font-medium mb-3">Tactical Characteristics</h4>
+            <div className="flex flex-wrap gap-2">
+              {profile.axis_tags.overlays.map((overlay, index) => (
+                <Badge key={index} variant="outline" className="text-xs">
+                  {overlay}
+                </Badge>
+              ))}
+            </div>
+          </Card>
+        )}
+      </div>
+    );
+  };
+
+  const renderConsistencyAnalysis = (consistency) => {
     if (!consistency) return null;
 
     return (
-      <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-4">
-        {/* Archetype Consistency */}
+      <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
         <Card className="p-4">
-          <h4 className="font-medium mb-3 flex items-center gap-2">
-            <Target className="h-4 w-4" />
-            Style Consistency
-          </h4>
+          <h4 className="font-medium mb-3">Tactical Consistency</h4>
+          <div className="space-y-3">
+            <div>
+              <div className="flex justify-between items-center mb-1">
+                <span className="text-sm">Consistency Score</span>
+                <span className="font-bold">{(consistency.archetype_consistency * 100).toFixed(0)}%</span>
+              </div>
+              <div className="w-full bg-gray-200 rounded-full h-2">
+                <div 
+                  className="bg-blue-600 h-2 rounded-full" 
+                  style={{ width: `${consistency.archetype_consistency * 100}%` }}
+                ></div>
+              </div>
+            </div>
+            <div className="text-sm text-gray-600">
+              Primary style used in {Math.round(consistency.archetype_consistency * teamData.analysis_period.total_matches)} of {teamData.analysis_period.total_matches} matches
+            </div>
+          </div>
+        </Card>
+
+        <Card className="p-4">
+          <h4 className="font-medium mb-3">Style Variations</h4>
           <div className="space-y-2">
-            <div className="flex justify-between text-sm">
-              <span>Primary Style:</span>
-              <Badge className={getArchetypeColor(consistency.primary_archetype)}>
-                {consistency.primary_archetype}
-              </Badge>
-            </div>
-            <div className="flex justify-between text-sm">
-              <span>Consistency:</span>
-              <span className="font-mono">{(consistency.archetype_consistency * 100).toFixed(0)}%</span>
-            </div>
-            <div className="text-xs text-gray-500 mt-2">
-              Used in {consistency.primary_archetype_count}/{consistency.total_matches} matches
-            </div>
-          </div>
-        </Card>
-
-        {/* Tactical Trends */}
-        <Card className="p-4">
-          <h4 className="font-medium mb-3 flex items-center gap-2">
-            <TrendingUp className="h-4 w-4" />
-            Recent Trends
-          </h4>
-          <div className="space-y-2 text-sm">
-            <div className="flex justify-between">
-              <span>Possession:</span>
-              <span>{getTrendIcon(consistency.trends?.possession || 0)} {((consistency.avg_possession || 0) * 100).toFixed(0)}%</span>
-            </div>
-            <div className="flex justify-between">
-              <span>Pressing:</span>
-              <span>{getTrendIcon(consistency.trends?.pressing || 0)} {consistency.avg_ppda?.toFixed(1) || 'N/A'}</span>
-            </div>
-            <div className="flex justify-between">
-              <span>Directness:</span>
-              <span>{getTrendIcon(consistency.trends?.directness || 0)} {consistency.avg_directness?.toFixed(2) || 'N/A'}</span>
-            </div>
-          </div>
-        </Card>
-
-        {/* Performance Metrics */}
-        <Card className="p-4">
-          <h4 className="font-medium mb-3 flex items-center gap-2">
-            <BarChart3 className="h-4 w-4" />
-            Avg. Performance
-          </h4>
-          <div className="space-y-2 text-sm">
-            <div className="flex justify-between">
-              <span>Block Height:</span>
-              <span className="font-mono">{consistency.avg_block_height?.toFixed(1) || 'N/A'}m</span>
-            </div>
-            <div className="flex justify-between">
-              <span>Wing Usage:</span>
-              <span className="font-mono">{((consistency.avg_wing_share || 0) * 100).toFixed(0)}%</span>
-            </div>
-            <div className="flex justify-between">
-              <span>Fouls/Game:</span>
-              <span className="font-mono">{consistency.avg_fouls?.toFixed(1) || 'N/A'}</span>
-            </div>
+            {Object.entries(consistency.archetype_distribution || {}).map(([style, count]) => (
+              <div key={style} className="flex justify-between text-sm">
+                <span className="truncate mr-2">{style}</span>
+                <span className="font-mono">{count} matches</span>
+              </div>
+            ))}
           </div>
         </Card>
       </div>
@@ -206,40 +324,90 @@ const TeamBreakdown = () => {
         <CardHeader>
           <CardTitle className="flex items-center gap-2">
             <Users className="h-5 w-5" />
-            Select Team for Analysis
+            Team Tactical Analysis
           </CardTitle>
           <p className="text-sm text-gray-600">
-            Choose a team from the available StatsBomb data to analyze tactical consistency and recent performance
+            Select a team and optionally filter by competitions/seasons to analyze average tactical approach
           </p>
         </CardHeader>
-        <CardContent>
-          <div className="flex gap-3">
-            <div className="flex-1">
-              <Select 
-                value={teamName} 
-                onValueChange={setTeamName}
-                disabled={teamsLoading}
-                className="w-full"
-              >
-                <option value="" disabled>
-                  {teamsLoading 
-                    ? "Loading teams..." 
-                    : availableTeams.length > 0 
-                      ? "Select a team..." 
-                      : "No teams available"}
+        <CardContent className="space-y-4">
+          {/* Team Selection */}
+          <div>
+            <label className="block text-sm font-medium mb-2">Select Team</label>
+            <select
+              value={teamName}
+              onChange={(e) => setTeamName(e.target.value)}
+              disabled={teamsLoading}
+              className="w-full h-10 px-3 py-2 text-sm border border-gray-300 rounded-md focus:outline-none focus:ring-2 focus:ring-blue-500 focus:border-blue-500 disabled:cursor-not-allowed disabled:opacity-50"
+            >
+              <option value="" disabled>
+                {teamsLoading 
+                  ? "Loading teams..." 
+                  : availableTeams.length > 0 
+                    ? "Select a team..." 
+                    : "No teams available"}
+              </option>
+              {availableTeams.map((team) => (
+                <option key={team} value={team}>
+                  {team}
                 </option>
-                {availableTeams.map((team) => (
-                  <option key={team} value={team}>
-                    {team}
+              ))}
+            </select>
+            {availableTeams.length > 0 && (
+              <p className="text-xs text-gray-500 mt-1">
+                {availableTeams.length} teams available from StatsBomb data
+              </p>
+            )}
+          </div>
+
+          {/* Filter Options */}
+          <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
+            <div>
+              <label className="block text-sm font-medium mb-2">
+                <Filter className="inline h-4 w-4 mr-1" />
+                Filter by Competitions (Optional)
+              </label>
+              <select
+                multiple
+                value={selectedCompetitions}
+                onChange={(e) => setSelectedCompetitions(Array.from(e.target.selectedOptions, option => parseInt(option.value)))}
+                className="w-full h-24 px-3 py-2 text-sm border border-gray-300 rounded-md focus:outline-none focus:ring-2 focus:ring-blue-500 focus:border-blue-500"
+              >
+                {availableCompetitions.map((comp) => (
+                  <option key={comp.competition_id} value={comp.competition_id}>
+                    {comp.competition_name}
                   </option>
                 ))}
-              </Select>
-              {availableTeams.length > 0 && (
-                <p className="text-xs text-gray-500 mt-1">
-                  {availableTeams.length} teams available from StatsBomb data
-                </p>
-              )}
+              </select>
+              <p className="text-xs text-gray-500 mt-1">Hold Ctrl/Cmd to select multiple</p>
             </div>
+
+            <div>
+              <label className="block text-sm font-medium mb-2">Season Range (Optional)</label>
+              <div className="grid grid-cols-2 gap-2">
+                <input
+                  type="number"
+                  placeholder="Start season ID"
+                  className="w-full h-10 px-3 py-2 text-sm border border-gray-300 rounded-md focus:outline-none focus:ring-2 focus:ring-blue-500 focus:border-blue-500"
+                  onChange={(e) => {
+                    // This would be used for season range filtering
+                  }}
+                />
+                <input
+                  type="number"
+                  placeholder="End season ID"
+                  className="w-full h-10 px-3 py-2 text-sm border border-gray-300 rounded-md focus:outline-none focus:ring-2 focus:ring-blue-500 focus:border-blue-500"
+                  onChange={(e) => {
+                    // This would be used for season range filtering
+                  }}
+                />
+              </div>
+              <p className="text-xs text-gray-500 mt-1">Leave empty to analyze all available seasons</p>
+            </div>
+          </div>
+
+          {/* Analysis Button */}
+          <div className="flex justify-end">
             <Button 
               onClick={searchTeam} 
               disabled={loading || !teamName || teamsLoading}
@@ -264,31 +432,50 @@ const TeamBreakdown = () => {
       {/* Team Results */}
       {teamData && (
         <div className="space-y-6">
-          {/* Team Header */}
+          {/* Analysis Overview */}
           <Card>
             <CardHeader>
-              <CardTitle className="flex items-center gap-2">
-                <Users className="h-5 w-5" />
-                {teamData.team_name} - Tactical Analysis
-              </CardTitle>
-              <p className="text-sm text-gray-600">
-                Analysis based on {teamData.total_matches} matches 
-                {teamData.date_range && ` • ${teamData.date_range.start} to ${teamData.date_range.end}`}
-              </p>
+              <CardTitle>{teamData.team_name} - Tactical Analysis Overview</CardTitle>
+              <div className="text-sm text-gray-600 space-y-1">
+                <p>Analysis based on {teamData.analysis_period.total_matches} matches</p>
+                <p>Competitions: {teamData.analysis_period.competitions.join(', ')}</p>
+                <p>Seasons: {teamData.analysis_period.seasons.join(', ')}</p>
+                {teamData.analysis_period.date_range.start && (
+                  <p>Period: {teamData.analysis_period.date_range.start} to {teamData.analysis_period.date_range.end}</p>
+                )}
+              </div>
             </CardHeader>
           </Card>
 
-          {/* Tactical Consistency Overview */}
-          {teamData.consistency && (
+          {/* Average Tactical Profile */}
+          {teamData.average_tactical_profile && (
             <Card>
               <CardHeader>
                 <CardTitle className="flex items-center gap-2">
                   <Target className="h-5 w-5" />
-                  Tactical Consistency Analysis
+                  Average Tactical Profile
+                </CardTitle>
+                <p className="text-sm text-gray-600">
+                  Calculated from averaged statistics across all analyzed matches
+                </p>
+              </CardHeader>
+              <CardContent>
+                {renderAverageTacticalProfile(teamData.average_tactical_profile)}
+              </CardContent>
+            </Card>
+          )}
+
+          {/* Consistency Analysis */}
+          {teamData.consistency_analysis && (
+            <Card>
+              <CardHeader>
+                <CardTitle className="flex items-center gap-2">
+                  <BarChart3 className="h-5 w-5" />
+                  Tactical Consistency
                 </CardTitle>
               </CardHeader>
               <CardContent>
-                {renderTacticalConsistency(teamData.consistency)}
+                {renderConsistencyAnalysis(teamData.consistency_analysis)}
               </CardContent>
             </Card>
           )}
@@ -299,60 +486,11 @@ const TeamBreakdown = () => {
               <CardHeader>
                 <CardTitle className="flex items-center gap-2">
                   <Calendar className="h-5 w-5" />
-                  Last {teamData.recent_matches.length} Matches
+                  Recent Matches
                 </CardTitle>
               </CardHeader>
               <CardContent>
                 {renderRecentMatches(teamData.recent_matches)}
-              </CardContent>
-            </Card>
-          )}
-
-          {/* Tactical Adaptability */}
-          {teamData.adaptability && (
-            <Card>
-              <CardHeader>
-                <CardTitle className="flex items-center gap-2">
-                  <TrendingUp className="h-5 w-5" />
-                  Tactical Adaptability
-                </CardTitle>
-              </CardHeader>
-              <CardContent>
-                <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
-                  <div>
-                    <h4 className="font-medium mb-3">Home vs Away</h4>
-                    <div className="space-y-2 text-sm">
-                      <div className="flex justify-between">
-                        <span>Home Style:</span>
-                        <Badge className={getArchetypeColor(teamData.adaptability.home_style)}>
-                          {teamData.adaptability.home_style || 'Varied'}
-                        </Badge>
-                      </div>
-                      <div className="flex justify-between">
-                        <span>Away Style:</span>
-                        <Badge className={getArchetypeColor(teamData.adaptability.away_style)}>
-                          {teamData.adaptability.away_style || 'Varied'}
-                        </Badge>
-                      </div>
-                      <div className="flex justify-between">
-                        <span>Adaptability Score:</span>
-                        <span className="font-mono">{(teamData.adaptability.adaptability_score * 100).toFixed(0)}%</span>
-                      </div>
-                    </div>
-                  </div>
-                  
-                  <div>
-                    <h4 className="font-medium mb-3">Style Variations</h4>
-                    <div className="space-y-1">
-                      {Object.entries(teamData.adaptability.style_distribution || {}).map(([style, count]) => (
-                        <div key={style} className="flex justify-between text-sm">
-                          <span>{style}:</span>
-                          <span>{count} matches</span>
-                        </div>
-                      ))}
-                    </div>
-                  </div>
-                </div>
               </CardContent>
             </Card>
           )}
