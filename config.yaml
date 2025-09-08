@@ -97,60 +97,103 @@ cli:
   cache_events: true
   verbose: true
 
-# Archetype categorization thresholds
+# Archetype categorization thresholds (research-based)
 archetype_thresholds:
   pressing:
     very_high:
-      ppda: [0, 8]
-      def_share_att_third: [0.4, 1.0]
+      ppda: [0, 8]  # exclusive upper bound
+      def_share_att_third: [0.40, 1.0]
     high:
-      ppda: [8, 12]
-      def_share_att_third: [0.25, 1.0]
+      ppda: [8, 12]  # exclusive upper bound  
+      def_share_att_third: [0.25, 0.40]  # exclusive upper bound
     mid:
-      ppda: [12, 18]
-      def_share_att_third: [0.15, 0.4]
+      ppda: [12, 18]  # exclusive upper bound
+      def_share_att_third: [0.15, 0.25]  # exclusive upper bound
     low:
-      ppda: [18, 100]
-      def_share_att_third: [0, 0.25]
+      ppda: [18, float('inf')]
+      def_share_att_third: [0.00, 0.15]  # exclusive upper bound
   
   block:
     high:
       block_height_x: [70, 120]
     mid:
-      block_height_x: [45, 70]
+      block_height_x: [45, 70]  # exclusive upper bound
     low:
-      block_height_x: [0, 45]
+      block_height_x: [0, 45]  # exclusive upper bound
   
   possession_directness:
     possession_based:
       possession_share: [0.55, 1.0]
-      directness: [0, 0.4]
+      directness: [0.00, 0.40]  # exclusive upper bound
     balanced:
-      possession_share: [0.45, 0.65]
-      directness: [0.3, 0.7]
+      possession_share: [0.45, 0.55]  # exclusive upper bound
+      directness: [0.40, 0.60]  # exclusive upper bound
     direct:
-      possession_share: [0, 0.55]
-      directness: [0.6, 1.0]
+      possession_share: [0.00, 0.45]  # exclusive upper bound
+      directness: [0.60, 1.0]
   
   width:
     wing_overload:
       wing_share: [0.75, 1.0]
-      cross_share: [0.08, 1.0]
+      cross_share: [0.05, 1.0]  # Updated based on research
     central_focus:
-      wing_share: [0, 0.5]
-      lane_center_share: [0.5, 1.0]
+      wing_share: [0.00, 0.60]  # exclusive upper bound
+      lane_center_share: [0.30, 1.0]  # Updated threshold
     balanced_channels:
-      wing_share: [0.5, 0.75]
-      lane_center_share: [0.3, 0.6]
+      wing_share: [0.60, 0.75]  # exclusive upper bound
+      lane_center_share: [0.20, 0.30]  # exclusive upper bound
   
   transition:
+    very_high:
+      counter_rate: [0.25, 1.0]  # New very high category
     high:
-      counter_rate: [0.15, 1.0]
+      counter_rate: [0.15, 0.25]  # exclusive upper bound
+    medium:
+      counter_rate: [0.10, 0.15]  # exclusive upper bound
     low:
-      counter_rate: [0, 0.15]
+      counter_rate: [0.00, 0.10]  # exclusive upper bound
   
   overlays:
     cross_heavy:
-      cross_share: [0.12, 1.0]
+      cross_share: [0.05, 1.0]  # Updated from research (was 0.12)
     set_piece_focus:
-      fouls_committed: [0, 8]  # Low fouls = disciplined set piece team
+      fouls_committed: [0, 9]  # Updated from research (was 8)
+    high_press_tactical_stops:
+      foul_share_att_third: [0.10, 1.0]  # New overlay
+    central_leaning:
+      lane_center_share: [0.30, 1.0]  # New overlay
+    sustained_low_block:
+      foul_share_def_third: [0.55, 1.0]  # New overlay
+    long_shot_heavy:
+      shots_outside_box_share: [0.50, 1.0]  # New overlay (when available)
+  
+  # Supporting metrics for detailed analysis (metadata only)
+  supporting_metrics:
+    pass_length:
+      short: [0, 17]
+      medium: [17, 22]
+      long: [22, float('inf')]
+    long_pass_share:
+      low: [0, 0.08]
+      mid: [0.08, 0.15]
+      high: [0.15, 1.0]
+    forward_pass_share:
+      low: [0, 0.35]
+      mid: [0.35, 0.45]
+      high: [0.45, 1.0]
+    passes_per_possession:
+      direct: [0, 3]
+      balanced: [3, 6]
+      patient: [6, float('inf')]
+    xg_mean:
+      low_quality: [0, 0.10]
+      average: [0.10, 0.15]
+      high_quality: [0.15, 1.0]
+    discipline:
+      fouls_per_opp_pass:
+        low: [0, 0.020]
+        mid: [0.020, 0.030]
+        high: [0.030, 1.0]
+      yellows_per_match:
+        low: [0, 1.5]
+        high: [2.0, 10.0]
