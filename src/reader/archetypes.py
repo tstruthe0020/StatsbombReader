@@ -32,15 +32,15 @@ def derive_archetype(row) -> str:
     if p == "Very High Press":
         p = "High Press"
 
-    # ---------- CORE RULES (first match wins)
+    # ---------- CORE RULES (first match wins, updated for new transition categories)
     core = None
-    if p == "Low Press" and b == "Low Block" and t == "High Transition":
+    if p == "Low Press" and b == "Low Block" and t in ["High Transition", "Very High Transition"]:
         core = "Low-Block Counter"
     elif p == "Low Press" and b == "Low Block":
         core = "Low-Block Contain"
-    elif p == "High Press" and b == "High Block" and d == "Possession-Based":
+    elif p in ["High Press", "Very High Press"] and b == "High Block" and d == "Possession-Based":
         core = "High-Press Possession"
-    elif p == "High Press" and b == "High Block" and (d == "Direct" or t == "High Transition"):
+    elif p in ["High Press", "Very High Press"] and b == "High Block" and (d == "Direct" or t in ["High Transition", "Very High Transition"]):
         core = "High-Press Direct"
     elif p == "Mid Press" and b == "Mid Block" and d == "Possession-Based":
         core = "Mid-Block Possession"
