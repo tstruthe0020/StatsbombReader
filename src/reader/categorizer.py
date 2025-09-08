@@ -209,21 +209,22 @@ def categorize_width(row: pd.Series, thresholds: Dict) -> str:
         return 'Balanced Channels'
 
 def categorize_transition(row: pd.Series, thresholds: Dict) -> str:
-    """Categorize transition play intensity."""
-    trans_thresholds = thresholds.get('transition', {})
-    
+    """Categorize transition play intensity using research-based thresholds."""
     counter_rate = row.get('counter_rate', 0)
     
-    for category, criteria in trans_thresholds.items():
-        counter_range = criteria.get('counter_rate', [0, 1])
-        
-        if counter_range[0] <= counter_rate <= counter_range[1]:
-            return {
-                'high': 'High Transition',
-                'low': 'Low Transition'
-            }.get(category, 'Low Transition')
+    # Handle None values
+    if counter_rate is None or pd.isna(counter_rate):
+        counter_rate = 0
     
-    return 'Low Transition'
+    # Research-based categorization with new granularity
+    if counter_rate >= 0.25:
+        return 'Very High Transition'
+    elif counter_rate >= 0.15:
+        return 'High Transition'
+    elif counter_rate >= 0.10:
+        return 'Medium Transition'
+    else:
+        return 'Low Transition'
 
 def categorize_overlays(row: pd.Series, thresholds: Dict) -> List[str]:
     """Categorize overlay tactical characteristics."""
