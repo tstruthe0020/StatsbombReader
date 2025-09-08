@@ -86,7 +86,7 @@ def attach_style_tags(df: pd.DataFrame, config: Dict) -> pd.DataFrame:
     return df_tagged
 
 def categorize_pressing(row: pd.Series, thresholds: Dict) -> str:
-    """Categorize pressing intensity."""
+    """Categorize pressing intensity using research-based thresholds."""
     pressing_thresholds = thresholds.get('pressing', {})
     
     ppda = row.get('ppda', float('inf'))
@@ -96,21 +96,38 @@ def categorize_pressing(row: pd.Series, thresholds: Dict) -> str:
     if np.isinf(ppda):
         ppda = 50  # Very low pressing
     
-    # Check each category (order matters)
-    for category, criteria in pressing_thresholds.items():
-        ppda_range = criteria.get('ppda', [0, 100])
-        att_range = criteria.get('def_share_att_third', [0, 1])
-        
-        if (ppda_range[0] <= ppda < ppda_range[1] and 
-            att_range[0] <= att_third_share <= att_range[1]):
-            return {
-                'very_high': 'Very High Press',
-                'high': 'High Press', 
-                'mid': 'Mid Press',
-                'low': 'Low Press'
-            }.get(category, 'Mid Press')
+    # PPDA categories (lower PPDA = more pressing)
+    ppda_category = None
+    if ppda < 8:
+        ppda_category = 'very_high'
+    elif ppda < 12:
+        ppda_category = 'high'
+    elif ppda < 18:
+        ppda_category = 'mid'
+    else:
+        ppda_category = 'low'
     
-    return 'Mid Press'
+    # Attacking third share categories (higher share = more pressing)
+    att_third_category = None
+    if att_third_share >= 0.40:
+        att_third_category = 'very_high'
+    elif att_third_share >= 0.25:
+        att_third_category = 'high'
+    elif att_third_share >= 0.15:
+        att_third_category = 'mid'
+    else:
+        att_third_category = 'low'
+    
+    # Combine both metrics - take the higher pressing intensity
+    category_priority = {'very_high': 4, 'high': 3, 'mid': 2, 'low': 1}
+    final_category = max(ppda_category, att_third_category, key=lambda x: category_priority.get(x, 0))
+    
+    return {
+        'very_high': 'Very High Press',
+        'high': 'High Press', 
+        'mid': 'Mid Press',
+        'low': 'Low Press'
+    }.get(final_category, 'Mid Press')
 
 def categorize_block(row: pd.Series, thresholds: Dict) -> str:
     """Categorize defensive block height."""
