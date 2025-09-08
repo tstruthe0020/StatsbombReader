@@ -187,31 +187,26 @@ def categorize_possession_directness(row: pd.Series, thresholds: Dict) -> str:
     }.get(final_category, 'Balanced')
 
 def categorize_width(row: pd.Series, thresholds: Dict) -> str:
-    """Categorize width usage and channel preference."""
-    width_thresholds = thresholds.get('width', {})
-    
+    """Categorize width usage and channel preference using research-based thresholds."""
     wing_share = row.get('wing_share', 0.67)
     center_share = row.get('lane_center_share', 0.33)
     cross_share = row.get('cross_share', 0.05)
     
-    for category, criteria in width_thresholds.items():
-        wing_range = criteria.get('wing_share', [0, 1])
-        center_range = criteria.get('lane_center_share', [0, 1])
-        cross_range = criteria.get('cross_share', [0, 1])
-        
-        wing_match = wing_range[0] <= wing_share <= wing_range[1]
-        center_match = center_range[0] <= center_share <= center_range[1]
-        cross_match = cross_range[0] <= cross_share <= cross_range[1]
-        
-        # For wing overload, require both wing share and cross criteria
-        if category == 'wing_overload' and wing_match and cross_match:
-            return 'Wing Overload'
-        elif category == 'central_focus' and wing_match and center_match:
-            return 'Central Focus'
-        elif category == 'balanced_channels' and wing_match:
-            return 'Balanced Channels'
+    # Handle None values
+    if wing_share is None or pd.isna(wing_share):
+        wing_share = 0.67
+    if center_share is None or pd.isna(center_share):
+        center_share = 0.33
+    if cross_share is None or pd.isna(cross_share):
+        cross_share = 0.05
     
-    return 'Balanced Channels'
+    # Research-based categorization with exclusive bounds
+    if wing_share >= 0.75:
+        return 'Wing Overload'
+    elif wing_share < 0.60 and center_share >= 0.30:
+        return 'Central Focus'
+    else:
+        return 'Balanced Channels'
 
 def categorize_transition(row: pd.Series, thresholds: Dict) -> str:
     """Categorize transition play intensity."""
